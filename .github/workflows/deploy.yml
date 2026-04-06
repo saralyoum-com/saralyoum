@@ -1,0 +1,36 @@
+name: نشر على Vercel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    name: نشر
+    runs-on: ubuntu-latest
+    steps:
+      - name: استنساخ الكود
+        uses: actions/checkout@v4
+
+      - name: إعداد Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: تثبيت Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: نشر على Vercel (Production)
+        if: github.ref == 'refs/heads/main'
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+      - name: نشر Preview
+        if: github.ref != 'refs/heads/main'
+        run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes
