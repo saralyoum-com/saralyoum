@@ -3,6 +3,8 @@ import { Tajawal } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { AdSenseScript } from "@/components/AdSense";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
@@ -40,6 +42,8 @@ export default function RootLayout({
         <main>{children}</main>
         <Footer />
       </body>
+      <GoogleAnalytics gaId="G-YCCGFZPHE7" />
+      <AdSenseScript />
     </html>
   );
 }

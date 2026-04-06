@@ -2,6 +2,7 @@ import Link from "next/link";
 import PriceTicker from "@/components/PriceTicker";
 import PriceCard from "@/components/PriceCard";
 import Disclaimer from "@/components/Disclaimer";
+import AdSense from "@/components/AdSense";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getMockTechnicalData } from "@/lib/technical";
@@ -73,6 +74,9 @@ export default async function HomePage() {
         {/* إخلاء المسؤولية */}
         <Disclaimer />
 
+        {/* إعلان بعد البطاقات */}
+        <AdSense slot="1234567890" format="horizontal" className="my-6" />
+
         {/* CTA التنبيهات */}
         <div className="bg-gradient-to-l from-gold/5 to-gold/10 border border-gold/20 rounded-2xl p-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
@@ -141,6 +145,11 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      {/* إعلان بين الأخبار والروابط */}
+      <div className="max-w-7xl mx-auto px-4 mb-6">
+        <AdSense slot="0987654321" format="auto" />
+      </div>
 
       {/* روابط الصفحات */}
       <section className="max-w-7xl mx-auto px-4 pb-12">
