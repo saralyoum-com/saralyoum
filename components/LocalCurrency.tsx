@@ -44,7 +44,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         if (loc.currency !== "USD" && ratesRes.ok) {
           const ratesData = await ratesRes.json();
           const found = ratesData.rates?.find(
-            (r: { currency: string; rate: number }) => r.currency === loc.currency
+            (r: { code: string; rate: number }) => r.code === loc.currency
           );
           if (found) rate = found.rate;
         }

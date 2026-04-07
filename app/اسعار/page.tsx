@@ -6,6 +6,106 @@ import Disclaimer from "@/components/Disclaimer";
 import { getMockTechnicalData } from "@/lib/technical";
 import { PriceData } from "@/types";
 
+type Rate = { code: string; nameAr: string; rate: number; flag: string; group?: string };
+
+function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
+  const [group, setGroup] = useState<"arab" | "world" | "all">("arab");
+  const [usdAmount, setUsdAmount] = useState("1");
+
+  const arabCurrencies = currencies.filter((r) => r.group === "arab");
+  const worldCurrencies = currencies.filter((r) => r.group === "world");
+  const displayed =
+    group === "arab" ? arabCurrencies :
+    group === "world" ? worldCurrencies :
+    currencies;
+
+  const usd = parseFloat(usdAmount) || 1;
+
+  return (
+    <div>
+      {/* محوّل العملات السريع */}
+      <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5 mb-6">
+        <h3 className="font-bold text-text-primary mb-3">💱 محوّل العملات</h3>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <label className="text-text-secondary text-xs mb-1 block">المبلغ بالدولار (USD)</label>
+            <input
+              type="number"
+              value={usdAmount}
+              onChange={(e) => setUsdAmount(e.target.value)}
+              dir="ltr"
+              className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-gold text-sm"
+            />
+          </div>
+          <div className="text-gold text-2xl mt-5">→</div>
+          <div className="flex-1 text-sm text-text-secondary mt-5">
+            يُعرض في الجدول أدناه
+          </div>
+        </div>
+      </div>
+
+      {/* تبويبات المجموعات */}
+      <div className="flex gap-2 mb-4">
+        {[
+          { id: "arab", label: "🌍 عربية" },
+          { id: "world", label: "🌐 عالمية" },
+          { id: "all", label: "الكل" },
+        ].map((g) => (
+          <button
+            key={g.id}
+            onClick={() => setGroup(g.id as "arab" | "world" | "all")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              group === g.id
+                ? "bg-gold text-background"
+                : "bg-surface border border-border text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-3 px-5 py-3 border-b border-border bg-surface-2 text-xs text-text-secondary font-medium">
+          <span>العملة</span>
+          <span className="text-center">مقابل $1</span>
+          <span className="text-left">قيمة ${usdAmount || "1"}</span>
+        </div>
+        {displayed.map((rate, idx) => {
+          const converted = usd * rate.rate;
+          const decimals = rate.rate < 0.1 ? 0 : rate.rate < 10 ? 3 : 2;
+          return (
+            <div
+              key={rate.code}
+              className={`grid grid-cols-3 items-center px-5 py-3.5 hover:bg-surface-2 transition-colors ${
+                idx !== displayed.length - 1 ? "border-b border-border/50" : ""
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">{rate.flag}</span>
+                <div>
+                  <div className="font-bold text-text-primary text-sm leading-tight">{rate.nameAr}</div>
+                  <div className="text-text-secondary text-xs">{rate.code}</div>
+                </div>
+              </div>
+              <div className="text-center text-text-primary font-mono text-sm">
+                {rate.rate.toFixed(decimals)}
+              </div>
+              <div className="text-left text-gold font-bold text-sm">
+                {converted.toLocaleString("en-US", { maximumFractionDigits: decimals })}
+                <span className="text-text-secondary font-normal text-xs mr-1">{rate.code}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-text-secondary text-xs text-center mt-3">
+        📅 تُحدَّث كل ساعة • المصدر: ExchangeRate-API
+      </p>
+    </div>
+  );
+}
+
 const TABS = [
   { id: "metals", label: "🥇 ذهب وفضة" },
   { id: "crypto", label: "₿ العملات الرقمية" },
@@ -212,32 +312,7 @@ export default function PricesPage() {
             </div>
           </div>
         ) : activeTab === "currencies" && currencies.length > 0 ? (
-          <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-border bg-surface-2 text-sm text-text-secondary">
-              السعر مقابل 1 دولار أمريكي (USD)
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {currencies.map((rate, idx) => (
-                <div
-                  key={rate.code}
-                  className={`flex items-center justify-between p-4 ${
-                    idx !== currencies.length - 1 ? "border-b border-border" : ""
-                  } hover:bg-surface-2 transition-colors`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{rate.flag}</span>
-                    <div>
-                      <div className="font-bold text-text-primary text-sm">{rate.nameAr}</div>
-                      <div className="text-text-secondary text-xs">{rate.code}</div>
-                    </div>
-                  </div>
-                  <div className="text-text-primary font-bold">
-                    {rate.rate.toFixed(rate.rate < 1 ? 4 : 2)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <CurrenciesTab currencies={currencies} />
         ) : (
           <div className="text-center py-16 text-text-secondary">
             <p className="text-4xl mb-3">📡</p>
