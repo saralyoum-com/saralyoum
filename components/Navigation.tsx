@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navLinks = [
   { href: "/", label: "الرئيسية" },
   { href: "/اسعار", label: "الأسعار" },
+  { href: "/حاسبة-الذهب", label: "🧮 الحاسبة" },
   { href: "/اخبار", label: "الأخبار" },
   { href: "/تنبيهات", label: "التنبيهات" },
 ];
