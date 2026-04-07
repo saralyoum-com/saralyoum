@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { AdSenseScript } from "@/components/AdSense";
 import { LocationProvider } from "@/components/LocalCurrency";
+import { LanguageProvider } from "@/components/LanguageContext";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
@@ -39,11 +40,13 @@ export default function RootLayout({
       <body
         className={`${tajawal.variable} font-tajawal bg-background text-text-primary antialiased min-h-screen`}
       >
-        <Navigation />
-        <LocationProvider>
-          <main>{children}</main>
-        </LocationProvider>
-        <Footer />
+        <LanguageProvider>
+          <Navigation />
+          <LocationProvider>
+            <main>{children}</main>
+          </LocationProvider>
+          <Footer />
+        </LanguageProvider>
       </body>
       <GoogleAnalytics gaId="G-YCCGFZPHE7" />
       <AdSenseScript />

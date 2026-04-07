@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import PriceCard from "@/components/PriceCard";
 import Disclaimer from "@/components/Disclaimer";
+import AdSlot from "@/components/AdSlot";
 import { getMockTechnicalData } from "@/lib/technical";
 import { PriceData } from "@/types";
 
@@ -170,6 +171,10 @@ export default function PricesPage() {
           </button>
         ))}
       </div>
+
+      {/* إعلان بعد التبويبات وقبل المحتوى */}
+      <AdSlot size="leaderboard" slot="2345678901" className="mb-6" />
+      <AdSlot size="mobile-banner" slot="2345678902" className="mb-6" />
 
       <Disclaimer compact />
 

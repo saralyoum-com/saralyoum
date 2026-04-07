@@ -4,22 +4,29 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLang } from "@/components/LanguageContext";
 
-const navLinks = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/اسعار", label: "الأسعار" },
-  { href: "/حاسبة-الذهب", label: "🧮 الحاسبة" },
-  { href: "/اخبار", label: "الأخبار" },
-  { href: "/تنبيهات", label: "التنبيهات" },
-];
+const navHrefs = [
+  { href: "/", key: "home" },
+  { href: "/اسعار", key: "prices" },
+  { href: "/حاسبة-الذهب", key: "calculator" },
+  { href: "/اخبار", key: "news" },
+  { href: "/تنبيهات", key: "alerts" },
+] as const;
 
 export default function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { lang, t, toggleLang } = useLang();
+
+  const navLinks = navHrefs.map((n) => ({
+    href: n.href,
+    label: t.nav[n.key as keyof typeof t.nav],
+  }));
 
   return (
     <header
-      dir="rtl"
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border"
     >
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -28,9 +35,9 @@ export default function Navigation() {
           <span className="text-2xl">🏅</span>
           <div className="leading-tight">
             <div className="text-gold font-bold text-lg group-hover:text-gold-light transition-colors">
-              سعر اليوم
+              {t.siteName}
             </div>
-            <div className="text-text-secondary text-xs">أسعار لحظية</div>
+            <div className="text-text-secondary text-xs">{t.tagline}</div>
           </div>
         </Link>
 
@@ -51,13 +58,22 @@ export default function Navigation() {
           ))}
         </nav>
 
-        {/* زر التنبيه + هامبرغر */}
-        <div className="flex items-center gap-3">
+        {/* أزرار يمين */}
+        <div className="flex items-center gap-2">
+          {/* زر تبديل اللغة */}
+          <button
+            onClick={toggleLang}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-border text-text-secondary hover:text-text-primary hover:border-gold/40 transition-all"
+            aria-label="Toggle language"
+          >
+            🌐 {lang === "ar" ? "EN" : "عر"}
+          </button>
+
           <Link
             href="/تنبيهات"
             className="hidden md:flex items-center gap-2 bg-gold text-background px-4 py-2 rounded-xl text-sm font-bold hover:bg-gold-light transition-colors"
           >
-            🔔 اشترك مجاناً
+            {t.nav.subscribe}
           </Link>
 
           <button
@@ -112,7 +128,7 @@ export default function Navigation() {
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-center gap-2 bg-gold text-background px-4 py-3 rounded-xl text-sm font-bold mt-2"
               >
-                🔔 اشترك في التنبيهات مجاناً
+                {t.nav.subscribe}
               </Link>
             </div>
           </motion.div>

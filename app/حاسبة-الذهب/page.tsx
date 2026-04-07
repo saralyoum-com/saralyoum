@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "@/components/LocalCurrency";
 import Disclaimer from "@/components/Disclaimer";
+import AdSlot from "@/components/AdSlot";
 import { motion } from "framer-motion";
 
 const KARATS = [
@@ -80,6 +81,9 @@ export default function GoldCalculatorPage() {
           </p>
         )}
       </div>
+
+      <AdSlot size="leaderboard" slot="4567890123" className="mb-6" />
+      <AdSlot size="mobile-banner" slot="4567890124" className="mb-6" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* ── حاسبة السعر ── */}

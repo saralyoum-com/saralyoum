@@ -1,15 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useLang } from "@/components/LanguageContext";
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { lang, t } = useLang();
 
   return (
-    <footer dir="rtl" className="bg-surface border-t border-border mt-16">
+    <footer dir={lang === "ar" ? "rtl" : "ltr"} className="bg-surface border-t border-border mt-16">
       <div className="max-w-7xl mx-auto px-4 py-10">
         {/* إخلاء المسؤولية الدائم */}
         <div className="bg-surface-2 border border-border rounded-2xl p-4 mb-8 text-sm text-text-secondary text-center">
-          ⚠️ المحتوى لأغراض تعليمية وإعلامية فقط. لا يمثل نصيحة استثمارية أو مالية.
-          الاستثمار ينطوي على مخاطر. استشر مستشاراً مالياً مرخصاً قبل أي قرار.
+          {t.disclaimerFooter}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
@@ -17,43 +20,47 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">🏅</span>
-              <span className="text-gold font-bold text-lg">سعر اليوم</span>
+              <span className="text-gold font-bold text-lg">{t.siteName}</span>
             </div>
             <p className="text-text-secondary text-sm leading-relaxed">
-              موقع عربي متكامل لمتابعة أسعار الذهب والفضة والعملات الرقمية
-              مع أخبار اقتصادية يومية وتنبيهات ذكية للأسواق.
+              {t.footer.about}
             </p>
           </div>
 
           {/* روابط سريعة */}
           <div>
-            <h4 className="text-text-primary font-bold mb-3">روابط سريعة</h4>
+            <h4 className="text-text-primary font-bold mb-3">{t.footer.quickLinks}</h4>
             <div className="flex flex-col gap-2">
               {[
-                { href: "/اسعار", label: "الأسعار" },
-                { href: "/اخبار", label: "الأخبار" },
-                { href: "/تنبيهات", label: "التنبيهات" },
-                { href: "/من-نحن", label: "من نحن" },
+                { href: "/اسعار", labelKey: "prices" },
+                { href: "/اخبار", labelKey: "news" },
+                { href: "/تنبيهات", labelKey: "alerts" },
               ].map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className="text-text-secondary hover:text-gold text-sm transition-colors"
                 >
-                  {link.label}
+                  {t.nav[link.labelKey as keyof typeof t.nav]}
                 </Link>
               ))}
+              <Link
+                href="/من-نحن"
+                className="text-text-secondary hover:text-gold text-sm transition-colors"
+              >
+                {lang === "ar" ? "من نحن" : "About Us"}
+              </Link>
             </div>
           </div>
 
           {/* قانوني */}
           <div>
-            <h4 className="text-text-primary font-bold mb-3">قانوني</h4>
+            <h4 className="text-text-primary font-bold mb-3">{t.footer.legal}</h4>
             <div className="flex flex-col gap-2">
               {[
-                { href: "/إخلاء-مسؤولية", label: "إخلاء المسؤولية" },
-                { href: "/شروط-الاستخدام", label: "شروط الاستخدام" },
-                { href: "/سياسة-الخصوصية", label: "سياسة الخصوصية" },
+                { href: "/إخلاء-مسؤولية", label: t.footer.disclaimer },
+                { href: "/شروط-الاستخدام", label: t.footer.terms },
+                { href: "/سياسة-الخصوصية", label: t.footer.privacy },
               ].map((link) => (
                 <Link
                   key={link.href}
@@ -69,10 +76,10 @@ export default function Footer() {
 
         <div className="border-t border-border pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-text-secondary text-xs">
-            © {year} سعر اليوم. جميع الحقوق محفوظة.
+            © {year} {t.siteName}. {t.footer.allRights}
           </p>
           <p className="text-text-secondary text-xs">
-            الأسعار مؤشرية وليست للتداول المباشر
+            {t.footer.indicative}
           </p>
         </div>
       </div>
