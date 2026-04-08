@@ -9,6 +9,15 @@ import { NewsItem } from "@/types";
 
 export const revalidate = 60;
 
+export const metadata = {
+  title: "سعر اليوم | أسعار الذهب والفضة والعملات الرقمية لحظياً",
+  description:
+    "تابع أسعار الذهب عيار 24/22/21/18 والفضة والبيتكوين والإيثيريوم لحظياً مع أكثر من 27 عملة عربية وعالمية وأخبار اقتصادية يومية.",
+  alternates: {
+    canonical: "https://saralyoum.vercel.app",
+  },
+};
+
 async function getNews(): Promise<NewsItem[]> {
   try {
     const baseUrl = process.env.VERCEL_URL
@@ -35,8 +44,38 @@ export default async function HomePage() {
   const news = await getNews();
   const tickerPrices = [gold, silver, bitcoin, ethereum];
 
+  const goldPriceUSD = gold?.price ?? 0;
+  const silverPriceUSD = silver?.price ?? 0;
+
   return (
     <div className="min-h-screen">
+      {/* JSON-LD: FinancialProduct structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "أسعار المعادن الثمينة والعملات الرقمية",
+            url: "https://saralyoum.vercel.app",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "سعر الذهب",
+                description: `سعر الذهب اليوم: $${goldPriceUSD.toFixed(2)} للأونصة`,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "سعر الفضة",
+                description: `سعر الفضة اليوم: $${silverPriceUSD.toFixed(2)} للأونصة`,
+              },
+            ],
+          }),
+        }}
+      />
+
       {/* شريط الأسعار المتحرك */}
       <PriceTicker prices={tickerPrices} />
 

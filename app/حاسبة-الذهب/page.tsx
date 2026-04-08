@@ -2,30 +2,34 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "@/components/LocalCurrency";
+import { useLang } from "@/components/LanguageContext";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { motion } from "framer-motion";
 
 const KARATS = [
-  { value: 24, label: "عيار 24", purity: 1 },
-  { value: 22, label: "عيار 22", purity: 22 / 24 },
-  { value: 21, label: "عيار 21", purity: 21 / 24 },
-  { value: 18, label: "عيار 18", purity: 18 / 24 },
+  { value: 24, labelAr: "عيار 24", labelEn: "24K", purity: 1 },
+  { value: 22, labelAr: "عيار 22", labelEn: "22K", purity: 22 / 24 },
+  { value: 21, labelAr: "عيار 21", labelEn: "21K", purity: 21 / 24 },
+  { value: 18, labelAr: "عيار 18", labelEn: "18K", purity: 18 / 24 },
 ];
 
-// نصاب الذهب: 85 جرام من الذهب الخالص (عيار 24)
+// Nisab: 85g of pure gold (24K)
 const NISAB_GRAMS = 85;
 
 export default function GoldCalculatorPage() {
   const loc = useLocation();
+  const { lang } = useLang();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
   const [goldPricePerOz, setGoldPricePerOz] = useState(0);
   const [loadingPrice, setLoadingPrice] = useState(true);
 
-  // حاسبة الذهب
+  // Gold value calculator
   const [weight, setWeight] = useState("");
   const [karat, setKarat] = useState(21);
 
-  // حاسبة الزكاة
+  // Zakat calculator
   const [goldWeightZakat, setGoldWeightZakat] = useState("");
   const [karatZakat, setKaratZakat] = useState(21);
   const [savings, setSavings] = useState("");
@@ -45,13 +49,13 @@ export default function GoldCalculatorPage() {
 
   const pricePerGram24k = goldPricePerOz / 31.1035;
 
-  // حساب قيمة الذهب
+  // Gold value calculation
   const selectedKarat = KARATS.find((k) => k.value === karat)!;
   const pricePerGramSelected = pricePerGram24k * selectedKarat.purity;
   const totalUSD = weight ? parseFloat(weight) * pricePerGramSelected : 0;
   const totalLocal = totalUSD * loc.rate;
 
-  // حساب الزكاة
+  // Zakat calculation
   const selectedKaratZakat = KARATS.find((k) => k.value === karatZakat)!;
   const goldGramsAs24k = goldWeightZakat
     ? parseFloat(goldWeightZakat) * selectedKaratZakat.purity
@@ -64,20 +68,28 @@ export default function GoldCalculatorPage() {
   const zakatDueUSD = reachedNisab ? totalWealthUSD * 0.025 : 0;
   const zakatDueLocal = zakatDueUSD * loc.rate;
 
-  // جدول العيارات اللحظي
+  // Live karat price table
   const karatTable = KARATS.map((k) => ({
     ...k,
     pricePerGram: pricePerGram24k * k.purity,
   }));
 
   return (
-    <div dir="rtl" className="max-w-4xl mx-auto px-4 py-8">
+    <div dir={dir} className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">🧮 حاسبة الذهب</h1>
-        <p className="text-text-secondary">احسب قيمة ذهبك وزكاتك بدقة</p>
+        <h1 className="text-3xl font-black text-text-primary mb-2">
+          {lang === "ar" ? "🧮 حاسبة الذهب" : "🧮 Gold Calculator"}
+        </h1>
+        <p className="text-text-secondary">
+          {lang === "ar"
+            ? "احسب قيمة ذهبك وزكاتك بدقة"
+            : "Calculate your gold value and zakat accurately"}
+        </p>
         {!loadingPrice && (
           <p className="text-xs text-gold mt-1">
-            سعر الأونصة الحالي: ${goldPricePerOz.toFixed(2)} — {pricePerGram24k.toFixed(2)}$/جرام (24K)
+            {lang === "ar"
+              ? `سعر الأونصة الحالي: $${goldPricePerOz.toFixed(2)} — ${pricePerGram24k.toFixed(2)}$/جرام (24K)`
+              : `Current oz price: $${goldPricePerOz.toFixed(2)} — $${pricePerGram24k.toFixed(2)}/gram (24K)`}
           </p>
         )}
       </div>
@@ -86,31 +98,35 @@ export default function GoldCalculatorPage() {
       <AdSlot size="mobile-banner" slot="4567890124" className="mb-6" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* ── حاسبة السعر ── */}
+        {/* Gold Price Calculator */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <h2 className="text-xl font-bold text-text-primary mb-5 flex items-center gap-2">
-            🥇 حاسبة سعر الذهب
+            {lang === "ar" ? "🥇 حاسبة سعر الذهب" : "🥇 Gold Price Calculator"}
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-text-secondary text-sm mb-2">الوزن (جرام)</label>
+              <label className="block text-text-secondary text-sm mb-2">
+                {lang === "ar" ? "الوزن (جرام)" : "Weight (grams)"}
+              </label>
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                placeholder="مثال: 10"
+                placeholder={lang === "ar" ? "مثال: 10" : "e.g. 10"}
                 dir="ltr"
                 className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-text-secondary text-sm mb-2">العيار</label>
+              <label className="block text-text-secondary text-sm mb-2">
+                {lang === "ar" ? "العيار" : "Karat"}
+              </label>
               <div className="grid grid-cols-4 gap-2">
                 {KARATS.map((k) => (
                   <button
@@ -122,7 +138,7 @@ export default function GoldCalculatorPage() {
                         : "border-border text-text-secondary hover:border-gold/40"
                     }`}
                   >
-                    {k.value}K
+                    {lang === "ar" ? k.labelAr : k.labelEn}
                   </button>
                 ))}
               </div>
@@ -137,7 +153,7 @@ export default function GoldCalculatorPage() {
             >
               <div className="text-center">
                 <div className="text-text-secondary text-sm mb-1">
-                  {weight}جم × {selectedKarat.label} × ${pricePerGramSelected.toFixed(2)}/جم
+                  {weight}{lang === "ar" ? "جم" : "g"} × {lang === "ar" ? selectedKarat.labelAr : selectedKarat.labelEn} × ${pricePerGramSelected.toFixed(2)}/{lang === "ar" ? "جم" : "g"}
                 </div>
                 <div className="text-3xl font-black text-gold">
                   ${totalUSD.toFixed(2)}
@@ -152,7 +168,7 @@ export default function GoldCalculatorPage() {
           )}
         </motion.div>
 
-        {/* ── حاسبة الزكاة ── */}
+        {/* Zakat Calculator */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -160,21 +176,25 @@ export default function GoldCalculatorPage() {
           className="bg-surface border border-border rounded-2xl p-6"
         >
           <h2 className="text-xl font-bold text-text-primary mb-1 flex items-center gap-2">
-            ☪️ حاسبة الزكاة
+            {lang === "ar" ? "☪️ حاسبة الزكاة" : "☪️ Zakat Calculator"}
           </h2>
           <p className="text-text-secondary text-xs mb-5">
-            نصاب الذهب: 85 جرام (عيار 24) • معدل الزكاة: 2.5%
+            {lang === "ar"
+              ? "نصاب الذهب: 85 جرام (عيار 24) • معدل الزكاة: 2.5%"
+              : "Gold Nisab: 85g (24K) • Zakat rate: 2.5%"}
           </p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-text-secondary text-sm mb-2">وزن الذهب (جرام)</label>
+              <label className="block text-text-secondary text-sm mb-2">
+                {lang === "ar" ? "وزن الذهب (جرام)" : "Gold weight (grams)"}
+              </label>
               <div className="flex gap-2">
                 <input
                   type="number"
                   value={goldWeightZakat}
                   onChange={(e) => setGoldWeightZakat(e.target.value)}
-                  placeholder="مثال: 100"
+                  placeholder={lang === "ar" ? "مثال: 100" : "e.g. 100"}
                   dir="ltr"
                   className="flex-1 bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
                 />
@@ -184,7 +204,9 @@ export default function GoldCalculatorPage() {
                   className="bg-surface-2 border border-border rounded-xl px-3 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
                 >
                   {KARATS.map((k) => (
-                    <option key={k.value} value={k.value}>{k.value}K</option>
+                    <option key={k.value} value={k.value}>
+                      {lang === "ar" ? k.labelAr : k.labelEn}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -192,7 +214,9 @@ export default function GoldCalculatorPage() {
 
             <div>
               <label className="block text-text-secondary text-sm mb-2">
-                النقد والمدخرات (USD) — اختياري
+                {lang === "ar"
+                  ? "النقد والمدخرات (USD) — اختياري"
+                  : "Cash & Savings (USD) — optional"}
               </label>
               <input
                 type="number"
@@ -217,31 +241,39 @@ export default function GoldCalculatorPage() {
             >
               <div className="space-y-2 text-sm mb-3">
                 <div className="flex justify-between text-text-secondary">
-                  <span>قيمة نصاب الذهب:</span>
+                  <span>{lang === "ar" ? "قيمة نصاب الذهب:" : "Gold Nisab value:"}</span>
                   <span>${nisabValueUSD.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between text-text-secondary">
-                  <span>إجمالي ثروتك:</span>
+                  <span>{lang === "ar" ? "إجمالي ثروتك:" : "Total wealth:"}</span>
                   <span>${totalWealthUSD.toFixed(0)}</span>
                 </div>
               </div>
 
               {reachedNisab ? (
                 <div className="text-center">
-                  <div className="text-rise font-bold mb-1">✅ بلغت النصاب — تجب الزكاة</div>
+                  <div className="text-rise font-bold mb-1">
+                    {lang === "ar" ? "✅ بلغت النصاب — تجب الزكاة" : "✅ Nisab reached — Zakat is due"}
+                  </div>
                   <div className="text-2xl font-black text-gold">${zakatDueUSD.toFixed(2)}</div>
                   {loc.currency !== "USD" && (
                     <div className="text-lg font-bold text-text-primary">
                       ≈ {zakatDueLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currencySymbol}
                     </div>
                   )}
-                  <div className="text-text-secondary text-xs mt-2">2.5% من إجمالي الثروة</div>
+                  <div className="text-text-secondary text-xs mt-2">
+                    {lang === "ar" ? "2.5% من إجمالي الثروة" : "2.5% of total wealth"}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center text-text-secondary">
-                  <div className="text-lg font-bold">لم تبلغ النصاب بعد</div>
+                  <div className="text-lg font-bold">
+                    {lang === "ar" ? "لم تبلغ النصاب بعد" : "Nisab not yet reached"}
+                  </div>
                   <div className="text-xs mt-1">
-                    تحتاج ${(nisabValueUSD - totalWealthUSD).toFixed(0)} إضافية للوصول للنصاب
+                    {lang === "ar"
+                      ? `تحتاج $${(nisabValueUSD - totalWealthUSD).toFixed(0)} إضافية للوصول للنصاب`
+                      : `You need $${(nisabValueUSD - totalWealthUSD).toFixed(0)} more to reach Nisab`}
                   </div>
                 </div>
               )}
@@ -250,14 +282,16 @@ export default function GoldCalculatorPage() {
         </motion.div>
       </div>
 
-      {/* ── جدول أسعار العيارات ── */}
+      {/* Live Karat Price Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="mt-6 bg-surface border border-border rounded-2xl p-6"
       >
-        <h2 className="text-xl font-bold text-text-primary mb-4">📊 أسعار العيارات اللحظية</h2>
+        <h2 className="text-xl font-bold text-text-primary mb-4">
+          {lang === "ar" ? "📊 أسعار العيارات اللحظية" : "📊 Live Karat Prices"}
+        </h2>
         {loadingPrice ? (
           <div className="animate-pulse space-y-2">
             {[1, 2, 3, 4].map((i) => (
@@ -269,18 +303,28 @@ export default function GoldCalculatorPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-text-secondary border-b border-border">
-                  <th className="text-right pb-3 font-medium">العيار</th>
-                  <th className="text-center pb-3 font-medium">السعر/جرام (USD)</th>
+                  <th className={`${lang === "ar" ? "text-right" : "text-left"} pb-3 font-medium`}>
+                    {lang === "ar" ? "العيار" : "Karat"}
+                  </th>
+                  <th className="text-center pb-3 font-medium">
+                    {lang === "ar" ? "السعر/جرام (USD)" : "Price/gram (USD)"}
+                  </th>
                   {loc.currency !== "USD" && (
-                    <th className="text-center pb-3 font-medium">السعر/جرام ({loc.currencySymbol})</th>
+                    <th className="text-center pb-3 font-medium">
+                      {lang === "ar"
+                        ? `السعر/جرام (${loc.currencySymbol})`
+                        : `Price/gram (${loc.currencySymbol})`}
+                    </th>
                   )}
-                  <th className="text-center pb-3 font-medium">السعر/أوقية (USD)</th>
+                  <th className="text-center pb-3 font-medium">
+                    {lang === "ar" ? "السعر/أوقية (USD)" : "Price/oz (USD)"}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {karatTable.map((k, i) => (
                   <tr key={k.value} className={`border-b border-border/50 ${i === 0 ? "text-gold" : ""}`}>
-                    <td className="py-3 font-bold">{k.label}</td>
+                    <td className="py-3 font-bold">{lang === "ar" ? k.labelAr : k.labelEn}</td>
                     <td className="py-3 text-center font-mono">${k.pricePerGram.toFixed(2)}</td>
                     {loc.currency !== "USD" && (
                       <td className="py-3 text-center font-mono text-gold/80">
@@ -297,7 +341,9 @@ export default function GoldCalculatorPage() {
           </div>
         )}
         <p className="text-text-secondary text-xs mt-3">
-          * الأسعار مؤشرية بناءً على سعر الأونصة الحالي — قد تختلف عند الشراء أو البيع الفعلي
+          {lang === "ar"
+            ? "* الأسعار مؤشرية بناءً على سعر الأونصة الحالي — قد تختلف عند الشراء أو البيع الفعلي"
+            : "* Prices are indicative based on current spot price — may differ at actual buy/sell"}
         </p>
       </motion.div>
 
@@ -306,12 +352,25 @@ export default function GoldCalculatorPage() {
       </div>
 
       <div className="mt-4 bg-gold/5 border border-gold/20 rounded-xl p-4 text-sm text-text-secondary">
-        <p className="font-bold text-gold mb-1">ملاحظات الزكاة</p>
+        <p className="font-bold text-gold mb-1">
+          {lang === "ar" ? "ملاحظات الزكاة" : "Zakat Notes"}
+        </p>
         <ul className="space-y-1 list-disc list-inside">
-          <li>نصاب الذهب: 85 جراماً من الذهب عيار 24 وفق رأي جمهور العلماء</li>
-          <li>تجب الزكاة بعد مرور حول كامل (سنة هجرية) على بلوغ النصاب</li>
-          <li>معدل الزكاة: 2.5% من إجمالي الثروة الخاضعة للزكاة</li>
-          <li>استشر عالماً أو مختصاً شرعياً لأحكام زكاتك الشخصية</li>
+          {lang === "ar" ? (
+            <>
+              <li>نصاب الذهب: 85 جراماً من الذهب عيار 24 وفق رأي جمهور العلماء</li>
+              <li>تجب الزكاة بعد مرور حول كامل (سنة هجرية) على بلوغ النصاب</li>
+              <li>معدل الزكاة: 2.5% من إجمالي الثروة الخاضعة للزكاة</li>
+              <li>استشر عالماً أو مختصاً شرعياً لأحكام زكاتك الشخصية</li>
+            </>
+          ) : (
+            <>
+              <li>Gold Nisab: 85 grams of 24K gold (majority scholarly opinion)</li>
+              <li>Zakat is due after one full lunar year (Hawl) of possessing the Nisab</li>
+              <li>Zakat rate: 2.5% of total zakatable wealth</li>
+              <li>Consult a qualified Islamic scholar for personal zakat rulings</li>
+            </>
+          )}
         </ul>
       </div>
     </div>

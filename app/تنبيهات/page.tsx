@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Disclaimer from "@/components/Disclaimer";
+import AdSlot from "@/components/AdSlot";
 import { motion, AnimatePresence } from "framer-motion";
 
 const ASSETS = [
@@ -77,6 +78,10 @@ export default function AlertsPage() {
         <h1 className="text-3xl font-black text-text-primary mb-2">🔔 التنبيهات الذكية</h1>
         <p className="text-text-secondary">تلقَّ تنبيهات الأسعار مباشرة في بريدك الإلكتروني</p>
       </div>
+
+      {/* إعلان أعلى الصفحة */}
+      <AdSlot size="leaderboard" slot="5678901234" className="mb-6" />
+      <AdSlot size="mobile-banner" slot="5678901235" className="mb-6" />
 
       <AnimatePresence mode="wait">
         {step === "success" ? (
@@ -252,6 +257,9 @@ export default function AlertsPage() {
             </AnimatePresence>
 
             <Disclaimer compact />
+
+            {/* إعلان بين الفورم وزر الإرسال */}
+            <AdSlot size="responsive" slot="5678901236" />
 
             {error && (
               <div className="bg-fall/10 border border-fall/20 rounded-xl px-4 py-3 text-fall text-sm">

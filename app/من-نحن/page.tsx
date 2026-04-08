@@ -1,8 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AdSlot from "@/components/AdSlot";
 
 export const metadata: Metadata = {
-  title: "من نحن — سعر اليوم",
+  title: "من نحن",
+  description:
+    "تعرّف على موقع سعر اليوم — المرجع العربي لأسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية.",
+  openGraph: {
+    title: "من نحن — سعر اليوم",
+    description: "تعرّف على موقع سعر اليوم ومصادر بياناته وما يقدمه",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://saralyoum.vercel.app/من-نحن",
+  },
 };
 
 export default function AboutPage() {
@@ -26,13 +37,17 @@ export default function AboutPage() {
         </p>
       </div>
 
+      {/* إعلان بعد البطاقة الرئيسية */}
+      <AdSlot size="leaderboard" slot="6789012345" className="mb-8" />
+      <AdSlot size="mobile-banner" slot="6789012346" className="mb-8" />
+
       {/* ما نُقدّمه */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {[
           { icon: "🥇", title: "أسعار المعادن", desc: "ذهب وفضة محدّثة كل 5 دقائق من GoldAPI" },
           { icon: "₿", title: "العملات الرقمية", desc: "بيتكوين وإيثيريوم وغيرها من CoinGecko" },
-          { icon: "💱", title: "أسعار الصرف", desc: "أكثر من 12 عملة عربية وعالمية" },
-          { icon: "📰", title: "الأخبار", desc: "من BBC عربي والجزيرة ومصادر موثوقة" },
+          { icon: "💱", title: "أسعار الصرف", desc: "أكثر من 27 عملة عربية وعالمية" },
+          { icon: "📰", title: "الأخبار", desc: "من BBC عربي والجزيرة ورويترز ومصادر موثوقة" },
           { icon: "🔔", title: "التنبيهات", desc: "تنبيهات يومية وسعرية مجانية على بريدك" },
           { icon: "📊", title: "الإشارات التقنية", desc: "RSI والمتوسطات المتحركة — للإعلام فقط" },
         ].map((item) => (
@@ -45,6 +60,9 @@ export default function AboutPage() {
           </div>
         ))}
       </div>
+
+      {/* إعلان في المنتصف */}
+      <AdSlot size="responsive" slot="6789012347" className="mb-8" />
 
       {/* التزامنا */}
       <div className="bg-surface border border-border rounded-2xl p-6 mb-8">

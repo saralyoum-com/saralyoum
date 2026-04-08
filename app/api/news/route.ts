@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { NewsItem } from "@/types";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 900; // 15 دقيقة
+export const revalidate = 900; // 15 minutes
 
-const RSS_SOURCES = [
+const AR_RSS_SOURCES = [
   {
     url: "https://feeds.bbci.co.uk/arabic/business/rss.xml",
     source: "BBC عربي",
@@ -12,6 +12,25 @@ const RSS_SOURCES = [
   {
     url: "https://www.aljazeera.net/aljazeerarss/a3c32dff-a375-4b40-a519-59f122abcd38/5413f4a6-fe4e-4e37-bab8-e04e3e38a5f2",
     source: "الجزيرة",
+  },
+];
+
+const EN_RSS_SOURCES = [
+  {
+    url: "https://feeds.reuters.com/reuters/businessNews",
+    source: "Reuters",
+  },
+  {
+    url: "https://www.kitco.com/rss/",
+    source: "Kitco",
+  },
+  {
+    url: "https://finance.yahoo.com/news/rssindex",
+    source: "Yahoo Finance",
+  },
+  {
+    url: "https://feeds.marketwatch.com/marketwatch/marketpulse/",
+    source: "MarketWatch",
   },
 ];
 
@@ -43,10 +62,11 @@ async function fetchRSS(url: string, source: string): Promise<NewsItem[]> {
       if (title && link) {
         items.push({
           id: Buffer.from(link).toString("base64").slice(0, 20),
-          title: title.replace(/&amp;/g, "&").replace(/&quot;/g, '"').trim(),
+          title: title.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim(),
           description: description
             .replace(/<[^>]*>/g, "")
             .replace(/&amp;/g, "&")
+            .replace(/&quot;/g, '"')
             .trim()
             .slice(0, 200),
           url: link,
@@ -65,10 +85,15 @@ async function fetchRSS(url: string, source: string): Promise<NewsItem[]> {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const lang = searchParams.get("lang") === "en" ? "en" : "ar";
+
+    const sources = lang === "en" ? EN_RSS_SOURCES : AR_RSS_SOURCES;
+
     const results = await Promise.allSettled(
-      RSS_SOURCES.map((s) => fetchRSS(s.url, s.source))
+      sources.map((s) => fetchRSS(s.url, s.source))
     );
 
     const allNews: NewsItem[] = [];
@@ -78,19 +103,19 @@ export async function GET() {
       }
     }
 
-    // إذا لم تتوفر أخبار حقيقية، نعيد mock
-    const news = allNews.length > 0 ? allNews : getMockNews();
+    const mockFallback = lang === "en" ? getMockNewsEn() : getMockNewsAr();
+    const news = allNews.length > 0 ? allNews : mockFallback;
     const sorted = news.sort(
       (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
 
     return NextResponse.json({ news: sorted.slice(0, 20) });
   } catch {
-    return NextResponse.json({ news: getMockNews() });
+    return NextResponse.json({ news: getMockNewsAr() });
   }
 }
 
-function getMockNews(): NewsItem[] {
+function getMockNewsAr(): NewsItem[] {
   const now = new Date();
   return [
     {
@@ -136,6 +161,57 @@ function getMockNews(): NewsItem[] {
         "تراجع سعر إيثيريوم مع خروج السيولة قبيل ترقية الشبكة المخططة الشهر القادم.",
       url: "#",
       source: "أرقام",
+      publishedAt: new Date(now.getTime() - 18000000).toISOString(),
+    },
+  ];
+}
+
+function getMockNewsEn(): NewsItem[] {
+  const now = new Date();
+  return [
+    {
+      id: "en1",
+      title: "Gold Rises as Dollar Weakens Ahead of Fed Decision",
+      description:
+        "Gold prices climbed in Asian trading as the US dollar index declined ahead of the Federal Reserve meeting.",
+      url: "#",
+      source: "Reuters",
+      publishedAt: new Date(now.getTime() - 3600000).toISOString(),
+    },
+    {
+      id: "en2",
+      title: "Bitcoin Surpasses $83,000 on Record ETF Inflows",
+      description:
+        "Bitcoin hit new highs driven by massive ETF inflows and easing inflation concerns.",
+      url: "#",
+      source: "MarketWatch",
+      publishedAt: new Date(now.getTime() - 7200000).toISOString(),
+    },
+    {
+      id: "en3",
+      title: "Silver Prices Reach 12-Year Highs on Industrial Demand",
+      description:
+        "Silver surged sharply amid rising industrial demand and declining global inventories.",
+      url: "#",
+      source: "Kitco",
+      publishedAt: new Date(now.getTime() - 10800000).toISOString(),
+    },
+    {
+      id: "en4",
+      title: "Ethereum Dips Ahead of Anticipated Network Upgrade",
+      description:
+        "Ethereum prices fell as liquidity exited ahead of the planned network upgrade next month.",
+      url: "#",
+      source: "Yahoo Finance",
+      publishedAt: new Date(now.getTime() - 14400000).toISOString(),
+    },
+    {
+      id: "en5",
+      title: "Oil Prices Steady Amid OPEC+ Supply Discussions",
+      description:
+        "Crude oil prices stabilized as OPEC+ members discussed potential supply adjustments.",
+      url: "#",
+      source: "Reuters",
       publishedAt: new Date(now.getTime() - 18000000).toISOString(),
     },
   ];

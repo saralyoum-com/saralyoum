@@ -16,18 +16,62 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "سعر اليوم | أسعار الذهب والفضة والعملات الرقمية",
+  metadataBase: new URL("https://saralyoum.vercel.app"),
+  title: {
+    default: "سعر اليوم | أسعار الذهب والفضة والعملات الرقمية لحظياً",
+    template: "%s | سعر اليوم",
+  },
   description:
-    "متابعة أسعار الذهب والفضة والبيتكوين والإيثيريوم لحظياً مع أخبار اقتصادية وتنبيهات ذكية للأسواق",
-  keywords: "سعر الذهب, سعر الفضة, بيتكوين, إيثيريوم, أسعار العملات, الأسواق المالية",
+    "تابع أسعار الذهب والفضة والبيتكوين والإيثيريوم لحظياً مع أكثر من 27 عملة عربية وعالمية وأخبار اقتصادية يومية وتنبيهات ذكية للأسواق.",
+  keywords: [
+    "سعر الذهب اليوم",
+    "سعر الذهب",
+    "سعر الفضة",
+    "سعر البيتكوين",
+    "سعر الإيثيريوم",
+    "أسعار العملات",
+    "الريال السعودي",
+    "الدرهم الإماراتي",
+    "سعر الصرف",
+    "عيار 21",
+    "عيار 24",
+    "حاسبة الذهب",
+    "زكاة الذهب",
+    "أسعار الأسواق",
+    "gold price",
+    "bitcoin price",
+  ],
+  authors: [{ name: "سعر اليوم" }],
+  creator: "سعر اليوم",
+  publisher: "سعر اليوم",
   openGraph: {
     title: "سعر اليوم | أسعار لحظية للذهب والعملات",
-    description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً",
+    description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية",
+    url: "https://saralyoum.vercel.app",
+    siteName: "سعر اليوم",
     locale: "ar_SA",
     type: "website",
   },
-  robots: "index, follow",
+  twitter: {
+    card: "summary_large_image",
+    title: "سعر اليوم | أسعار لحظية للذهب والعملات",
+    description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً",
+  },
+  alternates: {
+    canonical: "https://saralyoum.vercel.app",
+    languages: {
+      "ar-SA": "https://saralyoum.vercel.app",
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
   icons: { icon: "/favicon.ico" },
+  verification: {
+    google: "",
+  },
 };
 
 export default function RootLayout({
@@ -37,6 +81,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "سعر اليوم",
+              url: "https://saralyoum.vercel.app",
+              description: "أسعار لحظية للذهب والفضة والعملات الرقمية",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://saralyoum.vercel.app/اخبار",
+              },
+            }),
+          }}
+        />
+      </head>
       <body
         className={`${tajawal.variable} font-tajawal bg-background text-text-primary antialiased min-h-screen`}
       >

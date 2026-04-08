@@ -4,21 +4,32 @@ import { useState, useEffect, Fragment } from "react";
 import Image from "next/image";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
+import { useLang } from "@/components/LanguageContext";
 import { NewsItem } from "@/types";
 import { formatDate } from "@/lib/format";
 
 export default function NewsPage() {
+  const { lang } = useLang();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("الكل");
+  const [filter, setFilter] = useState("all");
 
-  const sources = ["الكل", "BBC عربي", "الجزيرة", "أرقام", "مباشر", "رويترز عربي"];
+  const AR_SOURCES = ["الكل", "BBC عربي", "الجزيرة", "أرقام", "مباشر", "رويترز عربي"];
+  const EN_SOURCES = ["All", "Reuters", "Kitco", "Yahoo Finance", "MarketWatch"];
+  const sources = lang === "ar" ? AR_SOURCES : EN_SOURCES;
+  const allLabel = lang === "ar" ? "الكل" : "All";
+
+  useEffect(() => {
+    setFilter("all");
+  }, [lang]);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch("/api/news");
+        const res = await fetch(`/api/news?lang=${lang}`);
         const data = await res.json();
         setNews(data.news || []);
       } catch {
@@ -28,42 +39,51 @@ export default function NewsPage() {
       }
     }
     load();
-  }, []);
+  }, [lang]);
 
   const filtered =
-    filter === "الكل" ? news : news.filter((n) => n.source === filter);
+    filter === "all"
+      ? news
+      : news.filter((n) => n.source === filter);
 
-  // Split news into chunks of 6 to insert ads in between
+  // Split news into chunks of 6 for ads
   const chunks: NewsItem[][] = [];
   for (let i = 0; i < filtered.length; i += 6) {
     chunks.push(filtered.slice(i, i + 6));
   }
 
   return (
-    <div dir="rtl" className="max-w-7xl mx-auto px-4 py-8">
+    <div dir={dir} className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">📰 الأخبار الاقتصادية</h1>
-        <p className="text-text-secondary">آخر أخبار الأسواق المالية والعملات</p>
+        <h1 className="text-3xl font-black text-text-primary mb-2">
+          {lang === "ar" ? "📰 الأخبار الاقتصادية" : "📰 Economic News"}
+        </h1>
+        <p className="text-text-secondary">
+          {lang === "ar" ? "آخر أخبار الأسواق المالية والعملات" : "Latest financial markets and currency news"}
+        </p>
       </div>
 
-      {/* فلاتر المصادر */}
+      {/* Source Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {sources.map((src) => (
-          <button
-            key={src}
-            onClick={() => setFilter(src)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-              filter === src
-                ? "bg-gold text-background"
-                : "bg-surface border border-border text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {src}
-          </button>
-        ))}
+        {sources.map((src) => {
+          const isActive = filter === "all" ? src === allLabel : filter === src;
+          return (
+            <button
+              key={src}
+              onClick={() => setFilter(src === allLabel ? "all" : src)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                isActive
+                  ? "bg-gold text-background"
+                  : "bg-surface border border-border text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              {src}
+            </button>
+          );
+        })}
       </div>
 
-      {/* إعلان بعد الفلاتر */}
+      {/* Ad after filters */}
       <AdSlot size="leaderboard" slot="3456789012" className="mb-6" />
       <AdSlot size="mobile-banner" slot="3456789013" className="mb-6" />
 
@@ -123,12 +143,12 @@ export default function NewsPage() {
                         </p>
                       )}
                       <div className="mt-3 text-gold text-xs font-medium group-hover:underline">
-                        اقرأ المزيد ←
+                        {lang === "ar" ? "اقرأ المزيد ←" : "Read more →"}
                       </div>
                     </a>
                   ))}
                 </div>
-                {/* إعلان بين كل 6 أخبار (ليس بعد الأخير) */}
+                {/* Ad between every 6 news items (not after the last chunk) */}
                 {chunkIdx < chunks.length - 1 && (
                   <div className="my-8">
                     <AdSlot size="leaderboard" slot="3456789014" />
@@ -141,15 +161,21 @@ export default function NewsPage() {
         ) : (
           <div className="text-center py-16 text-text-secondary">
             <p className="text-5xl mb-4">📡</p>
-            <p className="text-lg font-medium">لا توجد أخبار متاحة حالياً</p>
-            <p className="text-sm mt-2">يُرجى المحاولة لاحقاً</p>
+            <p className="text-lg font-medium">
+              {lang === "ar" ? "لا توجد أخبار متاحة حالياً" : "No news available right now"}
+            </p>
+            <p className="text-sm mt-2">
+              {lang === "ar" ? "يُرجى المحاولة لاحقاً" : "Please try again later"}
+            </p>
           </div>
         )}
       </div>
 
       {!loading && filtered.length > 0 && (
         <div className="mt-8 text-center text-text-secondary text-xs">
-          المصادر: BBC عربي • الجزيرة • أرقام • مباشر — تُحدَّث كل 15 دقيقة
+          {lang === "ar"
+            ? "المصادر: BBC عربي • الجزيرة • أرقام • مباشر — تُحدَّث كل 15 دقيقة"
+            : "Sources: Reuters • Kitco • Yahoo Finance • MarketWatch — Updated every 15 minutes"}
         </div>
       )}
     </div>

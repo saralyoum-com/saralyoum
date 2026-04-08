@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import PriceCard from "@/components/PriceCard";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
+import { useLang } from "@/components/LanguageContext";
 import { getMockTechnicalData } from "@/lib/technical";
 import { PriceData } from "@/types";
 
 type Rate = { code: string; nameAr: string; rate: number; flag: string; group?: string };
 
-function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
+function CurrenciesTab({ currencies, lang }: { currencies: Rate[]; lang: string }) {
   const [group, setGroup] = useState<"arab" | "world" | "all">("arab");
   const [usdAmount, setUsdAmount] = useState("1");
 
@@ -22,14 +23,30 @@ function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
 
   const usd = parseFloat(usdAmount) || 1;
 
+  const groups = lang === "ar"
+    ? [
+        { id: "arab", label: "🌍 عربية" },
+        { id: "world", label: "🌐 عالمية" },
+        { id: "all", label: "الكل" },
+      ]
+    : [
+        { id: "arab", label: "🌍 Arab" },
+        { id: "world", label: "🌐 World" },
+        { id: "all", label: "All" },
+      ];
+
   return (
     <div>
-      {/* محوّل العملات السريع */}
+      {/* Currency Converter */}
       <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5 mb-6">
-        <h3 className="font-bold text-text-primary mb-3">💱 محوّل العملات</h3>
+        <h3 className="font-bold text-text-primary mb-3">
+          {lang === "ar" ? "💱 محوّل العملات" : "💱 Currency Converter"}
+        </h3>
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <label className="text-text-secondary text-xs mb-1 block">المبلغ بالدولار (USD)</label>
+            <label className="text-text-secondary text-xs mb-1 block">
+              {lang === "ar" ? "المبلغ بالدولار (USD)" : "Amount in USD"}
+            </label>
             <input
               type="number"
               value={usdAmount}
@@ -40,18 +57,14 @@ function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
           </div>
           <div className="text-gold text-2xl mt-5">→</div>
           <div className="flex-1 text-sm text-text-secondary mt-5">
-            يُعرض في الجدول أدناه
+            {lang === "ar" ? "يُعرض في الجدول أدناه" : "Shown in the table below"}
           </div>
         </div>
       </div>
 
-      {/* تبويبات المجموعات */}
+      {/* Group Tabs */}
       <div className="flex gap-2 mb-4">
-        {[
-          { id: "arab", label: "🌍 عربية" },
-          { id: "world", label: "🌐 عالمية" },
-          { id: "all", label: "الكل" },
-        ].map((g) => (
+        {groups.map((g) => (
           <button
             key={g.id}
             onClick={() => setGroup(g.id as "arab" | "world" | "all")}
@@ -68,9 +81,11 @@ function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
 
       <div className="bg-surface border border-border rounded-2xl overflow-hidden">
         <div className="grid grid-cols-3 px-5 py-3 border-b border-border bg-surface-2 text-xs text-text-secondary font-medium">
-          <span>العملة</span>
-          <span className="text-center">مقابل $1</span>
-          <span className="text-left">قيمة ${usdAmount || "1"}</span>
+          <span>{lang === "ar" ? "العملة" : "Currency"}</span>
+          <span className="text-center">{lang === "ar" ? "مقابل $1" : "Per $1"}</span>
+          <span className={lang === "ar" ? "text-left" : "text-right"}>
+            {lang === "ar" ? `قيمة $${usdAmount || "1"}` : `Value of $${usdAmount || "1"}`}
+          </span>
         </div>
         {displayed.map((rate, idx) => {
           const converted = usd * rate.rate;
@@ -92,28 +107,41 @@ function CurrenciesTab({ currencies }: { currencies: Rate[] }) {
               <div className="text-center text-text-primary font-mono text-sm">
                 {rate.rate.toFixed(decimals)}
               </div>
-              <div className="text-left text-gold font-bold text-sm">
+              <div className={`${lang === "ar" ? "text-left" : "text-right"} text-gold font-bold text-sm`}>
                 {converted.toLocaleString("en-US", { maximumFractionDigits: decimals })}
-                <span className="text-text-secondary font-normal text-xs mr-1">{rate.code}</span>
+                <span className={`text-text-secondary font-normal text-xs ${lang === "ar" ? "mr-1" : "ml-1"}`}>
+                  {rate.code}
+                </span>
               </div>
             </div>
           );
         })}
       </div>
       <p className="text-text-secondary text-xs text-center mt-3">
-        📅 تُحدَّث كل ساعة • المصدر: ExchangeRate-API
+        {lang === "ar"
+          ? "📅 تُحدَّث كل ساعة • المصدر: ExchangeRate-API"
+          : "📅 Updated every hour • Source: ExchangeRate-API"}
       </p>
     </div>
   );
 }
 
-const TABS = [
-  { id: "metals", label: "🥇 ذهب وفضة" },
-  { id: "crypto", label: "₿ العملات الرقمية" },
-  { id: "currencies", label: "💱 العملات" },
-];
-
 export default function PricesPage() {
+  const { lang } = useLang();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
+  const TABS = lang === "ar"
+    ? [
+        { id: "metals", label: "🥇 ذهب وفضة" },
+        { id: "crypto", label: "₿ العملات الرقمية" },
+        { id: "currencies", label: "💱 العملات" },
+      ]
+    : [
+        { id: "metals", label: "🥇 Gold & Silver" },
+        { id: "crypto", label: "₿ Crypto" },
+        { id: "currencies", label: "💱 Currencies" },
+      ];
+
   const [activeTab, setActiveTab] = useState("metals");
   const [metals, setMetals] = useState<{ gold: PriceData; silver: PriceData } | null>(null);
   const [crypto, setCrypto] = useState<PriceData[]>([]);
@@ -148,14 +176,34 @@ export default function PricesPage() {
     load();
   }, [activeTab]);
 
+  const goldGramRows = lang === "ar"
+    ? [
+        { label: "عيار 24", factor: 1 },
+        { label: "عيار 22", factor: 22 / 24 },
+        { label: "عيار 18", factor: 18 / 24 },
+        { label: "عيار 14", factor: 14 / 24 },
+      ]
+    : [
+        { label: "24K", factor: 1 },
+        { label: "22K", factor: 22 / 24 },
+        { label: "18K", factor: 18 / 24 },
+        { label: "14K", factor: 14 / 24 },
+      ];
+
   return (
-    <div dir="rtl" className="max-w-7xl mx-auto px-4 py-8">
+    <div dir={dir} className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">📊 جدول الأسعار</h1>
-        <p className="text-text-secondary">أسعار لحظية محدّثة من مصادر موثوقة</p>
+        <h1 className="text-3xl font-black text-text-primary mb-2">
+          {lang === "ar" ? "📊 جدول الأسعار" : "📊 Prices Table"}
+        </h1>
+        <p className="text-text-secondary">
+          {lang === "ar"
+            ? "أسعار لحظية محدّثة من مصادر موثوقة"
+            : "Live prices updated from trusted sources"}
+        </p>
       </div>
 
-      {/* التبويبات */}
+      {/* Tabs */}
       <div className="flex gap-2 mb-8 bg-surface rounded-2xl p-1.5 w-fit">
         {TABS.map((tab) => (
           <button
@@ -172,7 +220,7 @@ export default function PricesPage() {
         ))}
       </div>
 
-      {/* إعلان بعد التبويبات وقبل المحتوى */}
+      {/* Ad after tabs */}
       <AdSlot size="leaderboard" slot="2345678901" className="mb-6" />
       <AdSlot size="mobile-banner" slot="2345678902" className="mb-6" />
 
@@ -196,16 +244,26 @@ export default function PricesPage() {
               <PriceCard data={metals.silver} signal={signals.silver} index={1} />
             </div>
 
-            {/* جدول تفصيلي */}
+            {/* Detailed Table */}
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">الأصل</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">السعر (USD)</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">التغيير</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium hidden md:table-cell">أعلى 24س</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium hidden md:table-cell">أدنى 24س</th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "الأصل" : "Asset"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "السعر (USD)" : "Price (USD)"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "التغيير" : "Change"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium hidden md:table-cell`}>
+                      {lang === "ar" ? "أعلى 24س" : "24h High"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium hidden md:table-cell`}>
+                      {lang === "ar" ? "أدنى 24س" : "24h Low"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,22 +298,21 @@ export default function PricesPage() {
               </table>
             </div>
 
-            {/* سعر الذهب بالجرام */}
+            {/* Gold Price per Gram */}
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
-              <h3 className="font-bold text-text-primary mb-4">💡 سعر الذهب بالجرام (تقريبي)</h3>
+              <h3 className="font-bold text-text-primary mb-4">
+                {lang === "ar" ? "💡 سعر الذهب بالجرام (تقريبي)" : "💡 Gold Price per Gram (approx.)"}
+              </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { label: "عيار 24", factor: 1 },
-                  { label: "عيار 22", factor: 22/24 },
-                  { label: "عيار 18", factor: 18/24 },
-                  { label: "عيار 14", factor: 14/24 },
-                ].map(({ label, factor }) => (
+                {goldGramRows.map(({ label, factor }) => (
                   <div key={label} className="bg-surface-2 rounded-xl p-3 text-center">
                     <div className="text-text-secondary text-xs mb-1">{label}</div>
                     <div className="text-gold font-bold">
                       ${((metals.gold.price / 31.1035) * factor).toFixed(2)}
                     </div>
-                    <div className="text-text-secondary text-xs">للجرام</div>
+                    <div className="text-text-secondary text-xs">
+                      {lang === "ar" ? "للجرام" : "per gram"}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -277,11 +334,21 @@ export default function PricesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">العملة</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">السعر</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium">التغيير 24س</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium hidden md:table-cell">القيمة السوقية</th>
-                    <th className="text-right px-5 py-3 text-text-secondary font-medium hidden md:table-cell">الحجم 24س</th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "العملة" : "Asset"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "السعر" : "Price"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
+                      {lang === "ar" ? "التغيير 24س" : "24h Change"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium hidden md:table-cell`}>
+                      {lang === "ar" ? "القيمة السوقية" : "Market Cap"}
+                    </th>
+                    <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium hidden md:table-cell`}>
+                      {lang === "ar" ? "الحجم 24س" : "24h Volume"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -317,17 +384,19 @@ export default function PricesPage() {
             </div>
           </div>
         ) : activeTab === "currencies" && currencies.length > 0 ? (
-          <CurrenciesTab currencies={currencies} />
+          <CurrenciesTab currencies={currencies} lang={lang} />
         ) : (
           <div className="text-center py-16 text-text-secondary">
             <p className="text-4xl mb-3">📡</p>
-            <p>تعذّر تحميل البيانات</p>
+            <p>{lang === "ar" ? "تعذّر تحميل البيانات" : "Failed to load data"}</p>
           </div>
         )}
       </div>
 
       <div className="mt-8 text-center text-text-secondary text-xs">
-        المصادر: GoldAPI.io • CoinGecko • ExchangeRate-API — تُحدَّث كل 5 دقائق
+        {lang === "ar"
+          ? "المصادر: GoldAPI.io • CoinGecko • ExchangeRate-API — تُحدَّث كل 5 دقائق"
+          : "Sources: GoldAPI.io • CoinGecko • ExchangeRate-API — Updated every 5 minutes"}
       </div>
     </div>
   );
