@@ -3,18 +3,22 @@
 import { useState } from "react";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
+import { useLang } from "@/components/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
-
-const ASSETS = [
-  { id: "gold", label: "الذهب", icon: "🥇" },
-  { id: "silver", label: "الفضة", icon: "🥈" },
-  { id: "bitcoin", label: "بيتكوين", icon: "₿" },
-  { id: "ethereum", label: "إيثيريوم", icon: "⟠" },
-];
 
 type Step = "form" | "success";
 
 export default function AlertsPage() {
+  const { lang } = useLang();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
+  const ASSETS = [
+    { id: "gold",     labelAr: "الذهب",    labelEn: "Gold",     icon: "🥇" },
+    { id: "silver",   labelAr: "الفضة",    labelEn: "Silver",   icon: "🥈" },
+    { id: "bitcoin",  labelAr: "بيتكوين",  labelEn: "Bitcoin",  icon: "₿" },
+    { id: "ethereum", labelAr: "إيثيريوم", labelEn: "Ethereum", icon: "⟠" },
+  ];
+
   const [email, setEmail] = useState("");
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [alertType, setAlertType] = useState<"daily" | "price">("daily");
@@ -23,6 +27,37 @@ export default function AlertsPage() {
   const [step, setStep] = useState<Step>("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const txt = {
+    title:         lang === "ar" ? "🔔 التنبيهات الذكية"                       : "🔔 Smart Alerts",
+    subtitle:      lang === "ar" ? "تلقَّ تنبيهات الأسعار مباشرة في بريدك الإلكتروني" : "Receive price alerts directly in your email",
+    emailLabel:    lang === "ar" ? "📧 البريد الإلكتروني"                        : "📧 Email address",
+    assetLabel:    lang === "ar" ? "💰 اختر الأصل (يمكن اختيار أكثر من واحد)"   : "💰 Select asset (multiple allowed)",
+    alertTypeLabel:lang === "ar" ? "⚙️ نوع التنبيه"                             : "⚙️ Alert type",
+    daily:         lang === "ar" ? "تنبيه يومي"                                 : "Daily alert",
+    dailySub:      lang === "ar" ? "كل يوم 8 صباحاً"                            : "Every day at 8 AM",
+    price:         lang === "ar" ? "تنبيه سعري"                                 : "Price alert",
+    priceSub:      lang === "ar" ? "عند بلوغ سعر معين"                          : "When price target is reached",
+    targetLabel:   lang === "ar" ? "🎯 السعر المستهدف (USD)"                    : "🎯 Target price (USD)",
+    above:         lang === "ar" ? "▲ فوق السعر"                                : "▲ Above price",
+    below:         lang === "ar" ? "▼ تحت السعر"                                : "▼ Below price",
+    placeholder:   lang === "ar" ? "مثال: 3200"                                 : "e.g. 3200",
+    maxAlerts:     lang === "ar" ? "⚠️ حد أقصى 3 تنبيهات سعرية لكل بريد إلكتروني" : "⚠️ Max 3 price alerts per email",
+    subscribe:     lang === "ar" ? "🔔 اشترك في التنبيهات مجاناً"               : "🔔 Subscribe to alerts for free",
+    subscribing:   lang === "ar" ? "جاري التسجيل..."                             : "Subscribing...",
+    terms:         lang === "ar" ? "بالاشتراك، تقبل"                             : "By subscribing, you accept the",
+    termsLink:     lang === "ar" ? "شروط الاستخدام"                              : "Terms of Use",
+    and:           lang === "ar" ? "و"                                           : "and",
+    privacyLink:   lang === "ar" ? "سياسة الخصوصية"                             : "Privacy Policy",
+    successTitle:  lang === "ar" ? "تم التسجيل بنجاح!"                          : "Successfully subscribed!",
+    successSub:    lang === "ar" ? "سيصلك بريد تأكيد على"                        : "A confirmation email will be sent to",
+    successNote:   lang === "ar" ? "📅 التنبيه اليومي يُرسَل الساعة 8:00 صباحاً (توقيت الرياض)" : "📅 Daily alert is sent at 8:00 AM (Riyadh time)",
+    addAnother:    lang === "ar" ? "إضافة تنبيه آخر"                             : "Add another alert",
+    errEmail:      lang === "ar" ? "يُرجى إدخال البريد الإلكتروني"               : "Please enter your email",
+    errAsset:      lang === "ar" ? "يُرجى اختيار أصل واحد على الأقل"             : "Please select at least one asset",
+    errPrice:      lang === "ar" ? "يُرجى إدخال السعر المستهدف"                  : "Please enter the target price",
+    errServer:     lang === "ar" ? "تعذّر الاتصال بالخادم، يُرجى المحاولة لاحقاً" : "Could not connect to server, please try again",
+  };
 
   function toggleAsset(id: string) {
     setSelectedAssets((prev) =>
@@ -34,13 +69,12 @@ export default function AlertsPage() {
     e.preventDefault();
     setError("");
 
-    if (!email) { setError("يُرجى إدخال البريد الإلكتروني"); return; }
-    if (selectedAssets.length === 0) { setError("يُرجى اختيار أصل واحد على الأقل"); return; }
-    if (alertType === "price" && !targetPrice) { setError("يُرجى إدخال السعر المستهدف"); return; }
+    if (!email) { setError(txt.errEmail); return; }
+    if (selectedAssets.length === 0) { setError(txt.errAsset); return; }
+    if (alertType === "price" && !targetPrice) { setError(txt.errPrice); return; }
 
     setLoading(true);
     try {
-      // أرسل تنبيهاً لكل أصل مختار
       const promises = selectedAssets.map((asset) =>
         fetch("/api/alerts", {
           method: "POST",
@@ -60,26 +94,26 @@ export default function AlertsPage() {
 
       if (failed.length > 0) {
         const firstFailed = await failed[0].json();
-        setError(firstFailed.error || "حدث خطأ، يُرجى المحاولة لاحقاً");
+        setError(firstFailed.error || txt.errServer);
         return;
       }
 
       setStep("success");
     } catch {
-      setError("تعذّر الاتصال بالخادم، يُرجى المحاولة لاحقاً");
+      setError(txt.errServer);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div dir="rtl" className="max-w-2xl mx-auto px-4 py-8">
+    <div dir={dir} className="max-w-2xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">🔔 التنبيهات الذكية</h1>
-        <p className="text-text-secondary">تلقَّ تنبيهات الأسعار مباشرة في بريدك الإلكتروني</p>
+        <h1 className="text-3xl font-black text-text-primary mb-2">{txt.title}</h1>
+        <p className="text-text-secondary">{txt.subtitle}</p>
       </div>
 
-      {/* إعلان أعلى الصفحة */}
+      {/* Ad at top */}
       <AdSlot size="leaderboard" slot="5678901234" className="mb-6" />
       <AdSlot size="mobile-banner" slot="5678901235" className="mb-6" />
 
@@ -92,23 +126,18 @@ export default function AlertsPage() {
             className="bg-surface border border-rise/20 rounded-2xl p-8 text-center"
           >
             <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-bold text-text-primary mb-2">تم التسجيل بنجاح!</h2>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">{txt.successTitle}</h2>
             <p className="text-text-secondary mb-4">
-              سيصلك بريد تأكيد على <span className="text-gold">{email}</span>
+              {txt.successSub} <span className="text-gold">{email}</span>
             </p>
             <div className="bg-surface-2 rounded-xl p-4 text-sm text-text-secondary mb-6">
-              <p>📅 التنبيه اليومي يُرسَل الساعة 8:00 صباحاً (توقيت الرياض)</p>
+              <p>{txt.successNote}</p>
             </div>
             <button
-              onClick={() => {
-                setStep("form");
-                setEmail("");
-                setSelectedAssets([]);
-                setTargetPrice("");
-              }}
+              onClick={() => { setStep("form"); setEmail(""); setSelectedAssets([]); setTargetPrice(""); }}
               className="bg-gold text-background font-bold px-6 py-2.5 rounded-xl hover:bg-gold-light transition-colors"
             >
-              إضافة تنبيه آخر
+              {txt.addAnother}
             </button>
           </motion.div>
         ) : (
@@ -119,11 +148,9 @@ export default function AlertsPage() {
             onSubmit={handleSubmit}
             className="space-y-6"
           >
-            {/* البريد الإلكتروني */}
+            {/* Email */}
             <div className="bg-surface border border-border rounded-2xl p-5">
-              <label className="block text-text-primary font-bold mb-3">
-                📧 البريد الإلكتروني
-              </label>
+              <label className="block text-text-primary font-bold mb-3">{txt.emailLabel}</label>
               <input
                 type="email"
                 value={email}
@@ -135,11 +162,9 @@ export default function AlertsPage() {
               />
             </div>
 
-            {/* اختيار الأصل */}
+            {/* Asset selection */}
             <div className="bg-surface border border-border rounded-2xl p-5">
-              <label className="block text-text-primary font-bold mb-3">
-                💰 اختر الأصل (يمكن اختيار أكثر من واحد)
-              </label>
+              <label className="block text-text-primary font-bold mb-3">{txt.assetLabel}</label>
               <div className="grid grid-cols-2 gap-3">
                 {ASSETS.map((asset) => (
                   <button
@@ -153,59 +178,51 @@ export default function AlertsPage() {
                     }`}
                   >
                     <span className="text-xl">{asset.icon}</span>
-                    <span className="font-medium text-sm">{asset.label}</span>
+                    <span className="font-medium text-sm">
+                      {lang === "ar" ? asset.labelAr : asset.labelEn}
+                    </span>
                     {selectedAssets.includes(asset.id) && (
-                      <span className="mr-auto text-gold">✓</span>
+                      <span className={`${lang === "ar" ? "mr-auto" : "ml-auto"} text-gold`}>✓</span>
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* نوع التنبيه */}
+            {/* Alert type */}
             <div className="bg-surface border border-border rounded-2xl p-5">
-              <label className="block text-text-primary font-bold mb-3">
-                ⚙️ نوع التنبيه
-              </label>
+              <label className="block text-text-primary font-bold mb-3">{txt.alertTypeLabel}</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setAlertType("daily")}
-                  className={`p-4 rounded-xl border text-right transition-all ${
-                    alertType === "daily"
-                      ? "border-gold bg-gold/10"
-                      : "border-border hover:border-gold/40"
+                  className={`p-4 rounded-xl border ${lang === "ar" ? "text-right" : "text-left"} transition-all ${
+                    alertType === "daily" ? "border-gold bg-gold/10" : "border-border hover:border-gold/40"
                   }`}
                 >
                   <div className="text-2xl mb-1">📅</div>
                   <div className={`font-bold text-sm ${alertType === "daily" ? "text-gold" : "text-text-primary"}`}>
-                    تنبيه يومي
+                    {txt.daily}
                   </div>
-                  <div className="text-text-secondary text-xs mt-0.5">
-                    كل يوم 8 صباحاً
-                  </div>
+                  <div className="text-text-secondary text-xs mt-0.5">{txt.dailySub}</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setAlertType("price")}
-                  className={`p-4 rounded-xl border text-right transition-all ${
-                    alertType === "price"
-                      ? "border-gold bg-gold/10"
-                      : "border-border hover:border-gold/40"
+                  className={`p-4 rounded-xl border ${lang === "ar" ? "text-right" : "text-left"} transition-all ${
+                    alertType === "price" ? "border-gold bg-gold/10" : "border-border hover:border-gold/40"
                   }`}
                 >
                   <div className="text-2xl mb-1">🎯</div>
                   <div className={`font-bold text-sm ${alertType === "price" ? "text-gold" : "text-text-primary"}`}>
-                    تنبيه سعري
+                    {txt.price}
                   </div>
-                  <div className="text-text-secondary text-xs mt-0.5">
-                    عند بلوغ سعر معين
-                  </div>
+                  <div className="text-text-secondary text-xs mt-0.5">{txt.priceSub}</div>
                 </button>
               </div>
             </div>
 
-            {/* السعر المستهدف */}
+            {/* Target price */}
             <AnimatePresence>
               {alertType === "price" && (
                 <motion.div
@@ -214,51 +231,43 @@ export default function AlertsPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="bg-surface border border-border rounded-2xl p-5"
                 >
-                  <label className="block text-text-primary font-bold mb-3">
-                    🎯 السعر المستهدف (USD)
-                  </label>
+                  <label className="block text-text-primary font-bold mb-3">{txt.targetLabel}</label>
                   <div className="flex gap-3 mb-3">
                     <button
                       type="button"
                       onClick={() => setCondition("above")}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-                        condition === "above"
-                          ? "border-rise bg-rise/10 text-rise"
-                          : "border-border text-text-secondary"
+                        condition === "above" ? "border-rise bg-rise/10 text-rise" : "border-border text-text-secondary"
                       }`}
                     >
-                      ▲ فوق السعر
+                      {txt.above}
                     </button>
                     <button
                       type="button"
                       onClick={() => setCondition("below")}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
-                        condition === "below"
-                          ? "border-fall bg-fall/10 text-fall"
-                          : "border-border text-text-secondary"
+                        condition === "below" ? "border-fall bg-fall/10 text-fall" : "border-border text-text-secondary"
                       }`}
                     >
-                      ▼ تحت السعر
+                      {txt.below}
                     </button>
                   </div>
                   <input
                     type="number"
                     value={targetPrice}
                     onChange={(e) => setTargetPrice(e.target.value)}
-                    placeholder="مثال: 3200"
+                    placeholder={txt.placeholder}
                     dir="ltr"
                     className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-gold transition-colors text-sm"
                   />
-                  <p className="text-text-secondary text-xs mt-2">
-                    ⚠️ حد أقصى 3 تنبيهات سعرية لكل بريد إلكتروني
-                  </p>
+                  <p className="text-text-secondary text-xs mt-2">{txt.maxAlerts}</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <Disclaimer compact />
 
-            {/* إعلان بين الفورم وزر الإرسال */}
+            {/* Ad between form and submit */}
             <AdSlot size="responsive" slot="5678901236" />
 
             {error && (
@@ -272,18 +281,14 @@ export default function AlertsPage() {
               disabled={loading}
               className="w-full bg-gold text-background font-bold py-4 rounded-xl hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
             >
-              {loading ? "جاري التسجيل..." : "🔔 اشترك في التنبيهات مجاناً"}
+              {loading ? txt.subscribing : txt.subscribe}
             </button>
 
             <p className="text-center text-text-secondary text-xs">
-              بالاشتراك، تقبل{" "}
-              <a href="/شروط-الاستخدام" className="text-gold hover:underline">
-                شروط الاستخدام
-              </a>{" "}
-              و{" "}
-              <a href="/سياسة-الخصوصية" className="text-gold hover:underline">
-                سياسة الخصوصية
-              </a>
+              {txt.terms}{" "}
+              <a href="/شروط-الاستخدام" className="text-gold hover:underline">{txt.termsLink}</a>
+              {" "}{txt.and}{" "}
+              <a href="/سياسة-الخصوصية" className="text-gold hover:underline">{txt.privacyLink}</a>
             </p>
           </motion.form>
         )}
