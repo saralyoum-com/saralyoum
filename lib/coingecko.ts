@@ -70,32 +70,33 @@ export async function getAllCryptoPrices(): Promise<PriceData[]> {
 }
 
 function getMockCrypto(coinId: string): PriceData {
+  // Realistic fallback prices — update when CoinGecko is unavailable
   if (coinId === "bitcoin") {
     return {
       symbol: "BTC",
       nameAr: "بيتكوين",
-      price: 82450.0,
-      change: 1250.0,
-      changePercent: 1.54,
+      price: 72864.0,
+      change: 291.5,
+      changePercent: 0.40,
       currency: "USD",
-      high24h: 83200.0,
-      low24h: 80100.0,
-      marketCap: 1630000000000,
-      volume24h: 35000000000,
+      high24h: 73500.0,
+      low24h: 71200.0,
+      marketCap: 1440000000000,
+      volume24h: 28000000000,
       lastUpdated: new Date().toISOString(),
     };
   }
   return {
     symbol: "ETH",
     nameAr: "إيثيريوم",
-    price: 1820.5,
-    change: -32.0,
-    changePercent: -1.73,
+    price: 2248.77,
+    change: 21.2,
+    changePercent: 0.94,
     currency: "USD",
-    high24h: 1870.0,
-    low24h: 1800.0,
-    marketCap: 219000000000,
-    volume24h: 12000000000,
+    high24h: 2290.0,
+    low24h: 2190.0,
+    marketCap: 270000000000,
+    volume24h: 14000000000,
     lastUpdated: new Date().toISOString(),
   };
 }
