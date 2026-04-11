@@ -394,11 +394,6 @@ export default function PricesPage() {
         )}
       </div>
 
-      <div className="mt-8 text-center text-text-secondary text-xs">
-        {lang === "ar"
-          ? "المصادر: GoldAPI.io • CoinGecko • ExchangeRate-API — تُحدَّث كل 5 دقائق"
-          : "Sources: GoldAPI.io • CoinGecko • ExchangeRate-API — Updated every 5 minutes"}
-      </div>
     </div>
   );
 }

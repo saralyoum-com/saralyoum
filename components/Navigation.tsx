@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "@/components/LanguageContext";
 import { track } from "@/lib/analytics";
+import PriceFreshnessTimer, { PriceFreshnessTimerMobile } from "@/components/PriceFreshnessTimer";
 
 const navHrefs = [
   { href: "/", key: "home" },
@@ -79,6 +80,10 @@ export default function Navigation() {
 
         {/* أزرار يمين */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* مؤقت التحديث */}
+          <PriceFreshnessTimer />
+          <PriceFreshnessTimerMobile />
+
           {/* زر تبديل اللغة */}
           <button
             onClick={handleLangToggle}

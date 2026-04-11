@@ -173,13 +173,6 @@ export default function NewsPage() {
         )}
       </div>
 
-      {!loading && filtered.length > 0 && (
-        <div className="mt-8 text-center text-text-secondary text-xs">
-          {lang === "ar"
-            ? "المصادر: BBC عربي • الجزيرة • أرقام • مباشر — تُحدَّث كل 15 دقيقة"
-            : "Sources: Reuters • Kitco • Yahoo Finance • MarketWatch — Updated every 15 minutes"}
-        </div>
-      )}
     </div>
   );
 }
