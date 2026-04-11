@@ -110,7 +110,7 @@ export default function RootLayout({
           <Footer />
         </LanguageProvider>
       </body>
-      <GoogleAnalytics gaId="G-YCCGFZPHE7" />
+      <GoogleAnalytics gaId="G-2EFBVGR83R" />
       <AdSenseScript />
     </html>
   );
