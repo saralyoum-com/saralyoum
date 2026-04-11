@@ -7,10 +7,18 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // www.sardhahab.com → sardhahab.com
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.saralyoum.vercel.app" }],
-        destination: "https://saralyoum.vercel.app/:path*",
+        has: [{ type: "host", value: "www.sardhahab.com" }],
+        destination: "https://sardhahab.com/:path*",
+        permanent: true,
+      },
+      // saralyoum.vercel.app → sardhahab.com
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "saralyoum.vercel.app" }],
+        destination: "https://sardhahab.com/:path*",
         permanent: true,
       },
     ];

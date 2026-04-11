@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://saralyoum.vercel.app/sitemap.xml",
-    host: "https://saralyoum.vercel.app",
+    sitemap: "https://sardhahab.com/sitemap.xml",
+    host: "https://sardhahab.com",
   };
 }

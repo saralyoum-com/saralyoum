@@ -16,7 +16,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://saralyoum.vercel.app"),
+  metadataBase: new URL("https://sardhahab.com"),
   title: {
     default: "سعر اليوم | أسعار الذهب والفضة والعملات الرقمية لحظياً",
     template: "%s | سعر اليوم",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "سعر اليوم | أسعار لحظية للذهب والعملات",
     description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية",
-    url: "https://saralyoum.vercel.app",
+    url: "https://sardhahab.com",
     siteName: "سعر اليوم",
     locale: "ar_SA",
     type: "website",
@@ -58,9 +58,9 @@ export const metadata: Metadata = {
     description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً",
   },
   alternates: {
-    canonical: "https://saralyoum.vercel.app",
+    canonical: "https://sardhahab.com",
     languages: {
-      "ar-SA": "https://saralyoum.vercel.app",
+      "ar-SA": "https://sardhahab.com",
     },
   },
   robots: {
@@ -89,11 +89,11 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "سعر اليوم",
-              url: "https://saralyoum.vercel.app",
+              url: "https://sardhahab.com",
               description: "أسعار لحظية للذهب والفضة والعملات الرقمية",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://saralyoum.vercel.app/اخبار",
+                target: "https://sardhahab.com/اخبار",
               },
             }),
           }}

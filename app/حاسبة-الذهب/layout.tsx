@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   alternates: {
-    canonical: "https://saralyoum.vercel.app/حاسبة-الذهب",
+    canonical: "https://sardhahab.com/حاسبة-الذهب",
   },
 };
 

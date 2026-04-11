@@ -14,7 +14,7 @@ export const metadata = {
   description:
     "تابع أسعار الذهب عيار 24/22/21/18 والفضة والبيتكوين والإيثيريوم لحظياً مع أكثر من 27 عملة عربية وعالمية وأخبار اقتصادية يومية.",
   alternates: {
-    canonical: "https://saralyoum.vercel.app",
+    canonical: "https://sardhahab.com",
   },
 };
 
@@ -57,7 +57,7 @@ export default async function HomePage() {
             "@context": "https://schema.org",
             "@type": "ItemList",
             name: "أسعار المعادن الثمينة والعملات الرقمية",
-            url: "https://saralyoum.vercel.app",
+            url: "https://sardhahab.com",
             itemListElement: [
               {
                 "@type": "ListItem",

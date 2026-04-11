@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   alternates: {
-    canonical: "https://saralyoum.vercel.app/من-نحن",
+    canonical: "https://sardhahab.com/من-نحن",
   },
 };
 
