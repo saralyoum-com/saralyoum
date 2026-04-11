@@ -6,6 +6,7 @@ import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { getMockTechnicalData } from "@/lib/technical";
+import { track } from "@/lib/analytics";
 import { PriceData } from "@/types";
 
 type Rate = { code: string; nameAr: string; rate: number; flag: string; group?: string };
@@ -38,37 +39,37 @@ function CurrenciesTab({ currencies, lang }: { currencies: Rate[]; lang: string 
   return (
     <div>
       {/* Currency Converter */}
-      <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5 mb-6">
+      <div className="bg-gold/5 border border-gold/20 rounded-2xl p-4 sm:p-5 mb-6">
         <h3 className="font-bold text-text-primary mb-3">
           {lang === "ar" ? "💱 محوّل العملات" : "💱 Currency Converter"}
         </h3>
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="w-full sm:flex-1">
             <label className="text-text-secondary text-xs mb-1 block">
               {lang === "ar" ? "المبلغ بالدولار (USD)" : "Amount in USD"}
             </label>
             <input
               type="number"
               value={usdAmount}
-              onChange={(e) => setUsdAmount(e.target.value)}
+              onChange={(e) => { setUsdAmount(e.target.value); track.currencyConverterInput(parseFloat(e.target.value) || 1); }}
               dir="ltr"
               className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-gold text-sm"
             />
           </div>
-          <div className="text-gold text-2xl mt-5">→</div>
-          <div className="flex-1 text-sm text-text-secondary mt-5">
+          <div className="text-gold text-2xl sm:mt-5 hidden sm:block">→</div>
+          <div className="w-full sm:flex-1 text-sm text-text-secondary sm:mt-5">
             {lang === "ar" ? "يُعرض في الجدول أدناه" : "Shown in the table below"}
           </div>
         </div>
       </div>
 
       {/* Group Tabs */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         {groups.map((g) => (
           <button
             key={g.id}
-            onClick={() => setGroup(g.id as "arab" | "world" | "all")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+            onClick={() => { setGroup(g.id as "arab" | "world" | "all"); track.currencyGroupFilter(g.id); }}
+            className={`px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               group === g.id
                 ? "bg-gold text-background"
                 : "bg-surface border border-border text-text-secondary hover:text-text-primary"
@@ -191,12 +192,12 @@ export default function PricesPage() {
       ];
 
   return (
-    <div dir={dir} className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">
+    <div dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-text-primary mb-2">
           {lang === "ar" ? "📊 جدول الأسعار" : "📊 Prices Table"}
         </h1>
-        <p className="text-text-secondary">
+        <p className="text-text-secondary text-sm sm:text-base">
           {lang === "ar"
             ? "أسعار لحظية محدّثة من مصادر موثوقة"
             : "Live prices updated from trusted sources"}
@@ -204,12 +205,12 @@ export default function PricesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-8 bg-surface rounded-2xl p-1.5 w-fit">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-surface rounded-2xl p-1 sm:p-1.5 w-full sm:w-fit overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            onClick={() => { setActiveTab(tab.id); track.pricesTabClick(tab.id); }}
+            className={`flex-1 sm:flex-none px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? "bg-gold text-background"
                 : "text-text-secondary hover:text-text-primary"
@@ -245,8 +246,8 @@ export default function PricesPage() {
             </div>
 
             {/* Detailed Table */}
-            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-surface border border-border rounded-2xl overflow-x-auto">
+              <table className="w-full text-sm min-w-[360px]">
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
                     <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>
@@ -330,8 +331,8 @@ export default function PricesPage() {
                 />
               ))}
             </div>
-            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="bg-surface border border-border rounded-2xl overflow-x-auto">
+              <table className="w-full text-sm min-w-[360px]">
                 <thead>
                   <tr className="border-b border-border bg-surface-2">
                     <th className={`${lang === "ar" ? "text-right" : "text-left"} px-5 py-3 text-text-secondary font-medium`}>

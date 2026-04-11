@@ -7,6 +7,7 @@ import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { NewsItem } from "@/types";
 import { formatDate } from "@/lib/format";
+import { track } from "@/lib/analytics";
 
 export default function NewsPage() {
   const { lang } = useLang();
@@ -53,25 +54,25 @@ export default function NewsPage() {
   }
 
   return (
-    <div dir={dir} className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">
+    <div dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-text-primary mb-2">
           {lang === "ar" ? "📰 الأخبار الاقتصادية" : "📰 Economic News"}
         </h1>
-        <p className="text-text-secondary">
+        <p className="text-text-secondary text-sm sm:text-base">
           {lang === "ar" ? "آخر أخبار الأسواق المالية والعملات" : "Latest financial markets and currency news"}
         </p>
       </div>
 
       {/* Source Filters */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-5 sm:mb-6">
         {sources.map((src) => {
           const isActive = filter === "all" ? src === allLabel : filter === src;
           return (
             <button
               key={src}
-              onClick={() => setFilter(src === allLabel ? "all" : src)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              onClick={() => { const newFilter = src === allLabel ? "all" : src; setFilter(newFilter); track.newsSourceFilter(newFilter); }}
+              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all ${
                 isActive
                   ? "bg-gold text-background"
                   : "bg-surface border border-border text-text-secondary hover:text-text-primary"
@@ -113,7 +114,8 @@ export default function NewsPage() {
                       href={item.url}
                       target={item.url.startsWith("http") ? "_blank" : undefined}
                       rel="noopener noreferrer"
-                      className="bg-surface border border-border rounded-2xl p-5 hover:border-gold/30 transition-all group flex flex-col"
+                      onClick={() => track.newsArticleClick(item.source, item.title)}
+                      className="bg-surface border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/30 transition-all group flex flex-col"
                     >
                       {item.imageUrl && (
                         <div className="mb-3 rounded-xl overflow-hidden h-40 bg-surface-2 relative">

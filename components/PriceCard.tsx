@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PriceData, TechnicalSignal } from "@/types";
 import { formatPercent } from "@/lib/format";
+import { track } from "@/lib/analytics";
 
 interface Props {
   data: PriceData;
@@ -11,6 +12,7 @@ interface Props {
   index?: number;
   localRate?: number;
   localSymbol?: string;
+  lang?: string;
 }
 
 const assetIcons: Record<string, string> = {
@@ -21,17 +23,24 @@ const assetIcons: Record<string, string> = {
 };
 
 // أسعار العيارات بالجرام من سعر الأونصة
-function getKaratPrices(pricePerOz: number) {
+function getKaratPrices(pricePerOz: number, lang: string) {
   const pricePerGram = pricePerOz / 31.1035;
   return [
-    { karat: 24, label: "عيار 24", purity: 1 },
-    { karat: 22, label: "عيار 22", purity: 22 / 24 },
-    { karat: 21, label: "عيار 21", purity: 21 / 24 },
-    { karat: 18, label: "عيار 18", purity: 18 / 24 },
+    { karat: 24, label: lang === "ar" ? "عيار 24" : "24K", purity: 1 },
+    { karat: 22, label: lang === "ar" ? "عيار 22" : "22K", purity: 22 / 24 },
+    { karat: 21, label: lang === "ar" ? "عيار 21" : "21K", purity: 21 / 24 },
+    { karat: 18, label: lang === "ar" ? "عيار 18" : "18K", purity: 18 / 24 },
   ].map((k) => ({ ...k, price: pricePerGram * k.purity }));
 }
 
-export default function PriceCard({ data, signal, index = 0, localRate = 1, localSymbol = "$" }: Props) {
+export default function PriceCard({
+  data,
+  signal,
+  index = 0,
+  localRate = 1,
+  localSymbol = "$",
+  lang = "ar",
+}: Props) {
   const [showKarats, setShowKarats] = useState(false);
   const isPositive = data.changePercent >= 0;
   const isGold = data.symbol === "XAU";
@@ -48,8 +57,14 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
       ? "text-fall border-fall/30 bg-fall/10"
       : "text-text-secondary border-border bg-surface-2";
 
-  const karats = isGold ? getKaratPrices(data.price) : [];
+  const karats = isGold ? getKaratPrices(data.price, lang) : [];
   const showLocalPrice = localRate !== 1 && localSymbol !== "$";
+
+  function handleKaratToggle() {
+    if (!showKarats) track.viewKaratsOpen(data.symbol);
+    else track.viewKaratsClose(data.symbol);
+    setShowKarats(!showKarats);
+  }
 
   return (
     <motion.div
@@ -57,19 +72,19 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       dir="rtl"
-      className="bg-surface border border-border rounded-2xl p-5 hover:border-gold/40 transition-all duration-300 group"
+      className="bg-surface border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/40 transition-all duration-300 group"
     >
       {/* رأس البطاقة */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{assetIcons[data.symbol] || "💰"}</span>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="text-xl sm:text-2xl">{assetIcons[data.symbol] || "💰"}</span>
           <div>
-            <h3 className="text-text-primary font-bold text-base">{data.nameAr}</h3>
+            <h3 className="text-text-primary font-bold text-sm sm:text-base">{data.nameAr}</h3>
             <span className="text-text-secondary text-xs">{data.symbol}</span>
           </div>
         </div>
         <div
-          className={`text-sm font-bold px-2 py-1 rounded-lg ${
+          className={`text-xs sm:text-sm font-bold px-2 py-1 rounded-lg ${
             isPositive ? "bg-rise/10 text-rise" : "bg-fall/10 text-fall"
           }`}
         >
@@ -79,7 +94,7 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
 
       {/* السعر */}
       <div className="mb-3">
-        <div className="text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
+        <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
           {priceDisplay}
         </div>
         {showLocalPrice && (
@@ -96,8 +111,8 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
       {/* حد أعلى / أدنى */}
       {(data.high24h || data.low24h) && (
         <div className="flex justify-between text-xs text-text-secondary border-t border-border pt-3 mb-3">
-          <span>أعلى: <span className="text-rise">${data.high24h?.toFixed(2)}</span></span>
-          <span>أدنى: <span className="text-fall">${data.low24h?.toFixed(2)}</span></span>
+          <span>{lang === "ar" ? "أعلى:" : "High:"} <span className="text-rise">${data.high24h?.toFixed(2)}</span></span>
+          <span>{lang === "ar" ? "أدنى:" : "Low:"} <span className="text-fall">${data.low24h?.toFixed(2)}</span></span>
         </div>
       )}
 
@@ -105,10 +120,10 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
       {isGold && (
         <div className="mb-3">
           <button
-            onClick={() => setShowKarats(!showKarats)}
+            onClick={handleKaratToggle}
             className="w-full flex items-center justify-between text-xs text-gold border border-gold/20 rounded-xl px-3 py-2 hover:bg-gold/5 transition-all"
           >
-            <span>🏅 عرض أسعار العيارات</span>
+            <span>🏅 {lang === "ar" ? "عرض أسعار العيارات" : "Show karat prices"}</span>
             <span>{showKarats ? "▲" : "▼"}</span>
           </button>
 
@@ -122,9 +137,9 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
               >
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
                   {karats.map((k) => (
-                    <div key={k.karat} className="bg-surface-2 rounded-xl p-2.5 text-center">
+                    <div key={k.karat} className="bg-surface-2 rounded-xl p-2 sm:p-2.5 text-center">
                       <div className="text-text-secondary text-xs mb-1">{k.label}</div>
-                      <div className="text-text-primary font-bold text-sm">
+                      <div className="text-text-primary font-bold text-xs sm:text-sm">
                         ${k.price.toFixed(2)}
                       </div>
                       {showLocalPrice && (
@@ -132,7 +147,9 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
                           {(k.price * localRate).toFixed(0)} {localSymbol}
                         </div>
                       )}
-                      <div className="text-text-secondary text-xs">/ جرام</div>
+                      <div className="text-text-secondary text-xs">
+                        {lang === "ar" ? "/ جرام" : "/ gram"}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -148,11 +165,17 @@ export default function PriceCard({ data, signal, index = 0, localRate = 1, loca
           <div className="flex items-center justify-between">
             <span className="font-bold">
               {signal.signal === "شراء" ? "📈" : signal.signal === "بيع" ? "📉" : "➡️"}{" "}
-              {signal.signal === "شراء" ? "ضغط شرائي" : signal.signal === "بيع" ? "ضغط بيعي" : "محايد"}
+              {signal.signal === "شراء"
+                ? lang === "ar" ? "ضغط شرائي" : "Buy Pressure"
+                : signal.signal === "بيع"
+                ? lang === "ar" ? "ضغط بيعي" : "Sell Pressure"
+                : lang === "ar" ? "محايد" : "Neutral"}
             </span>
             <span>RSI: {signal.rsi.toFixed(1)}</span>
           </div>
-          <div className="text-text-secondary mt-1">إشارة تقنية — ليست نصيحة استثمارية</div>
+          <div className="text-text-secondary mt-1">
+            {lang === "ar" ? "إشارة تقنية — ليست نصيحة استثمارية" : "Technical signal — not investment advice"}
+          </div>
         </div>
       )}
     </motion.div>

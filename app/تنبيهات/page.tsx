@@ -5,6 +5,7 @@ import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { track } from "@/lib/analytics";
 
 type Step = "form" | "success";
 
@@ -60,6 +61,8 @@ export default function AlertsPage() {
   };
 
   function toggleAsset(id: string) {
+    const willSelect = !selectedAssets.includes(id);
+    track.alertAssetToggle(id, willSelect);
     setSelectedAssets((prev) =>
       prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
     );
@@ -98,8 +101,10 @@ export default function AlertsPage() {
         return;
       }
 
+      track.alertFormSubmit(true, selectedAssets);
       setStep("success");
     } catch {
+      track.alertFormSubmit(false, selectedAssets);
       setError(txt.errServer);
     } finally {
       setLoading(false);
@@ -195,7 +200,7 @@ export default function AlertsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setAlertType("daily")}
+                  onClick={() => { setAlertType("daily"); track.alertTypeSelect("daily"); }}
                   className={`p-4 rounded-xl border ${lang === "ar" ? "text-right" : "text-left"} transition-all ${
                     alertType === "daily" ? "border-gold bg-gold/10" : "border-border hover:border-gold/40"
                   }`}
@@ -208,7 +213,7 @@ export default function AlertsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAlertType("price")}
+                  onClick={() => { setAlertType("price"); track.alertTypeSelect("price"); }}
                   className={`p-4 rounded-xl border ${lang === "ar" ? "text-right" : "text-left"} transition-all ${
                     alertType === "price" ? "border-gold bg-gold/10" : "border-border hover:border-gold/40"
                   }`}
@@ -235,7 +240,7 @@ export default function AlertsPage() {
                   <div className="flex gap-3 mb-3">
                     <button
                       type="button"
-                      onClick={() => setCondition("above")}
+                      onClick={() => { setCondition("above"); track.alertConditionSelect("above"); }}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                         condition === "above" ? "border-rise bg-rise/10 text-rise" : "border-border text-text-secondary"
                       }`}
@@ -244,7 +249,7 @@ export default function AlertsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setCondition("below")}
+                      onClick={() => { setCondition("below"); track.alertConditionSelect("below"); }}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                         condition === "below" ? "border-fall bg-fall/10 text-fall" : "border-border text-text-secondary"
                       }`}

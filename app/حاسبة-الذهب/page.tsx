@@ -6,6 +6,7 @@ import { useLang } from "@/components/LanguageContext";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { motion } from "framer-motion";
+import { track } from "@/lib/analytics";
 
 const KARATS = [
   { value: 24, labelAr: "عيار 24", labelEn: "24K", purity: 1 },
@@ -75,12 +76,12 @@ export default function GoldCalculatorPage() {
   }));
 
   return (
-    <div dir={dir} className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-text-primary mb-2">
+    <div dir={dir} className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-text-primary mb-2">
           {lang === "ar" ? "🧮 حاسبة الذهب" : "🧮 Gold Calculator"}
         </h1>
-        <p className="text-text-secondary">
+        <p className="text-text-secondary text-sm sm:text-base">
           {lang === "ar"
             ? "احسب قيمة ذهبك وزكاتك بدقة"
             : "Calculate your gold value and zakat accurately"}
@@ -116,7 +117,7 @@ export default function GoldCalculatorPage() {
               <input
                 type="number"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
+                onChange={(e) => { setWeight(e.target.value); if (e.target.value) track.calcWeightInput(parseFloat(e.target.value)); }}
                 placeholder={lang === "ar" ? "مثال: 10" : "e.g. 10"}
                 dir="ltr"
                 className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
@@ -131,7 +132,7 @@ export default function GoldCalculatorPage() {
                 {KARATS.map((k) => (
                   <button
                     key={k.value}
-                    onClick={() => setKarat(k.value)}
+                    onClick={() => { setKarat(k.value); track.calcKaratSelect(k.value); }}
                     className={`py-2.5 rounded-xl text-sm font-bold border transition-all ${
                       karat === k.value
                         ? "border-gold bg-gold/10 text-gold"
@@ -200,7 +201,7 @@ export default function GoldCalculatorPage() {
                 />
                 <select
                   value={karatZakat}
-                  onChange={(e) => setKaratZakat(Number(e.target.value))}
+                  onChange={(e) => { setKaratZakat(Number(e.target.value)); track.zakatKaratSelect(Number(e.target.value)); }}
                   className="bg-surface-2 border border-border rounded-xl px-3 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
                 >
                   {KARATS.map((k) => (
@@ -233,6 +234,7 @@ export default function GoldCalculatorPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              onAnimationComplete={() => track.zakatResult(reachedNisab, zakatDueUSD)}
               className={`mt-5 border rounded-xl p-4 ${
                 reachedNisab
                   ? "bg-rise/5 border-rise/20"
