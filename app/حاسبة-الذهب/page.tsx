@@ -75,6 +75,21 @@ export default function GoldCalculatorPage() {
     pricePerGram: pricePerGram24k * k.purity,
   }));
 
+  // Profit/Loss calculator
+  const [plWeight, setPlWeight] = useState("");
+  const [plKarat, setPlKarat] = useState(21);
+  const [plBuyPrice, setPlBuyPrice] = useState("");
+  const plKaratData = KARATS.find((k) => k.value === plKarat)!;
+  const plCurrentPricePerGram = pricePerGram24k * plKaratData.purity;
+  const plWeightNum = parseFloat(plWeight) || 0;
+  const plBuyNum = parseFloat(plBuyPrice) || 0;
+  const plCurrentValue = plWeightNum * plCurrentPricePerGram;
+  const plBuyValue = plWeightNum * plBuyNum;
+  const plProfit = plCurrentValue - plBuyValue;
+  const plProfitPct = plBuyValue > 0 ? (plProfit / plBuyValue) * 100 : 0;
+  const plProfitLocal = plProfit * loc.rate;
+  const plCurrentValueLocal = plCurrentValue * loc.rate;
+
   return (
     <div dir={dir} className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <div className="mb-6 sm:mb-8">
@@ -375,6 +390,109 @@ export default function GoldCalculatorPage() {
           )}
         </ul>
       </div>
+
+      {/* ── Profit / Loss Calculator ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-6 bg-surface border border-border rounded-2xl p-6"
+      >
+        <h2 className="text-lg font-bold text-text-primary mb-4">
+          📈 {lang === "ar" ? "حاسبة الربح والخسارة" : "Profit & Loss Calculator"}
+        </h2>
+        <p className="text-text-secondary text-sm mb-4">
+          {lang === "ar"
+            ? "احسب كم ربحت أو خسرت في استثمارك بالذهب"
+            : "Calculate how much you gained or lost on your gold investment"}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          {/* Weight */}
+          <div>
+            <label className="text-text-secondary text-xs mb-1.5 block">
+              {lang === "ar" ? "الوزن (جرام)" : "Weight (grams)"}
+            </label>
+            <input
+              type="number"
+              value={plWeight}
+              onChange={(e) => setPlWeight(e.target.value)}
+              placeholder={lang === "ar" ? "مثال: 50" : "e.g. 50"}
+              dir="ltr"
+              className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold text-sm"
+            />
+          </div>
+          {/* Karat */}
+          <div>
+            <label className="text-text-secondary text-xs mb-1.5 block">
+              {lang === "ar" ? "العيار" : "Karat"}
+            </label>
+            <div className="flex gap-1.5 flex-wrap">
+              {KARATS.map((k) => (
+                <button
+                  key={k.value}
+                  onClick={() => setPlKarat(k.value)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex-1 ${
+                    plKarat === k.value ? "bg-gold text-background" : "bg-surface-2 border border-border text-text-secondary"
+                  }`}
+                >
+                  {lang === "ar" ? k.labelAr : k.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Buy price per gram */}
+          <div>
+            <label className="text-text-secondary text-xs mb-1.5 block">
+              {lang === "ar" ? "سعر الشراء ($/جرام)" : "Buy Price ($/gram)"}
+            </label>
+            <input
+              type="number"
+              value={plBuyPrice}
+              onChange={(e) => setPlBuyPrice(e.target.value)}
+              placeholder={lang === "ar" ? "سعر الشراء بالدولار" : "e.g. 85.00"}
+              dir="ltr"
+              className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold text-sm"
+            />
+          </div>
+        </div>
+
+        {plWeightNum > 0 && plBuyNum > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`rounded-2xl p-5 border ${plProfit >= 0 ? "bg-rise/5 border-rise/20" : "bg-fall/5 border-fall/20"}`}
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "سعر الشراء الكلي" : "Total Buy Value"}</p>
+                <p className="font-black text-text-primary">${plBuyValue.toFixed(2)}</p>
+                <p className="text-text-secondary text-xs">{(plBuyValue * loc.rate).toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currency}</p>
+              </div>
+              <div>
+                <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "القيمة الحالية" : "Current Value"}</p>
+                <p className="font-black text-text-primary">${plCurrentValue.toFixed(2)}</p>
+                <p className="text-text-secondary text-xs">{plCurrentValueLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currency}</p>
+              </div>
+              <div>
+                <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "الربح / الخسارة" : "Profit / Loss"}</p>
+                <p className={`font-black text-xl ${plProfit >= 0 ? "text-rise" : "text-fall"}`}>
+                  {plProfit >= 0 ? "+" : ""}${plProfit.toFixed(2)}
+                </p>
+                <p className={`text-xs ${plProfit >= 0 ? "text-rise" : "text-fall"}`}>
+                  {plProfitLocal >= 0 ? "+" : ""}{plProfitLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currency}
+                </p>
+              </div>
+              <div>
+                <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "النسبة" : "Return %"}</p>
+                <p className={`font-black text-2xl ${plProfitPct >= 0 ? "text-rise" : "text-fall"}`}>
+                  {plProfitPct >= 0 ? "+" : ""}{plProfitPct.toFixed(2)}%
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }

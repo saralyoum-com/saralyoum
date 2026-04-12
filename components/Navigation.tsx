@@ -12,6 +12,7 @@ const navHrefs = [
   { href: "/", key: "home" },
   { href: "/اسعار", key: "prices" },
   { href: "/حاسبة-الذهب", key: "calculator" },
+  { href: "/مقالات", key: "articles" },
   { href: "/اخبار", key: "news" },
   { href: "/تنبيهات", key: "alerts" },
 ] as const;

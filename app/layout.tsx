@@ -7,6 +7,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { AdSenseScript } from "@/components/AdSense";
 import { LocationProvider } from "@/components/LocalCurrency";
 import { LanguageProvider } from "@/components/LanguageContext";
+import { OneSignalInit } from "@/components/PushNotifications";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
@@ -51,6 +52,7 @@ export const metadata: Metadata = {
     siteName: "سعر الذهب",
     locale: "ar_SA",
     type: "website",
+    images: [{ url: "/api/og?asset=gold&price=4%2C787&change=%2B0.85%25", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
@@ -70,7 +72,16 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icons/icon-192.png",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "سعر الذهب",
+  },
   verification: {
     google: "6Za0nJ0t9J4Ft04y3xF3fPS7Nx9-kzXEm43Oftq10qo",
   },
@@ -131,6 +142,7 @@ export default function RootLayout({
           <Footer />
         </LanguageProvider>
       </body>
+      <OneSignalInit />
       <GoogleAnalytics gaId="G-2EFBVGR83R" />
       <AdSenseScript />
     </html>

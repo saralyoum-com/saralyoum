@@ -15,6 +15,27 @@ export default function Footer() {
           {t.disclaimerFooter}
         </div>
 
+        {/* Country pages */}
+        <div className="mb-8">
+          <h4 className="text-text-secondary text-xs font-medium mb-3">
+            {lang === "ar" ? "سعر الذهب بالعملات العربية" : "Gold Price by Currency"}
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: "/سعر-الذهب-السعودية", label: lang === "ar" ? "🇸🇦 السعودية" : "🇸🇦 Saudi Arabia" },
+              { href: "/سعر-الذهب-الامارات",  label: lang === "ar" ? "🇦🇪 الإمارات"  : "🇦🇪 UAE" },
+              { href: "/سعر-الذهب-الكويت",   label: lang === "ar" ? "🇰🇼 الكويت"    : "🇰🇼 Kuwait" },
+              { href: "/سعر-الذهب-مصر",      label: lang === "ar" ? "🇪🇬 مصر"       : "🇪🇬 Egypt" },
+              { href: "/سعر-الذهب-قطر",      label: lang === "ar" ? "🇶🇦 قطر"       : "🇶🇦 Qatar" },
+              { href: "/سعر-الذهب-البحرين",  label: lang === "ar" ? "🇧🇭 البحرين"   : "🇧🇭 Bahrain" },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* عن الموقع */}
           <div>
