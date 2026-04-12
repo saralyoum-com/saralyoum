@@ -118,6 +118,31 @@ export default function AlertsPage() {
         <p className="text-text-secondary">{txt.subtitle}</p>
       </div>
 
+      {/* Telegram Channel Banner */}
+      <a
+        href="https://t.me/sardhahab"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 sm:gap-4 bg-[#229ED9]/10 border border-[#229ED9]/40 rounded-2xl p-4 sm:p-5 mb-6 hover:bg-[#229ED9]/15 transition-all group"
+      >
+        <div className="shrink-0 w-11 h-11 bg-[#229ED9] rounded-xl flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-text-primary text-sm sm:text-base group-hover:text-[#229ED9] transition-colors">
+            {lang === "ar" ? "🔔 انضم لقناة سعر اليوم على تيليجرام" : "🔔 Join sardhahab on Telegram"}
+          </div>
+          <div className="text-text-secondary text-xs sm:text-sm mt-0.5">
+            {lang === "ar"
+              ? "تنبيهات فورية بأسعار الذهب والعملات — مجاناً"
+              : "Instant gold & currency price alerts — free"}
+          </div>
+        </div>
+        <div className="shrink-0 text-[#229ED9] font-bold text-sm hidden sm:flex items-center gap-1">
+          {lang === "ar" ? "انضم الآن" : "Join Now"} ←
+        </div>
+      </a>
+
       {/* Ad at top */}
       <AdSlot size="leaderboard" slot="5678901234" className="mb-6" />
       <AdSlot size="mobile-banner" slot="5678901235" className="mb-6" />

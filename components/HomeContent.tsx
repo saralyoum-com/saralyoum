@@ -34,7 +34,7 @@ export function HomeHero() {
 }
 
 export function HomeAdAndCTA() {
-  const { lang, t } = useLang();
+  const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
 
   return (
@@ -43,22 +43,31 @@ export function HomeAdAndCTA() {
       <AdSlot size="leaderboard" slot="1234567890" className="my-4" />
       <AdSlot size="mobile-banner" slot="1234567891" className="my-4" />
 
-      {/* CTA التنبيهات */}
+      {/* CTA — قناة تيليجرام */}
       <div
         dir={dir}
-        className="bg-gradient-to-l from-gold/5 to-gold/10 border border-gold/20 rounded-2xl p-4 sm:p-6 mb-10 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-4"
+        className="bg-gradient-to-l from-[#229ED9]/10 to-[#229ED9]/5 border border-[#229ED9]/30 rounded-2xl p-4 sm:p-6 mb-10 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-4"
       >
         <div className="text-center sm:text-start">
-          <h2 className="text-lg sm:text-xl font-bold text-text-primary mb-1">{t.home.ctaTitle}</h2>
-          <p className="text-text-secondary text-sm">{t.home.ctaDesc}</p>
+          <h2 className="text-lg sm:text-xl font-bold text-text-primary mb-1">
+            {lang === "ar" ? "🔔 انضم لقناة سعر اليوم" : "🔔 Join Our Telegram Channel"}
+          </h2>
+          <p className="text-text-secondary text-sm">
+            {lang === "ar"
+              ? "تنبيهات فورية بأسعار الذهب والعملات مباشرةً على تيليجرام — مجاناً"
+              : "Instant gold & currency alerts directly on Telegram — free"}
+          </p>
         </div>
-        <Link
-          href="/تنبيهات"
+        <a
+          href="https://t.me/sardhahab"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => track.ctaClick()}
-          className="bg-gold text-background font-bold px-5 sm:px-6 py-3 rounded-xl hover:bg-gold-light transition-colors whitespace-nowrap w-full sm:w-auto text-center"
+          className="flex items-center gap-2 bg-[#229ED9] text-white font-bold px-5 sm:px-6 py-3 rounded-xl hover:bg-[#1a8bc4] transition-colors whitespace-nowrap w-full sm:w-auto justify-center"
         >
-          {t.home.subscribe}
-        </Link>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
+          {lang === "ar" ? "انضم للقناة" : "Join Channel"}
+        </a>
       </div>
     </>
   );
@@ -128,7 +137,7 @@ export function HomeQuickLinks() {
   const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
 
-  const links = [
+  const links: { href: string; icon: string; title: string; desc: string; external?: boolean }[] = [
     {
       href: "/اسعار",
       icon: "📊",
@@ -148,28 +157,36 @@ export function HomeQuickLinks() {
       desc: lang === "ar" ? "آخر أخبار الأسواق" : "Latest market news",
     },
     {
-      href: "/تنبيهات",
-      icon: "🔔",
-      title: lang === "ar" ? "التنبيهات الذكية" : "Smart Alerts",
-      desc: lang === "ar" ? "تنبيهات يومية وسعرية" : "Daily and price alerts",
+      href: "https://t.me/sardhahab",
+      icon: "✈️",
+      title: lang === "ar" ? "قناة تيليجرام" : "Telegram Channel",
+      desc: lang === "ar" ? "تنبيهات فورية مجاناً" : "Instant free alerts",
+      external: true,
     },
   ];
 
   return (
     <section dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 sm:pb-12">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={() => track.quickLinkClick(link.title)}
-            className="bg-surface border border-border rounded-2xl p-4 sm:p-6 hover:border-gold/30 transition-all group text-center"
-          >
-            <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{link.icon}</div>
-            <h3 className="text-text-primary font-bold mb-1 sm:mb-2 group-hover:text-gold transition-colors text-sm sm:text-base">{link.title}</h3>
-            <p className="text-text-secondary text-xs hidden sm:block">{link.desc}</p>
-          </Link>
-        ))}
+        {links.map((link) => {
+          const cls = `bg-surface border rounded-2xl p-4 sm:p-6 transition-all group text-center ${
+            link.external
+              ? "border-[#229ED9]/30 hover:border-[#229ED9]/60 hover:bg-[#229ED9]/5"
+              : "border-border hover:border-gold/30"
+          }`;
+          const inner = (
+            <>
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{link.icon}</div>
+              <h3 className={`font-bold mb-1 sm:mb-2 transition-colors text-sm sm:text-base ${link.external ? "text-[#229ED9] group-hover:text-[#1a8bc4]" : "text-text-primary group-hover:text-gold"}`}>{link.title}</h3>
+              <p className="text-text-secondary text-xs hidden sm:block">{link.desc}</p>
+            </>
+          );
+          return link.external ? (
+            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" onClick={() => track.quickLinkClick(link.title)} className={cls}>{inner}</a>
+          ) : (
+            <Link key={link.href} href={link.href} onClick={() => track.quickLinkClick(link.title)} className={cls}>{inner}</Link>
+          );
+        })}
       </div>
     </section>
   );

@@ -93,13 +93,15 @@ export default function Navigation() {
             🌐 {lang === "ar" ? "EN" : "عر"}
           </button>
 
-          <Link
-            href="/تنبيهات"
+          <a
+            href="https://t.me/sardhahab"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={() => track.subscribeHeaderClick()}
             className="hidden md:flex items-center gap-1.5 bg-gold text-background px-3 lg:px-4 py-2 rounded-xl text-sm font-bold hover:bg-gold-light transition-colors whitespace-nowrap"
           >
-            {t.nav.subscribe}
-          </Link>
+            <span>✈️</span> {t.nav.subscribe}
+          </a>
 
           <button
             onClick={handleMenuToggle}
@@ -148,13 +150,15 @@ export default function Navigation() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/تنبيهات"
+              <a
+                href="https://t.me/sardhahab"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => { track.subscribeHeaderClick(); setMenuOpen(false); }}
                 className="flex items-center justify-center gap-2 bg-gold text-background px-4 py-3 rounded-xl text-sm font-bold mt-2"
               >
-                {t.nav.subscribe}
-              </Link>
+                ✈️ {t.nav.subscribe}
+              </a>
             </div>
           </motion.div>
         )}
