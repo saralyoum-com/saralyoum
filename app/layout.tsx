@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   },
   icons: { icon: "/favicon.ico" },
   verification: {
-    google: "",
+    google: "6Za0nJ0t9J4Ft04y3xF3fPS7Nx9-kzXEm43Oftq10qo",
   },
 };
 
