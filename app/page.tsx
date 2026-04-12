@@ -1,7 +1,7 @@
 import PriceTicker from "@/components/PriceTicker";
 import Disclaimer from "@/components/Disclaimer";
 import PriceCardsClient from "@/components/PriceCardsClient";
-import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomeQuickLinks } from "@/components/HomeContent";
+import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getMockTechnicalData } from "@/lib/technical";
@@ -113,6 +113,14 @@ export default async function HomePage() {
         {/* إعلانات + CTA */}
         <HomeAdAndCTA />
       </section>
+
+      {/* قسم الرسوم البيانية */}
+      <HomePriceChartsSection
+        gold={{ price: gold?.price ?? 4787, changePercent: gold?.changePercent ?? 0 }}
+        silver={{ price: silver?.price ?? 76.48, changePercent: silver?.changePercent ?? 0 }}
+        bitcoin={{ price: bitcoin?.price ?? 72864, changePercent: bitcoin?.changePercent ?? 0 }}
+        ethereum={{ price: ethereum?.price ?? 2249, changePercent: ethereum?.changePercent ?? 0 }}
+      />
 
       {/* قسم الأخبار */}
       <HomeNewsSection news={news} />

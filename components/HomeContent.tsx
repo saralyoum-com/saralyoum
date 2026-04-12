@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useLang } from "@/components/LanguageContext";
 import AdSlot from "@/components/AdSlot";
 import { formatDate } from "@/lib/format";
 import { NewsItem } from "@/types";
 import { track } from "@/lib/analytics";
+
+const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 
 export function HomeHero() {
   const { lang, t } = useLang();
@@ -70,6 +73,65 @@ export function HomeAdAndCTA() {
         </a>
       </div>
     </>
+  );
+}
+
+interface HomePriceProps {
+  gold: { price: number; changePercent: number };
+  silver: { price: number; changePercent: number };
+  bitcoin: { price: number; changePercent: number };
+  ethereum: { price: number; changePercent: number };
+}
+
+export function HomePriceChartsSection({ gold, silver, bitcoin, ethereum }: HomePriceProps) {
+  const { lang } = useLang();
+  const dir = lang === "ar" ? "rtl" : "ltr";
+
+  const assets = [
+    { key: "gold" as const,     label: lang === "ar" ? "الذهب"     : "Gold",     icon: "🥇", price: gold.price,    change: gold.changePercent    },
+    { key: "silver" as const,   label: lang === "ar" ? "الفضة"     : "Silver",   icon: "🥈", price: silver.price,  change: silver.changePercent  },
+    { key: "bitcoin" as const,  label: lang === "ar" ? "بيتكوين"   : "Bitcoin",  icon: "₿",  price: bitcoin.price, change: bitcoin.changePercent },
+    { key: "ethereum" as const, label: lang === "ar" ? "إيثيريوم"  : "Ethereum", icon: "⟠",  price: ethereum.price, change: ethereum.changePercent },
+  ];
+
+  return (
+    <section dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 sm:pb-12">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gold/10 border border-gold/20 rounded-2xl flex items-center justify-center text-xl sm:text-2xl">
+            📈
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
+              {lang === "ar" ? "الرسوم البيانية" : "Price Charts"}
+            </h2>
+            <p className="text-text-secondary text-xs sm:text-sm">
+              {lang === "ar" ? "اليوم • أسبوع • شهر • سنة" : "1D • 1W • 1M • 1Y"}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/اسعار"
+          onClick={() => track.quickLinkClick("charts-view-all")}
+          className="text-gold hover:text-gold-light text-sm font-medium transition-colors"
+        >
+          {lang === "ar" ? "عرض الكل ←" : "View All →"}
+        </Link>
+      </div>
+
+      {/* 2×2 Charts Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {assets.map((a) => (
+          <PriceChart
+            key={a.key}
+            asset={a.key}
+            currentPrice={a.price}
+            changePercent={a.change}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
