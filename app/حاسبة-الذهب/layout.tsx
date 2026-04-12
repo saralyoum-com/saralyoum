@@ -29,5 +29,51 @@ export const metadata: Metadata = {
 };
 
 export default function CalculatorLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: "https://sardhahab.com" },
+      { "@type": "ListItem", position: 2, name: "حاسبة الذهب والزكاة", item: "https://sardhahab.com/حاسبة-الذهب" },
+    ],
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "كيف أحسب قيمة الذهب؟",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "أدخل وزن الذهب بالجرام واختر العيار (24، 22، 21، أو 18)، ستظهر القيمة تلقائياً بناءً على أسعار الذهب اللحظية.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "كيف أحسب زكاة الذهب؟",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "زكاة الذهب 2.5% من القيمة السوقية إذا بلغت النصاب (85 جراماً من الذهب عيار 24) وحال عليها الحول (سنة هجرية).",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "ما هو نصاب الذهب؟",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "نصاب الذهب هو 85 جراماً من الذهب الخالص (عيار 24)، وهو ما يعادل 20 مثقالاً.",
+        },
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      {children}
+    </>
+  );
 }

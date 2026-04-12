@@ -61,6 +61,8 @@ export const metadata: Metadata = {
     canonical: "https://sardhahab.com",
     languages: {
       "ar-SA": "https://sardhahab.com",
+      "ar": "https://sardhahab.com",
+      "x-default": "https://sardhahab.com",
     },
   },
   robots: {
@@ -89,12 +91,31 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "سعر اليوم",
+              alternateName: "sardhahab",
               url: "https://sardhahab.com",
-              description: "أسعار لحظية للذهب والفضة والعملات الرقمية",
+              description: "أسعار لحظية للذهب والفضة والعملات الرقمية والاقتصادية",
+              inLanguage: ["ar", "en"],
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://sardhahab.com/اخبار",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: "https://sardhahab.com/اخبار?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
               },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "سعر اليوم",
+              url: "https://sardhahab.com",
+              logo: "https://sardhahab.com/favicon.ico",
+              sameAs: ["https://t.me/sardhahab"],
             }),
           }}
         />
