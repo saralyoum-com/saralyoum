@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "شروط الاستخدام — سعر اليوم",
+  title: "شروط الاستخدام — سعر الذهب",
 };
 
 export default function TermsPage() {
@@ -14,7 +14,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-text-primary font-bold text-xl mb-3">1. القبول بالشروط</h2>
           <p>
-            باستخدامك لموقع &quot;سعر اليوم&quot;، فإنك توافق على الالتزام بهذه الشروط والأحكام.
+            باستخدامك لموقع &quot;سعر الذهب&quot;، فإنك توافق على الالتزام بهذه الشروط والأحكام.
             إذا كنت لا توافق على أي من هذه الشروط، يُرجى التوقف عن استخدام الموقع.
           </p>
         </section>
@@ -22,7 +22,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-text-primary font-bold text-xl mb-3">2. وصف الخدمة</h2>
           <p>
-            يُقدّم موقع &quot;سعر اليوم&quot; خدمات عرض أسعار الذهب والفضة والعملات الرقمية
+            يُقدّم موقع &quot;سعر الذهب&quot; خدمات عرض أسعار الذهب والفضة والعملات الرقمية
             والأخبار الاقتصادية وتنبيهات الأسعار لأغراض إعلامية وتعليمية فقط.
             الخدمة مجانية ومتاحة للعموم.
           </p>

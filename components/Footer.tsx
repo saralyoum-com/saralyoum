@@ -83,7 +83,7 @@ export default function Footer() {
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
           <span className="text-[#229ED9] font-bold text-sm group-hover:text-[#1a8bc4] transition-colors">
-            {lang === "ar" ? "🔔 انضم لقناة سعر اليوم على تيليجرام — @sardhahab" : "🔔 Join sardhahab on Telegram — @sardhahab"}
+            {lang === "ar" ? "🔔 انضم لقناة سعر الذهب على تيليجرام — @sardhahab" : "🔔 Join sardhahab on Telegram — @sardhahab"}
           </span>
         </a>
 

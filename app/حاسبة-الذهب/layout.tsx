@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "gold gram price",
   ],
   openGraph: {
-    title: "حاسبة الذهب والزكاة — سعر اليوم",
+    title: "حاسبة الذهب والزكاة — سعر الذهب",
     description: "احسب قيمة ذهبك وزكاتك بأسعار لحظية لجميع العيارات",
     type: "website",
   },

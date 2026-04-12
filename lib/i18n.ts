@@ -1,6 +1,6 @@
 export const translations = {
   ar: {
-    siteName: "سعر اليوم",
+    siteName: "سعر الذهب",
     tagline: "أسعار لحظية",
     nav: {
       home: "الرئيسية",
@@ -42,7 +42,7 @@ export const translations = {
     disclaimerFooter: "⚠️ المحتوى لأغراض تعليمية وإعلامية فقط. لا يمثل نصيحة استثمارية أو مالية. الاستثمار ينطوي على مخاطر. استشر مستشاراً مالياً مرخصاً قبل أي قرار.",
   },
   en: {
-    siteName: "Today's Price",
+    siteName: "Gold Price",
     tagline: "Live Prices",
     nav: {
       home: "Home",

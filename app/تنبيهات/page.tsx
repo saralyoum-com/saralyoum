@@ -130,7 +130,7 @@ export default function AlertsPage() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-text-primary text-sm sm:text-base group-hover:text-[#229ED9] transition-colors">
-            {lang === "ar" ? "🔔 انضم لقناة سعر اليوم على تيليجرام" : "🔔 Join sardhahab on Telegram"}
+            {lang === "ar" ? "🔔 انضم لقناة سعر الذهب على تيليجرام" : "🔔 Join sardhahab on Telegram"}
           </div>
           <div className="text-text-secondary text-xs sm:text-sm mt-0.5">
             {lang === "ar"

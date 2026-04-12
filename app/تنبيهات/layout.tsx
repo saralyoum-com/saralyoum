@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     "bitcoin alert",
   ],
   openGraph: {
-    title: "التنبيهات الذكية — سعر اليوم",
+    title: "التنبيهات الذكية — سعر الذهب",
     description: "تنبيهات يومية وسعرية مجانية على بريدك الإلكتروني",
     type: "website",
   },

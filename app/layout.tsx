@@ -18,8 +18,8 @@ const tajawal = Tajawal({
 export const metadata: Metadata = {
   metadataBase: new URL("https://sardhahab.com"),
   title: {
-    default: "سعر اليوم | أسعار الذهب والفضة والعملات الرقمية لحظياً",
-    template: "%s | سعر اليوم",
+    default: "سعر الذهب | أسعار الذهب والفضة والعملات الرقمية لحظياً",
+    template: "%s | سعر الذهب",
   },
   description:
     "تابع أسعار الذهب والفضة والبيتكوين والإيثيريوم لحظياً مع أكثر من 27 عملة عربية وعالمية وأخبار اقتصادية يومية وتنبيهات ذكية للأسواق.",
@@ -41,20 +41,20 @@ export const metadata: Metadata = {
     "gold price",
     "bitcoin price",
   ],
-  authors: [{ name: "سعر اليوم" }],
-  creator: "سعر اليوم",
-  publisher: "سعر اليوم",
+  authors: [{ name: "سعر الذهب" }],
+  creator: "سعر الذهب",
+  publisher: "سعر الذهب",
   openGraph: {
-    title: "سعر اليوم | أسعار لحظية للذهب والعملات",
+    title: "سعر الذهب | أسعار لحظية للذهب والعملات",
     description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية",
     url: "https://sardhahab.com",
-    siteName: "سعر اليوم",
+    siteName: "سعر الذهب",
     locale: "ar_SA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "سعر اليوم | أسعار لحظية للذهب والعملات",
+    title: "سعر الذهب | أسعار لحظية للذهب والعملات",
     description: "تابع أسعار الذهب والفضة والعملات الرقمية لحظياً",
   },
   alternates: {
@@ -90,7 +90,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "سعر اليوم",
+              name: "سعر الذهب",
               alternateName: "sardhahab",
               url: "https://sardhahab.com",
               description: "أسعار لحظية للذهب والفضة والعملات الرقمية والاقتصادية",
@@ -112,7 +112,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "سعر اليوم",
+              name: "سعر الذهب",
               url: "https://sardhahab.com",
               logo: "https://sardhahab.com/favicon.ico",
               sameAs: ["https://t.me/sardhahab"],

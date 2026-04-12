@@ -73,11 +73,11 @@ export async function GET(req: NextRequest) {
         await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
           to: alert.email,
-          subject: `🏅 تنبيه سعر ${assetNames[alert.asset]} — سعر اليوم`,
+          subject: `🏅 تنبيه سعر ${assetNames[alert.asset]} — سعر الذهب`,
           html: `
             <div dir="rtl" style="font-family: Arial; background: #0D0D0D; color: #F5F5F5; padding: 30px; border-radius: 12px; max-width: 500px; margin: 0 auto;">
-              <h2 style="color: #C9A84C; margin-bottom: 5px;">🏅 سعر اليوم</h2>
-              <p style="color: #A0A0A0; font-size: 13px; margin-top: 0;">تقرير السعر اليومي</p>
+              <h2 style="color: #C9A84C; margin-bottom: 5px;">🏅 سعر الذهب</h2>
+              <p style="color: #A0A0A0; font-size: 13px; margin-top: 0;">تقرير السعر الذهبي</p>
 
               <div style="background: #1A1A1A; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <h3 style="color: #F5F5F5; margin: 0 0 15px;">${assetNames[alert.asset]}</h3>
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
               </div>
 
               <p style="font-size: 11px; color: #666; margin-top: 20px; text-align: center;">
-                سعر اليوم — saralyoum.com
+                سعر الذهب — saralyoum.com
               </p>
             </div>
           `,

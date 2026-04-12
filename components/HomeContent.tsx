@@ -50,7 +50,7 @@ export function HomeAdAndCTA() {
       >
         <div className="text-center sm:text-start">
           <h2 className="text-lg sm:text-xl font-bold text-text-primary mb-1">
-            {lang === "ar" ? "🔔 انضم لقناة سعر اليوم" : "🔔 Join Our Telegram Channel"}
+            {lang === "ar" ? "🔔 انضم لقناة سعر الذهب" : "🔔 Join Our Telegram Channel"}
           </h2>
           <p className="text-text-secondary text-sm">
             {lang === "ar"

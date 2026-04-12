@@ -5,10 +5,10 @@ import AdSlot from "@/components/AdSlot";
 export const metadata: Metadata = {
   title: "من نحن",
   description:
-    "تعرّف على موقع سعر اليوم — المرجع العربي لأسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية.",
+    "تعرّف على موقع سعر الذهب — المرجع العربي لأسعار الذهب والفضة والعملات الرقمية لحظياً مع أخبار اقتصادية وتنبيهات ذكية.",
   openGraph: {
-    title: "من نحن — سعر اليوم",
-    description: "تعرّف على موقع سعر اليوم ومصادر بياناته وما يقدمه",
+    title: "من نحن — سعر الذهب",
+    description: "تعرّف على موقع سعر الذهب ومصادر بياناته وما يقدمه",
     type: "website",
   },
   alternates: {
@@ -26,7 +26,7 @@ export default function AboutPage() {
         <div className="flex items-center gap-4 mb-4">
           <span className="text-5xl">🏅</span>
           <div>
-            <h2 className="text-2xl font-black text-gold">سعر اليوم</h2>
+            <h2 className="text-2xl font-black text-gold">سعر الذهب</h2>
             <p className="text-text-secondary">أسعار لحظية للذهب والعملات</p>
           </div>
         </div>

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "financial news",
   ],
   openGraph: {
-    title: "الأخبار الاقتصادية — سعر اليوم",
+    title: "الأخبار الاقتصادية — سعر الذهب",
     description: "آخر أخبار الأسواق والذهب والعملات من BBC عربي والجزيرة ورويترز",
     type: "website",
   },
