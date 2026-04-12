@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import PriceCard from "@/components/PriceCard";
-import PriceChart from "@/components/PriceChart";
+const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
