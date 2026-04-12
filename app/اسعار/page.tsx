@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import PriceCard from "@/components/PriceCard";
+import PriceChart from "@/components/PriceChart";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
@@ -299,6 +300,12 @@ export default function PricesPage() {
               </table>
             </div>
 
+            {/* Charts */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <PriceChart asset="gold" currentPrice={metals.gold.price} changePercent={metals.gold.changePercent} />
+              <PriceChart asset="silver" currentPrice={metals.silver.price} changePercent={metals.silver.changePercent} />
+            </div>
+
             {/* Gold Price per Gram */}
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
               <h3 className="font-bold text-text-primary mb-4">
@@ -321,7 +328,7 @@ export default function PricesPage() {
           </div>
         ) : activeTab === "crypto" && crypto.length > 0 ? (
           <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {crypto.map((item, idx) => (
                 <PriceCard
                   key={item.symbol}
@@ -331,6 +338,19 @@ export default function PricesPage() {
                 />
               ))}
             </div>
+
+            {/* Crypto Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+              {crypto.map((item) => (
+                <PriceChart
+                  key={item.symbol}
+                  asset={item.symbol === "BTC" ? "bitcoin" : "ethereum"}
+                  currentPrice={item.price}
+                  changePercent={item.changePercent}
+                />
+              ))}
+            </div>
+
             <div className="bg-surface border border-border rounded-2xl overflow-x-auto">
               <table className="w-full text-sm min-w-[360px]">
                 <thead>
