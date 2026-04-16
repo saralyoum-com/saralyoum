@@ -28,6 +28,13 @@ export default function Footer() {
               { href: "/سعر-الذهب-مصر",      label: lang === "ar" ? "🇪🇬 مصر"       : "🇪🇬 Egypt" },
               { href: "/سعر-الذهب-قطر",      label: lang === "ar" ? "🇶🇦 قطر"       : "🇶🇦 Qatar" },
               { href: "/سعر-الذهب-البحرين",  label: lang === "ar" ? "🇧🇭 البحرين"   : "🇧🇭 Bahrain" },
+              { href: "/سعر-الذهب-الاردن",   label: lang === "ar" ? "🇯🇴 الأردن"    : "🇯🇴 Jordan" },
+              { href: "/سعر-الذهب-المغرب",   label: lang === "ar" ? "🇲🇦 المغرب"    : "🇲🇦 Morocco" },
+              { href: "/سعر-الذهب-العراق",   label: lang === "ar" ? "🇮🇶 العراق"    : "🇮🇶 Iraq" },
+              { href: "/سعر-الذهب-عمان",     label: lang === "ar" ? "🇴🇲 عُمان"     : "🇴🇲 Oman" },
+              { href: "/سعر-الذهب-ليبيا",    label: lang === "ar" ? "🇱🇾 ليبيا"     : "🇱🇾 Libya" },
+              { href: "/سعر-الذهب-تونس",     label: lang === "ar" ? "🇹🇳 تونس"      : "🇹🇳 Tunisia" },
+              { href: "/سعر-الذهب-الجزائر",  label: lang === "ar" ? "🇩🇿 الجزائر"   : "🇩🇿 Algeria" },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
                 {l.label}
