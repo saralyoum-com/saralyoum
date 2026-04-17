@@ -35,6 +35,9 @@ export default function Footer() {
               { href: "/سعر-الذهب-ليبيا",    label: lang === "ar" ? "🇱🇾 ليبيا"     : "🇱🇾 Libya" },
               { href: "/سعر-الذهب-تونس",     label: lang === "ar" ? "🇹🇳 تونس"      : "🇹🇳 Tunisia" },
               { href: "/سعر-الذهب-الجزائر",  label: lang === "ar" ? "🇩🇿 الجزائر"   : "🇩🇿 Algeria" },
+              { href: "/سعر-الذهب-اليمن",    label: lang === "ar" ? "🇾🇪 اليمن"      : "🇾🇪 Yemen" },
+              { href: "/سعر-الذهب-السودان",  label: lang === "ar" ? "🇸🇩 السودان"    : "🇸🇩 Sudan" },
+              { href: "/سعر-الذهب-لبنان",    label: lang === "ar" ? "🇱🇧 لبنان"      : "🇱🇧 Lebanon" },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
                 {l.label}

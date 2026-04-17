@@ -25,6 +25,7 @@ const currencyNames: Record<string, { nameAr: string; flag: string; group: "arab
   IQD: { nameAr: "دينار عراقي",     flag: "🇮🇶", group: "arab" },
   YER: { nameAr: "ريال يمني",       flag: "🇾🇪", group: "arab" },
   SDG: { nameAr: "جنيه سوداني",     flag: "🇸🇩", group: "arab" },
+  LBP: { nameAr: "ليرة لبنانية",    flag: "🇱🇧", group: "arab" },
   // ── العملات العالمية ──
   EUR: { nameAr: "يورو",            flag: "🇪🇺", group: "world" },
   GBP: { nameAr: "جنيه إسترليني",  flag: "🇬🇧", group: "world" },
@@ -71,7 +72,7 @@ function getMockRates(): ExchangeRate[] {
     SAR: 3.75,   AED: 3.6725,  KWD: 0.3075,  BHD: 0.3770,
     QAR: 3.64,   OMR: 0.3845,  EGP: 54.41,   JOD: 0.709,
     MAD: 10.05,  TND: 3.12,    DZD: 134.5,   LYD: 4.85,
-    IQD: 1310,   YER: 250,     SDG: 601,
+    IQD: 1310,   YER: 250,     SDG: 601,    LBP: 89500,
     EUR: 0.923,  GBP: 0.788,   JPY: 149.5,   CHF: 0.899,
     CAD: 1.364,  AUD: 1.528,   CNY: 7.24,    INR: 83.1,
     TRY: 32.2,   PKR: 278,     RUB: 91.5,    KRW: 1335,
