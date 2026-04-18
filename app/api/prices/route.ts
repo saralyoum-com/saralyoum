@@ -20,11 +20,21 @@ export async function GET(request: Request) {
     }
 
     if (type === "crypto") {
-      const [bitcoin, ethereum] = await Promise.all([
-        getCryptoPrice("bitcoin"),
-        getCryptoPrice("ethereum"),
-      ]);
-      return NextResponse.json({ bitcoin, ethereum });
+      const { getAllCryptoPrices } = await import("@/lib/coingecko");
+      const coins = await getAllCryptoPrices();
+      const byId: Record<string, unknown> = {};
+      for (const c of coins) {
+        const sym = c.symbol.toLowerCase();
+        if (sym === "btc") byId.bitcoin = c;
+        else if (sym === "eth") byId.ethereum = c;
+        else if (sym === "bnb") byId.binancecoin = c;
+        else if (sym === "sol") byId.solana = c;
+        else if (sym === "xrp") byId.ripple = c;
+      }
+      // Fallback for any missing coins
+      if (!byId.bitcoin) byId.bitcoin = await getCryptoPrice("bitcoin");
+      if (!byId.ethereum) byId.ethereum = await getCryptoPrice("ethereum");
+      return NextResponse.json(byId);
     }
 
     if (type === "currencies") {

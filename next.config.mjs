@@ -24,6 +24,8 @@ const nextConfig = {
       { source: "/سعر-الذهب-اليمن",    destination: "/gold/ye" },
       { source: "/سعر-الذهب-السودان",  destination: "/gold/sd" },
       { source: "/سعر-الذهب-لبنان",    destination: "/gold/lb" },
+      // Crypto Zakat page — Arabic URL → ASCII route (avoids NFD/NFC encoding issue on Vercel)
+      { source: "/زكاة-الكريبتو",       destination: "/zakat-crypto" },
     ];
   },
 

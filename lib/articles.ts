@@ -55,4 +55,15 @@ export const ARTICLES: Article[] = [
     readMins: 6,
     icon: "☪️",
   },
+  {
+    slug: "زكاة-الكريبتو",
+    titleAr: "زكاة العملات الرقمية — أحكامها وكيفية حسابها (دليل 2026)",
+    titleEn: "Crypto Zakat — Rules, Calculation & Scholarly Opinions (2026 Guide)",
+    descAr: "هل تجب الزكاة على البيتكوين وBNB وSOL وUSDT؟ الأحكام الفقهية، النصاب، آراء هيئة كبار العلماء، وطريقة الحساب خطوة بخطوة.",
+    descEn: "Is Zakat due on Bitcoin, BNB, SOL, and USDT? Rulings, nisab, scholarly opinions, and step-by-step calculation.",
+    category: "إسلامي",
+    date: "2026-04-17",
+    readMins: 8,
+    icon: "₿",
+  },
 ];
