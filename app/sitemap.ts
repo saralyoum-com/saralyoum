@@ -11,6 +11,7 @@ const pages = [
   { path: "/%D8%AA%D9%86%D8%A8%D9%8A%D9%87%D8%A7%D8%AA",                              cf: "monthly" as const, p: 0.7 },
   // Articles
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA",                                    cf: "weekly"  as const, p: 0.8 },
+  { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%B3%D8%B9%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8-%D8%A7%D9%84%D9%8A%D9%88%D9%85",                            cf: "daily"   as const, p: 0.9 },
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D9%85%D8%A7-%D9%8A%D8%A4%D8%AB%D8%B1-%D8%B9%D9%84%D9%89-%D8%B3%D8%B9%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8", cf: "monthly" as const, p: 0.7 },
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%B9%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",                                        cf: "monthly" as const, p: 0.7 },
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D8%AB%D9%85%D8%A7%D8%B1-%D9%81%D9%8A-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",       cf: "monthly" as const, p: 0.7 },

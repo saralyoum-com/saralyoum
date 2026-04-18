@@ -12,6 +12,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
   {
+    slug: "سعر-الذهب-اليوم",
+    titleAr: "سعر الذهب اليوم — عيار 24 و21 و18 بالجرام والأونصة",
+    titleEn: "Gold Price Today — 24K, 21K, 18K per Gram & Ounce",
+    descAr: "دليلك الشامل لفهم سعر الذهب اليومي: لماذا يتغير، الفرق بين العيارات، وكيف تقرأ السوق للشراء أو البيع.",
+    descEn: "Your complete guide to today's gold price: why it moves, karat differences, and how to read the market.",
+    category: "تحليل",
+    date: "2026-04-18",
+    readMins: 7,
+    icon: "📈",
+  },
+  {
     slug: "ما-يؤثر-على-سعر-الذهب",
     titleAr: "ما الذي يؤثر على سعر الذهب؟ — 7 عوامل رئيسية",
     titleEn: "What Affects Gold Price? — 7 Key Factors",
