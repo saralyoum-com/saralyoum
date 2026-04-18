@@ -3,6 +3,7 @@
 import PriceCard from "@/components/PriceCard";
 import { CurrencyBadge, useLocation } from "@/components/LocalCurrency";
 import { useLang } from "@/components/LanguageContext";
+import ChainlinkBadge from "@/components/ChainlinkBadge";
 import { PriceData, TechnicalSignal } from "@/types";
 
 interface Props {
@@ -20,11 +21,16 @@ export default function PriceCardsClient({ gold, silver, bitcoin, ethereum, sign
   return (
     <>
       <CurrencyBadge />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
         <PriceCard data={gold}    signal={signals.gold}    index={0} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />
         <PriceCard data={silver}  signal={signals.silver}  index={1} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />
         <PriceCard data={bitcoin} signal={signals.bitcoin} index={2} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />
         <PriceCard data={ethereum}signal={signals.ethereum}index={3} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />
+      </div>
+
+      {/* Chainlink verification badge — under gold price card */}
+      <div className="flex justify-start mb-6 sm:mb-8">
+        <ChainlinkBadge goldPriceUSD={gold?.price ?? 0} />
       </div>
     </>
   );
