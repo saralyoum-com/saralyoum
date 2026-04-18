@@ -16,8 +16,6 @@ export function generateMetadata({
     title,
     description,
     keywords: country.keywords,
-    // noindex: canonical is the Arabic slug — prevent /gold/[code] from competing in search
-    robots: { index: false, follow: true },
     openGraph: {
       title: `سعر الذهب في ${country.nameAr} — سعر الذهب`,
       description,
