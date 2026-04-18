@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useLocation } from "@/components/LocalCurrency";
 import { useLang } from "@/components/LanguageContext";
 import Disclaimer from "@/components/Disclaimer";
@@ -390,6 +391,28 @@ export default function GoldCalculatorPage() {
           )}
         </ul>
       </div>
+
+      {/* ── Crypto Zakat CTA ── */}
+      <Link
+        href="/zakat-crypto"
+        onClick={() => track.navClick("crypto-zakat-cta")}
+        className="mt-6 flex items-center justify-between gap-4 bg-surface border border-border hover:border-gold/40 rounded-2xl p-5 transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">₿🤲</span>
+          <div>
+            <p className="font-bold text-text-primary group-hover:text-gold transition-colors">
+              {lang === "ar" ? "حاسبة زكاة العملات الرقمية" : "Crypto Zakat Calculator"}
+            </p>
+            <p className="text-text-secondary text-sm">
+              {lang === "ar"
+                ? "BTC · ETH · BNB · SOL · USDT — نصاب لحظي"
+                : "BTC · ETH · BNB · SOL · USDT — Live Nisab"}
+            </p>
+          </div>
+        </div>
+        <span className="text-gold font-black text-xl shrink-0">←</span>
+      </Link>
 
       {/* ── Profit / Loss Calculator ── */}
       <motion.div
