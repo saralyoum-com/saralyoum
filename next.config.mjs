@@ -6,28 +6,9 @@ const nextConfig = {
     ],
   },
 
-  async rewrites() {
-    return [
-      { source: "/سعر-الذهب-السعودية", destination: "/gold/sa" },
-      { source: "/سعر-الذهب-الامارات",  destination: "/gold/ae" },
-      { source: "/سعر-الذهب-الكويت",   destination: "/gold/kw" },
-      { source: "/سعر-الذهب-قطر",      destination: "/gold/qa" },
-      { source: "/سعر-الذهب-البحرين",  destination: "/gold/bh" },
-      { source: "/سعر-الذهب-عمان",     destination: "/gold/om" },
-      { source: "/سعر-الذهب-مصر",      destination: "/gold/eg" },
-      { source: "/سعر-الذهب-الاردن",   destination: "/gold/jo" },
-      { source: "/سعر-الذهب-المغرب",   destination: "/gold/ma" },
-      { source: "/سعر-الذهب-العراق",   destination: "/gold/iq" },
-      { source: "/سعر-الذهب-ليبيا",    destination: "/gold/ly" },
-      { source: "/سعر-الذهب-تونس",     destination: "/gold/tn" },
-      { source: "/سعر-الذهب-الجزائر",  destination: "/gold/dz" },
-      { source: "/سعر-الذهب-اليمن",    destination: "/gold/ye" },
-      { source: "/سعر-الذهب-السودان",  destination: "/gold/sd" },
-      { source: "/سعر-الذهب-لبنان",    destination: "/gold/lb" },
-      // Crypto Zakat page — Arabic URL → ASCII route (avoids NFD/NFC encoding issue on Vercel)
-      { source: "/زكاة-الكريبتو",       destination: "/zakat-crypto" },
-    ];
-  },
+  // NOTE: Arabic URL routing is now handled by middleware.ts (Edge Middleware)
+  // which decodes percent-encoding and normalises to NFC before matching slugs.
+  // This avoids the NFD/NFC encoding mismatch between macOS builds and Vercel/Linux.
 
   async redirects() {
     return [
