@@ -6,6 +6,27 @@ const nextConfig = {
     ],
   },
 
+  async rewrites() {
+    return [
+      { source: "/سعر-الذهب-السعودية", destination: "/gold/sa" },
+      { source: "/سعر-الذهب-الامارات",  destination: "/gold/ae" },
+      { source: "/سعر-الذهب-الكويت",   destination: "/gold/kw" },
+      { source: "/سعر-الذهب-قطر",      destination: "/gold/qa" },
+      { source: "/سعر-الذهب-البحرين",  destination: "/gold/bh" },
+      { source: "/سعر-الذهب-عمان",     destination: "/gold/om" },
+      { source: "/سعر-الذهب-مصر",      destination: "/gold/eg" },
+      { source: "/سعر-الذهب-الاردن",   destination: "/gold/jo" },
+      { source: "/سعر-الذهب-المغرب",   destination: "/gold/ma" },
+      { source: "/سعر-الذهب-العراق",   destination: "/gold/iq" },
+      { source: "/سعر-الذهب-ليبيا",    destination: "/gold/ly" },
+      { source: "/سعر-الذهب-تونس",     destination: "/gold/tn" },
+      { source: "/سعر-الذهب-الجزائر",  destination: "/gold/dz" },
+      { source: "/سعر-الذهب-اليمن",    destination: "/gold/ye" },
+      { source: "/سعر-الذهب-السودان",  destination: "/gold/sd" },
+      { source: "/سعر-الذهب-لبنان",    destination: "/gold/lb" },
+    ];
+  },
+
   async redirects() {
     return [
       // www.sardhahab.com → sardhahab.com

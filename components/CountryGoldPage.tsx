@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useLang } from "@/components/LanguageContext";
+import { useSetCurrency } from "@/components/LocalCurrency";
 import { track } from "@/lib/analytics";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
@@ -15,24 +17,39 @@ interface Props {
   currency: string;
   currencyAr: string;
   currencyEn: string;
+  currencySymbol?: string;
   goldPriceUSD: number;
   silverPriceUSD: number;
-  rate: number; // 1 USD = X local currency
+  rate: number;
   changePercent: number;
+  canonicalSlug?: string;
 }
 
 export default function CountryGoldPage({
-  flag, nameAr, nameEn, city, currency, currencyAr, currencyEn,
+  flag, nameAr, nameEn, city, currency, currencyAr, currencyEn, currencySymbol,
   goldPriceUSD, silverPriceUSD, rate, changePercent,
 }: Props) {
   const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
+  const setPreferredCurrency = useSetCurrency();
 
-  const OZ_TO_GRAM = 31.1035;
-  const goldPerOz = goldPriceUSD * rate;
-  const goldPerGram24 = (goldPriceUSD / OZ_TO_GRAM) * rate;
-  const silverPerOz = silverPriceUSD * rate;
-  const silverPerGram = (silverPriceUSD / OZ_TO_GRAM) * rate;
+  // ── Set global currency preference so calculator & all tools use this currency
+  useEffect(() => {
+    setPreferredCurrency({
+      country: currency.slice(0, 2),
+      currency,
+      currencySymbol: currencySymbol ?? currency,
+      currencyName: lang === "ar" ? currencyAr : currencyEn,
+      flag,
+      rate,
+    });
+  }, [currency, rate, flag, currencyAr, currencyEn, currencySymbol, lang, setPreferredCurrency]);
+
+  const OZ = 31.1035;
+  const goldPerOz    = goldPriceUSD * rate;
+  const goldPerGram24 = (goldPriceUSD / OZ) * rate;
+  const silverPerOz  = silverPriceUSD * rate;
+  const silverPerGram = (silverPriceUSD / OZ) * rate;
 
   const karats = [
     { label: lang === "ar" ? "عيار 24" : "24K", factor: 1 },
@@ -42,11 +59,10 @@ export default function CountryGoldPage({
     { label: lang === "ar" ? "عيار 14" : "14K", factor: 14 / 24 },
   ];
 
-  const decimals = rate < 1 ? 4 : rate < 5 ? 3 : 2;
-
+  // Smart decimal precision based on rate magnitude
+  const decimals = rate > 1000 ? 0 : rate > 100 ? 1 : rate < 1 ? 4 : rate < 5 ? 3 : 2;
   const fmt = (n: number) =>
-    n.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 2 });
-
+    n.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: Math.min(decimals, 2) });
 
   return (
     <div dir={dir} className="max-w-5xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
@@ -57,10 +73,12 @@ export default function CountryGoldPage({
           {lang === "ar" ? "الرئيسية" : "Home"}
         </Link>
         <span>/</span>
-        <span className="text-text-primary">{lang === "ar" ? `سعر الذهب في ${nameAr}` : `Gold Price in ${nameEn}`}</span>
+        <span className="text-text-primary">
+          {lang === "ar" ? `سعر الذهب في ${nameAr}` : `Gold Price in ${nameEn}`}
+        </span>
       </nav>
 
-      {/* Hero */}
+      {/* Hero Card */}
       <div className="bg-surface border border-border rounded-3xl p-5 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
@@ -70,19 +88,15 @@ export default function CountryGoldPage({
                 {lang === "ar" ? `سعر الذهب في ${nameAr}` : `Gold Price in ${nameEn}`}
               </h1>
               <p className="text-text-secondary text-sm mt-0.5">
-                {lang === "ar"
-                  ? `بالـ${currencyAr} — محدّث لحظياً`
-                  : `In ${currencyEn} — Live updated`}
+                {lang === "ar" ? `بالـ${currencyAr} — محدّث لحظياً` : `In ${currencyEn} — Live`}
               </p>
             </div>
           </div>
           <div className="text-right sm:text-end">
             <p className="text-text-secondary text-xs mb-1">
-              {lang === "ar" ? "سعر الأونصة" : "Price per oz"}
+              {lang === "ar" ? "سعر الأونصة" : "Per oz"}
             </p>
-            <p className="text-3xl sm:text-4xl font-black text-gold">
-              {fmt(goldPerOz)}
-            </p>
+            <p className="text-3xl sm:text-4xl font-black text-gold">{fmt(goldPerOz)}</p>
             <p className="text-text-secondary text-sm">{currency}</p>
             <span className={`text-sm font-bold ${changePercent >= 0 ? "text-rise" : "text-fall"}`}>
               {changePercent >= 0 ? "+" : ""}{changePercent.toFixed(2)}%
@@ -106,12 +120,8 @@ export default function CountryGoldPage({
         </div>
       </div>
 
-      {/* Gold Chart */}
-      <PriceChart
-        asset="gold"
-        currentPrice={goldPriceUSD}
-        changePercent={changePercent}
-      />
+      {/* Chart */}
+      <PriceChart asset="gold" currentPrice={goldPriceUSD} changePercent={changePercent} />
 
       {/* Silver */}
       <div className="bg-surface border border-border rounded-2xl p-5 mt-4">
@@ -120,16 +130,12 @@ export default function CountryGoldPage({
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-surface-2 rounded-xl p-3 text-center">
-            <p className="text-text-secondary text-xs mb-1">
-              {lang === "ar" ? "سعر الأونصة" : "Per oz"}
-            </p>
+            <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "الأونصة" : "Per oz"}</p>
             <p className="font-black text-xl text-text-primary">{fmt(silverPerOz)}</p>
             <p className="text-text-secondary text-xs">{currency}</p>
           </div>
           <div className="bg-surface-2 rounded-xl p-3 text-center">
-            <p className="text-text-secondary text-xs mb-1">
-              {lang === "ar" ? "سعر الجرام" : "Per gram"}
-            </p>
+            <p className="text-text-secondary text-xs mb-1">{lang === "ar" ? "الجرام" : "Per gram"}</p>
             <p className="font-black text-xl text-text-primary">{fmt(silverPerGram)}</p>
             <p className="text-text-secondary text-xs">{currency}</p>
           </div>
@@ -138,13 +144,11 @@ export default function CountryGoldPage({
 
       {/* Info Box */}
       <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5 mt-4">
-        <h2 className="font-bold text-text-primary mb-2">
-          💡 {lang === "ar" ? "معلومة" : "Info"}
-        </h2>
         <p className="text-text-secondary text-sm leading-relaxed">
+          💡{" "}
           {lang === "ar"
-            ? `سعر الذهب في ${nameAr} (${city}) يُحسب بتحويل سعر الأونصة العالمي من الدولار إلى ${currencyAr} بسعر الصرف اللحظي. الأسعار تُحدَّث كل 5 دقائق.`
-            : `Gold price in ${nameEn} (${city}) is calculated by converting the international spot price from USD to ${currencyEn} at the live exchange rate. Prices update every 5 minutes.`}
+            ? `سعر الذهب في ${nameAr} (${city}) يُحسب بتحويل سعر الأونصة العالمي من الدولار إلى ${currencyAr} بسعر الصرف اللحظي. الأسعار تُحدَّث كل 5 دقائق. بعد زيارة هذه الصفحة، تعمل حاسبة الذهب وجميع الأدوات بالـ${currencyAr} تلقائياً.`
+            : `Gold price in ${nameEn} (${city}) is converted from USD at the live exchange rate. Prices update every 5 min. After visiting this page, the calculator and all tools automatically use ${currencyEn}.`}
         </p>
       </div>
 
@@ -155,7 +159,7 @@ export default function CountryGoldPage({
           onClick={() => track.quickLinkClick("country-calc")}
           className="flex items-center justify-center gap-2 bg-gold text-background font-bold py-3.5 rounded-xl hover:bg-gold-light transition-colors"
         >
-          🧮 {lang === "ar" ? "احسب قيمة ذهبك" : "Calculate Gold Value"}
+          🧮 {lang === "ar" ? `احسب ذهبك بالـ${currencyAr}` : `Calculate in ${currencyEn}`}
         </Link>
         <Link
           href="/اسعار"
@@ -165,7 +169,6 @@ export default function CountryGoldPage({
           📊 {lang === "ar" ? "جدول الأسعار الكامل" : "Full Prices Table"}
         </Link>
       </div>
-
     </div>
   );
 }
