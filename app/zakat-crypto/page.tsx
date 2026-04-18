@@ -200,7 +200,7 @@ export default function ZakatCryptoPage() {
 
       {/* Hero */}
       <div className="text-center mb-8">
-        <div className="text-5xl mb-3">₿🤲</div>
+        <div className="text-5xl mb-3">₿⚖️</div>
         <h1 className="text-3xl sm:text-4xl font-black text-text-primary mb-3">
           {ar ? "حاسبة زكاة العملات الرقمية" : "Crypto Zakat Calculator"}
         </h1>

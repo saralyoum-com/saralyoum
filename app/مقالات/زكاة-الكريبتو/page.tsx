@@ -1,7 +1,82 @@
+"use client";
+
 import ArticlePage from "@/components/ArticlePage";
 import Link from "next/link";
+import { useLang } from "@/components/LanguageContext";
+
+const sources = {
+  ar: [
+    {
+      label: "هيئة كبار العلماء — المملكة العربية السعودية",
+      note: "قرار بوجوب الزكاة في العملات الرقمية كعروض التجارة",
+      url: "https://www.spa.gov.sa",
+    },
+    {
+      label: "المجمع الفقهي الإسلامي الدولي — رابطة العالم الإسلامي",
+      note: "قرار رقم 214 (د 23 / ق 3) بشأن حكم العملات الافتراضية المشفرة",
+      url: "https://www.themwl.org",
+    },
+    {
+      label: "دار الإفتاء المصرية",
+      note: "فتاوى الزكاة على الأصول الرقمية والعملات الإلكترونية",
+      url: "https://www.dar-alifta.org",
+    },
+    {
+      label: "إسلام ويب — الشبكة الإسلامية",
+      note: "فتاوى متعددة في حكم زكاة العملات الرقمية وشروطها",
+      url: "https://www.islamweb.net",
+    },
+    {
+      label: "CoinGecko API",
+      note: "مصدر بيانات أسعار العملات الرقمية اللحظية المستخدمة في الحاسبة",
+      url: "https://www.coingecko.com",
+    },
+    {
+      label: "GoldAPI.io",
+      note: "مصدر بيانات سعر الذهب اللحظي لحساب النصاب",
+      url: "https://goldapi.io",
+    },
+  ],
+  en: [
+    {
+      label: "Council of Senior Scholars — Saudi Arabia",
+      note: "Ruling on Zakat for cryptocurrencies treated as trade goods",
+      url: "https://www.spa.gov.sa",
+    },
+    {
+      label: "International Islamic Fiqh Academy — Muslim World League",
+      note: "Resolution No. 214 on the ruling for encrypted virtual currencies",
+      url: "https://www.themwl.org",
+    },
+    {
+      label: "Dar al-Ifta al-Misriyyah (Egyptian Fatwa Authority)",
+      note: "Fatwas on Zakat for digital assets and electronic currencies",
+      url: "https://www.dar-alifta.org",
+    },
+    {
+      label: "IslamWeb — Islamic Network",
+      note: "Multiple fatwas on the ruling and conditions of crypto Zakat",
+      url: "https://www.islamweb.net",
+    },
+    {
+      label: "CoinGecko API",
+      note: "Live cryptocurrency price data source used in the calculator",
+      url: "https://www.coingecko.com",
+    },
+    {
+      label: "GoldAPI.io",
+      note: "Live gold price source used for nisab calculation",
+      url: "https://goldapi.io",
+    },
+  ],
+};
 
 export default function Page() {
+  const { lang } = useLang();
+  const ar = lang === "ar";
+  const dir = ar ? "rtl" : "ltr";
+  const srcList = ar ? sources.ar : sources.en;
+
   return (
     <>
       <ArticlePage
@@ -83,18 +158,51 @@ export default function Page() {
         ]}
       />
       {/* Calculator CTA */}
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 pb-10">
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 pb-4">
         <div className="bg-gold/5 border border-gold/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="font-bold text-text-primary mb-1">₿ احسب زكاة كريبتوك الآن</p>
-            <p className="text-text-secondary text-sm">حاسبة BTC + ETH + BNB + SOL + USDT بأسعار لحظية</p>
+            <p className="font-bold text-text-primary mb-1">₿ {ar ? "احسب زكاة كريبتوك الآن" : "Calculate Your Crypto Zakat"}</p>
+            <p className="text-text-secondary text-sm">{ar ? "حاسبة BTC + ETH + BNB + SOL + USDT بأسعار لحظية" : "BTC + ETH + BNB + SOL + USDT with live prices"}</p>
           </div>
           <Link
             href="/zakat-crypto"
             className="bg-gold text-background font-bold px-5 py-2.5 rounded-xl hover:bg-gold-light transition-colors whitespace-nowrap"
           >
-            الحاسبة
+            {ar ? "الحاسبة" : "Calculator"}
           </Link>
+        </div>
+      </div>
+
+      {/* Sources */}
+      <div dir={dir} className="max-w-3xl mx-auto px-3 sm:px-4 pb-10">
+        <div className="bg-surface border border-border rounded-2xl p-5">
+          <h2 className="font-bold text-text-primary mb-4 flex items-center gap-2">
+            <span>📚</span>
+            {ar ? "المصادر والمراجع" : "Sources & References"}
+          </h2>
+          <ol className="space-y-3">
+            {srcList.map((s, i) => (
+              <li key={i} className="flex gap-3 text-sm">
+                <span className="text-gold font-bold shrink-0 w-5">{i + 1}.</span>
+                <div>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-text-primary hover:text-gold transition-colors"
+                  >
+                    {s.label}
+                  </a>
+                  <p className="text-text-secondary text-xs mt-0.5">{s.note}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="text-text-secondary text-xs mt-4 border-t border-border pt-3">
+            {ar
+              ? "⚠️ هذا المقال لأغراض تعليمية وإعلامية. يُنصح بمراجعة عالم شرعي معتمد للحصول على فتوى شخصية."
+              : "⚠️ This article is for educational purposes. Consult a qualified Islamic scholar for a personal fatwa."}
+          </p>
         </div>
       </div>
     </>
