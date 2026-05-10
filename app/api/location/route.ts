@@ -41,13 +41,18 @@ const CURRENCY_MAP: Record<string, { currency: string; symbol: string; name: str
 
 export async function GET(request: Request) {
   try {
-    // استخراج IP من الهيدر
+    // استخراج IP من الهيدر مع التحقق من صحة التنسيق
     const forwarded = request.headers.get("x-forwarded-for");
-    const ip = forwarded ? forwarded.split(",")[0].trim() : "";
+    const rawIp = forwarded ? forwarded.split(",")[0].trim() : "";
+    // تحقق بسيط: IPv4 أو IPv6 فقط (يمنع حقن مسارات خبيثة)
+    const ipv4 = /^(\d{1,3}\.){3}\d{1,3}$/;
+    const ipv6 = /^[0-9a-fA-F:]{2,39}$/;
+    const isValidIp = (ipv4.test(rawIp) || ipv6.test(rawIp)) &&
+      rawIp !== "127.0.0.1" && rawIp !== "::1";
 
     // جلب البيانات من ipapi.co
-    const url = ip && ip !== "127.0.0.1" && ip !== "::1"
-      ? `https://ipapi.co/${ip}/json/`
+    const url = isValidIp
+      ? `https://ipapi.co/${encodeURIComponent(rawIp)}/json/`
       : "https://ipapi.co/json/";
 
     const res = await fetch(url, {

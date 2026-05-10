@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLang } from "@/components/LanguageContext";
+import { ARTICLES } from "@/lib/articles";
 
 interface Section {
   heading: string;
@@ -17,12 +18,13 @@ interface ArticleProps {
   date: string;
   readMins: number;
   category: string;
+  slug?: string;
   sectionsAr: Section[];
   sectionsEn: Section[];
 }
 
 export default function ArticlePage({
-  icon, titleAr, titleEn, descAr, descEn, date, readMins, category,
+  icon, titleAr, titleEn, descAr, descEn, date, readMins, category, slug,
   sectionsAr, sectionsEn,
 }: ArticleProps) {
   const { lang } = useLang();
@@ -30,6 +32,9 @@ export default function ArticlePage({
   const title = lang === "ar" ? titleAr : titleEn;
   const desc = lang === "ar" ? descAr : descEn;
   const sections = lang === "ar" ? sectionsAr : sectionsEn;
+
+  // Pick 3 related articles (excluding current)
+  const related = ARTICLES.filter((a) => a.slug !== slug).slice(0, 3);
 
   return (
     <article dir={dir} className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
@@ -87,6 +92,33 @@ export default function ArticlePage({
           {lang === "ar" ? "الحاسبة" : "Calculator"}
         </Link>
       </div>
+
+      {/* Related Articles */}
+      {related.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-base font-bold text-text-primary mb-4">
+            {lang === "ar" ? "مقالات ذات صلة" : "Related Articles"}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {related.map((a) => (
+              <Link
+                key={a.slug}
+                href={`/مقالات/${a.slug}`}
+                className="bg-surface border border-border rounded-2xl p-4 hover:border-gold/50 transition-colors group"
+              >
+                <div className="text-2xl mb-2">{a.icon}</div>
+                <p className="font-bold text-sm text-text-primary group-hover:text-gold transition-colors leading-snug">
+                  {lang === "ar" ? a.titleAr : a.titleEn}
+                </p>
+                <p className="text-xs text-text-secondary mt-1.5 line-clamp-2">
+                  {lang === "ar" ? a.descAr : a.descEn}
+                </p>
+                <p className="text-xs text-gold mt-2">{a.readMins} {lang === "ar" ? "دقائق" : "min"} ←</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Back */}
       <div className="mt-6 text-center">

@@ -12,6 +12,28 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
   {
+    slug: "توقعات-سعر-الذهب-2026",
+    titleAr: "توقعات سعر الذهب 2026 — هل يصل إلى 4000 دولار؟",
+    titleEn: "Gold Price Forecast 2026 — Will It Reach $4,000?",
+    descAr: "تحليل شامل لتوقعات سعر الذهب 2026: آراء Goldman Sachs وJPMorgan، السيناريوهات الثلاثة، وما يعنيه ذلك للمستثمر العربي.",
+    descEn: "Comprehensive analysis of gold price forecasts for 2026: Goldman Sachs, JPMorgan views, three scenarios, and what it means for Arab investors.",
+    category: "تحليل",
+    date: "2026-04-25",
+    readMins: 8,
+    icon: "🔮",
+  },
+  {
+    slug: "كيف-تشتري-الذهب",
+    titleAr: "كيف تشتري الذهب؟ — دليل المبتدئين الشامل",
+    titleEn: "How to Buy Gold? — Complete Beginner's Guide",
+    descAr: "دليل عملي خطوة بخطوة: أين تشتري في الخليج، ما تتحقق منه، الفرق بين السبائك والمجوهرات، وكيف تتجنب النصب.",
+    descEn: "Step-by-step practical guide: where to buy in the Gulf, what to verify, bullion vs jewelry, and how to avoid scams.",
+    category: "تعليم",
+    date: "2026-04-25",
+    readMins: 6,
+    icon: "🛒",
+  },
+  {
     slug: "سعر-الذهب-اليوم",
     titleAr: "سعر الذهب اليوم — عيار 24 و21 و18 بالجرام والأونصة",
     titleEn: "Gold Price Today — 24K, 21K, 18K per Gram & Ounce",

@@ -16,7 +16,7 @@ export default function Footer() {
         </div>
 
         {/* Country pages */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h4 className="text-text-secondary text-xs font-medium mb-3">
             {lang === "ar" ? "سعر الذهب بالعملات العربية" : "Gold Price by Currency"}
           </h4>
@@ -46,6 +46,24 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Crypto pages */}
+        <div className="mb-8">
+          <h4 className="text-text-secondary text-xs font-medium mb-3">
+            {lang === "ar" ? "أسعار العملات الرقمية" : "Crypto Prices"}
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { href: "/سعر-البيتكوين",  label: lang === "ar" ? "₿ سعر البيتكوين"   : "₿ Bitcoin Price" },
+              { href: "/سعر-الاثيريوم",  label: lang === "ar" ? "Ξ سعر الإثيريوم"   : "Ξ Ethereum Price" },
+              { href: "/zakat-crypto",    label: lang === "ar" ? "⚖️ زكاة الكريبتو"   : "⚖️ Crypto Zakat" },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* عن الموقع */}
           <div>
@@ -66,6 +84,8 @@ export default function Footer() {
                 { href: "/اسعار", labelKey: "prices" },
                 { href: "/اخبار", labelKey: "news" },
                 { href: "/تنبيهات", labelKey: "alerts" },
+                { href: "/حاسبة-الذهب", labelKey: "calculator" },
+                { href: "/مقالات", labelKey: "articles" },
               ].map((link) => (
                 <Link
                   key={link.href}

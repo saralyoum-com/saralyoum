@@ -20,6 +20,7 @@ export function generateMetadata({
       title: `سعر الذهب في ${country.nameAr} — سعر الذهب`,
       description,
       type: "website",
+      images: [{ url: "https://sardhahab.com/api/og?asset=gold", width: 1200, height: 630, alt: `سعر الذهب في ${country.nameAr}` }],
     },
     alternates: {
       canonical: `https://sardhahab.com/${country.slug}`,

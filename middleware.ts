@@ -34,7 +34,9 @@ const COUNTRY_SLUGS: Record<string, string> = {
 
 // Arabic slug → ASCII page path (non-country pages)
 const OTHER_SLUGS: Record<string, string> = {
-  "زكاة-الكريبتو": "/zakat-crypto",
+  "زكاة-الكريبتو":   "/zakat-crypto",
+  "سعر-البيتكوين":   "/bitcoin-price",
+  "سعر-الاثيريوم":   "/ethereum-price",
 };
 
 export function middleware(request: NextRequest) {
@@ -74,6 +76,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Run on all paths except Next.js internals and static files
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/|gold/|zakat-crypto|.*\\.(?:png|jpg|svg|ico|webp|css|js)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|gold/|zakat-crypto|bitcoin-price|ethereum-price|.*\\.(?:png|jpg|svg|ico|webp|css|js)).*)",
   ],
 };

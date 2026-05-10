@@ -2,6 +2,7 @@ import ArticlePage from "@/components/ArticlePage";
 export default function Page() {
   return (
     <ArticlePage
+      slug="عيارات-الذهب"
       icon="🥇" category="تعليم" date="2026-04-06" readMins={4}
       titleAr="دليل عيارات الذهب — ما الفرق بين 24 و21 و18؟"
       titleEn="Gold Karats Guide — Difference Between 24K, 21K, 18K"

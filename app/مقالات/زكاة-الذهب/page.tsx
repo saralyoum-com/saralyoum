@@ -2,6 +2,7 @@ import ArticlePage from "@/components/ArticlePage";
 export default function Page() {
   return (
     <ArticlePage
+      slug="زكاة-الذهب"
       icon="☪️" category="إسلامي" date="2026-04-04" readMins={6}
       titleAr="زكاة الذهب — كيف تحسبها بالطريقة الصحيحة؟"
       titleEn="Gold Zakat — How to Calculate It Correctly"

@@ -169,6 +169,47 @@ export default function CountryGoldPage({
           📊 {lang === "ar" ? "جدول الأسعار الكامل" : "Full Prices Table"}
         </Link>
       </div>
+
+      {/* Related Articles */}
+      <div className="mt-6">
+        <h2 className="text-sm font-bold text-text-secondary mb-3">
+          {lang === "ar" ? "مقالات تهمك" : "Related Articles"}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            {
+              href: "/مقالات/زكاة-الذهب",
+              icon: "☪️",
+              labelAr: "زكاة الذهب — كيف تحسبها؟",
+              labelEn: "Gold Zakat — How to Calculate",
+            },
+            {
+              href: "/مقالات/كيف-تشتري-الذهب",
+              icon: "🛒",
+              labelAr: "كيف تشتري الذهب؟ دليل المبتدئين",
+              labelEn: "How to Buy Gold — Beginner's Guide",
+            },
+            {
+              href: "/مقالات/توقعات-سعر-الذهب-2026",
+              icon: "🔮",
+              labelAr: "توقعات سعر الذهب 2026",
+              labelEn: "Gold Price Forecast 2026",
+            },
+          ].map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              onClick={() => track.quickLinkClick("country-article")}
+              className="flex items-center gap-3 bg-surface border border-border rounded-2xl p-3.5 hover:border-gold/50 transition-colors group"
+            >
+              <span className="text-2xl shrink-0">{a.icon}</span>
+              <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors leading-snug">
+                {lang === "ar" ? a.labelAr : a.labelEn}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

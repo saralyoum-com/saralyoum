@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  // التحقق من المفتاح السري
+  // التحقق من المفتاح السري — مطلوب دائماً
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   }
 
@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
               </div>
 
               <p style="font-size: 11px; color: #666; margin-top: 20px; text-align: center;">
-                سعر الذهب — saralyoum.com
+                سعر الذهب — sardhahab.com
               </p>
             </div>
           `,

@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/"],
+        disallow: ["/api/", "/gold/", "/_next/static/media/"],
       },
     ],
     sitemap: "https://sardhahab.com/sitemap.xml",

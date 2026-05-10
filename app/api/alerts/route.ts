@@ -39,21 +39,20 @@ export async function POST(req: NextRequest) {
         const { createServiceClient } = await import("@/lib/supabase");
         const supabase = createServiceClient();
 
-        // Check max price alerts per email
-        if (type === "price") {
-          const { count } = await supabase
-            .from("alerts")
-            .select("id", { count: "exact" })
-            .eq("email", email)
-            .eq("type", "price")
-            .eq("active", true);
+        // Check max alerts per email (3 price alerts, 1 daily alert)
+        const { count } = await supabase
+          .from("alerts")
+          .select("id", { count: "exact" })
+          .eq("email", email)
+          .eq("type", type)
+          .eq("active", true);
 
-          if ((count || 0) >= 3) {
-            return NextResponse.json(
-              { error: "وصلت للحد الأقصى (3 تنبيهات سعرية لكل بريد)" },
-              { status: 429 }
-            );
-          }
+        const limit = type === "price" ? 3 : 1;
+        if ((count || 0) >= limit) {
+          const msg = type === "price"
+            ? "وصلت للحد الأقصى (3 تنبيهات سعرية لكل بريد)"
+            : "لديك بالفعل تنبيه يومي مفعّل لهذا البريد";
+          return NextResponse.json({ error: msg }, { status: 429 });
         }
 
         const { error } = await supabase.from("alerts").insert({

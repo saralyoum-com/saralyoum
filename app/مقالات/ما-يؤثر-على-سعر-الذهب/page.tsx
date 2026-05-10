@@ -2,6 +2,7 @@ import ArticlePage from "@/components/ArticlePage";
 export default function Page() {
   return (
     <ArticlePage
+      slug="ما-يؤثر-على-سعر-الذهب"
       icon="📊" category="تحليل" date="2026-04-10" readMins={5}
       titleAr="ما الذي يؤثر على سعر الذهب؟ — 7 عوامل رئيسية"
       titleEn="What Affects Gold Price? — 7 Key Factors"

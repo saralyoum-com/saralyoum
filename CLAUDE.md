@@ -1,226 +1,241 @@
-# سعر اليوم — Claude Code Project Prompt
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+---
+
+## Commands
+
+```bash
+npm run dev      # Start local dev server (http://localhost:3000)
+npm run build    # Production build — catches TypeScript + lint errors
+npm run lint     # ESLint only
+npm run start    # Serve the production build locally
+```
+
+No test runner is configured. Validate changes with `npm run build` before deploying.
+
+---
 
 ## Project Overview
-**sardhahab.com** — A real-time gold, silver, crypto, and currency prices website in Arabic & English.
-- Framework: Next.js 14 App Router (TypeScript)
-- Styling: Tailwind CSS (dark theme, custom gold palette)
-- Hosting: Vercel (project name: `saralyoum`)
-- Domain: sardhahab.com (Namecheap → Vercel DNS)
-- Analytics: Google Analytics 4 (ID: `G-2EFBVGR83R`)
-- Ads: Google AdSense (publisher: `ca-pub-6286580154921898`)
+
+**sardhahab.com** — Real-time gold, silver, crypto, and currency price site in Arabic & English.
+
+- **Framework**: Next.js 14 App Router (TypeScript)  
+- **Styling**: Tailwind CSS (dark theme, custom gold palette)  
+- **Hosting**: Vercel (project: `saralyoum`; domain: `sardhahab.com`)  
+- **Analytics**: GA4 `G-2EFBVGR83R` · **AdSense**: `ca-pub-6286580154921898`
 
 ---
 
-## Directory Structure
-```
-app/
-  page.tsx                  → Home page (SSR, revalidate: 60s)
-  layout.tsx                → Root layout (GA, AdSense, providers)
-  sitemap.ts                → Auto-generated sitemap.xml
-  robots.ts                 → Auto-generated robots.txt
-  اسعار/page.tsx            → Live prices table (Gold/Silver/Crypto/Currencies)
-  حاسبة-الذهب/page.tsx     → Gold value + Zakat calculator
-  اخبار/page.tsx            → Economic news feed (RSS)
-  تنبيهات/page.tsx          → Smart price alerts (email subscription)
-  من-نحن/page.tsx           → About page
-  شروط-الاستخدام/page.tsx  → Terms of use
-  سياسة-الخصوصية/page.tsx  → Privacy policy
-  إخلاء-مسؤولية/page.tsx   → Disclaimer
-  api/
-    prices/route.ts         → Prices API (metals, crypto, currencies)
-    news/route.ts           → News RSS aggregator
-    alerts/route.ts         → Email alerts subscription
+## Critical: Arabic URL Routing (NFD/NFC)
 
-components/
-  Navigation.tsx            → Sticky header with mobile hamburger menu
-  Footer.tsx                → Site footer with links
-  PriceTicker.tsx           → Scrolling live price ticker (top of page)
-  PriceCard.tsx             → Individual asset price card
-  PriceCardsClient.tsx      → Grid wrapper for 4 price cards
-  HomeContent.tsx           → Home sections (Hero, CTA, News, QuickLinks)
-  AdSlot.tsx                → Google AdSense ad slots
-  AdSense.tsx               → AdSense script loader
-  Disclaimer.tsx            → Disclaimer box (compact/full)
-  LocalCurrency.tsx         → User location detection + currency conversion
-  LanguageContext.tsx       → AR/EN language toggle (localStorage)
+This is the most important architectural nuance in the codebase.
 
-lib/
-  analytics.ts              → GA4 event tracking utility (track.*)
-  goldapi.ts                → GoldAPI.io integration
-  coingecko.ts              → CoinGecko crypto prices
-  exchangerate.ts           → ExchangeRate-API currency rates
-  technical.ts              → Mock technical analysis signals
-  format.ts                 → Date/number formatting helpers
-  i18n.ts                   → Translation strings (AR/EN)
-  supabase.ts               → Supabase client (alerts storage)
-```
+**The problem**: macOS compiles Arabic strings as NFD-encoded. Vercel/Linux normalises incoming URLs to NFC. This means Next.js `rewrites` compiled on macOS **never match** Arabic slugs on production → 404.
+
+**The solution**: `middleware.ts` runs at the Edge, decodes + NFC-normalises every incoming pathname, then maps it to an ASCII route via two lookup tables:
+
+| Table | Maps | To |
+|---|---|---|
+| `COUNTRY_SLUGS` | e.g. `سعر-الذهب-السعودية` | `/gold/sa` |
+| `OTHER_SLUGS` | e.g. `سعر-البيتكوين` | `/bitcoin-price` |
+
+**Rule**: Arabic-path pages **must** be implemented as ASCII routes (`/gold/[code]`, `/bitcoin-price`, `/ethereum-price`, `/zakat-crypto`) with a matching entry in `OTHER_SLUGS` or `COUNTRY_SLUGS`. Never create `app/سعر-البيتكوين/` — it works locally but 404s on Vercel.
+
+The only Arabic directories that work directly are static pages with no rewrite dependency (e.g., `app/مقالات/`, `app/اسعار/`).
 
 ---
 
-## Key Conventions
+## Data Layer
 
-### Language / i18n
-- All pages support Arabic (RTL) and English (LTR)
-- Use `const { lang, t } = useLang()` in client components
-- Use `const dir = lang === "ar" ? "rtl" : "ltr"` for layout direction
-- For inline text: `lang === "ar" ? "النص العربي" : "English text"`
-- The `t` object from `useLang()` covers nav, home, and common strings
-- For page-specific strings, use the `txt` object pattern (see alerts page)
+All prices have a 3-tier fallback: **primary API → Yahoo Finance → hardcoded mock**.
 
-### Responsiveness Rules
-- Mobile-first: always start with base (mobile) styles, add `sm:` `md:` `lg:` breakpoints
-- Use `px-3 sm:px-4` for horizontal padding
-- Use `py-6 sm:py-8` for vertical padding
-- Use `text-2xl sm:text-3xl` for headings
-- Use `gap-3 sm:gap-4` for grid/flex gaps
-- Grids: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` (never skip sm for 4-col grids)
-- Tables: always wrap in `overflow-x-auto` and set `min-w-[360px]` on table
-- Flex rows that could wrap on mobile: use `flex-col sm:flex-row`
-- Do NOT use inline `style={{ height: "Xpx" }}` — use Tailwind `h-X` classes instead
+### `lib/goldapi.ts`
+- Primary: `GoldAPI.io` (`GOLDAPI_KEY` env var, `XAU`/`XAG` symbols)
+- Fallback: Yahoo Finance (`GC=F` futures for gold, `SI=F` for silver)
+- Returns: `PriceData` (from `types/index.ts`)
 
-### Analytics Tracking
-- Import: `import { track } from "@/lib/analytics"`
-- All interactive elements should call a `track.*` function
-- Common events are pre-defined in `lib/analytics.ts`
-- Add new events to `lib/analytics.ts` following the existing pattern
-- Events fire via `window.gtag("event", ...)` — they silently no-op server-side
+### `lib/coingecko.ts`
+- `getCryptoPrice("bitcoin"|"ethereum")` — single coin via CoinGecko `/coins/:id`
+- `getAllCryptoPrices()` — BTC, ETH, BNB, SOL, XRP via `/coins/markets`
+- No API key required (free tier)
 
-### AdSense Ad Slots
-- Import: `import AdSlot from "@/components/AdSlot"`
-- Sizes: `"leaderboard"` (728×90, desktop only), `"mobile-banner"` (320×50, mobile only), `"responsive"`, `"rectangle"`
-- Always pair leaderboard + mobile-banner for full coverage:
-  ```tsx
-  <AdSlot size="leaderboard" slot="SLOT_ID" className="mb-6" />
-  <AdSlot size="mobile-banner" slot="SLOT_ID_NEXT" className="mb-6" />
-  ```
-- Ad slots show placeholder boxes in development, real ads in production
-- Publisher ID is hardcoded in `AdSlot.tsx` — do NOT change it
+### `lib/exchangerate.ts`
+- Primary: `https://v6.exchangerate-api.com` (`EXCHANGE_RATE_API_KEY`)
+- Fallback: `https://open.er-api.com` (keyless)
+- Returns: `ExchangeRate[]` — **note**: interface has `nameAr` and `flag` but NO `nameEn`. Use `r.code` when `nameEn` is needed.
+- All rates are USD-based (`1 USD = X currency`)
 
-### SEO Metadata
-- Client pages (`"use client"`) cannot export `metadata` — use a sibling `layout.tsx` instead
-- All metadata uses `metadataBase: new URL("https://sardhahab.com")`
-- Always include: title, description, keywords, openGraph, alternates.canonical
-- JSON-LD structured data goes in `<script type="application/ld+json">` inside the page component
-
-### API Routes
-- All API routes use `export const dynamic = "force-dynamic"`
-- Prices: `/api/prices?type=metals|crypto|currencies`
-- News: `/api/news?lang=ar|en`
-- Alerts: `POST /api/alerts` with `{ email, asset, type, targetPrice?, condition? }`
-- Fallback mock data is provided if external APIs fail
-
-### Cache Strategy
-- Home page: `export const revalidate = 60` (1 minute ISR)
-- News page: fetches with `next: { revalidate: 900 }` (15 minutes)
-- API price routes: s-maxage=300 (5 minutes)
-- API news routes: s-maxage=900 (15 minutes)
-- Static assets: immutable (1 year)
+### `lib/supabase.ts`
+- Supabase client for alert subscriptions (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
 
 ---
 
-## Design System
+## Core Types (`types/index.ts`)
 
-### Colors (CSS variables + Tailwind)
-- `bg-background` — main dark background
-- `bg-surface` — card background
-- `bg-surface-2` — inner card elements
-- `border-border` — border color
-- `text-text-primary` — main text
-- `text-text-secondary` — muted text
-- `text-gold` / `bg-gold` — #C9A84C (primary brand color)
-- `text-gold-light` / `bg-gold-light` — lighter gold (hover)
-- `text-rise` / `bg-rise/10` — green (price up)
-- `text-fall` / `bg-fall/10` — red (price down)
-
-### Typography
-- Font: Tajawal (Arabic + Latin) via `--font-tajawal`
-- Headlines: `font-black` (900 weight)
-- Body: `font-medium` (500)
-- Captions: `text-xs text-text-secondary`
-
-### Component Patterns
-- Cards: `bg-surface border border-border rounded-2xl p-4 sm:p-5`
-- Buttons (primary): `bg-gold text-background font-bold px-4 py-2.5 rounded-xl hover:bg-gold-light`
-- Buttons (secondary): `border border-border text-text-secondary hover:text-text-primary rounded-xl`
-- Inputs: `bg-surface-2 border border-border rounded-xl px-4 py-3 focus:outline-none focus:border-gold`
-- Active pills: `bg-gold text-background`
-- Inactive pills: `bg-surface border border-border text-text-secondary`
-
----
-
-## External Services
-
-| Service | Purpose | Key |
-|---------|---------|-----|
-| GoldAPI.io | Gold & silver spot prices | in `lib/goldapi.ts` |
-| CoinGecko | BTC & ETH prices | in `lib/coingecko.ts` |
-| ExchangeRate-API | Currency conversion rates | in `lib/exchangerate.ts` |
-| Supabase | Alert subscriptions storage | in `lib/supabase.ts` |
-| Google Analytics 4 | User tracking | `G-2EFBVGR83R` |
-| Google AdSense | Ad revenue | `ca-pub-6286580154921898` |
-| Vercel | Hosting + Edge functions | project: `saralyoum` |
-
----
-
-## Deployment
-```bash
-# Install dependencies
-npm install
-
-# Run locally
-npm run dev
-
-# Build
-npm run build
-
-# Deploy to Vercel (auto on git push to main)
-npx vercel --prod
+```typescript
+PriceData    // price, change, changePercent, high24h, low24h, marketCap, volume24h
+ExchangeRate // code, nameAr, flag, rate, group: "arab"|"world"  — NO nameEn
+NewsItem     // id, title, description, url, source, publishedAt
+Alert        // email, asset, type: "daily"|"price", targetPrice, condition
 ```
 
-Environment variables needed in Vercel dashboard:
-- `GOLDAPI_KEY` — GoldAPI.io API key
-- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
-- `EXCHANGERATE_API_KEY` — ExchangeRate-API key
+---
+
+## Provider Tree (Root Layout)
+
+```
+LanguageProvider          // AR/EN toggle, localStorage, exposes useLang()
+  Navigation
+  LocationProvider        // user country detection, currency preference, exposes useSetCurrency()
+    <main>{children}</main>
+  Footer
+OneSignalInit             // push notifications
+GoogleAnalytics
+AdSenseScript
+```
+
+Pages that need the user's preferred currency call `useSetCurrency()` (e.g., `CountryGoldPage` sets the currency automatically on mount so the calculator picks it up globally).
 
 ---
 
-## Common Tasks
+## Page Patterns
 
-### Add a new page
-1. Create `app/[page-name]/page.tsx` (add "use client" if needed)
-2. If client page: create `app/[page-name]/layout.tsx` for SEO metadata
-3. Add the route to `Navigation.tsx` navHrefs array
-4. Add to `app/sitemap.ts`
-5. Add i18n labels to `lib/i18n.ts`
+### Country gold pages
+`app/gold/[code]/page.tsx` (SSG, 16 static params) → rendered by `components/CountryGoldPage.tsx`  
+Arabic URL is the canonical; `/gold/[code]` is the internal route (blocked in robots.txt).
 
-### Add GA tracking to a new element
+### Crypto price pages
+`app/bitcoin-price/page.tsx` + `app/ethereum-price/page.tsx` (`revalidate = 300`)  
+Rendered by `components/CryptoPricePage.tsx`. Arabic slugs are middleware-rewritten.
+
+### Articles
+`app/مقالات/[slug]/page.tsx` → rendered by `components/ArticlePage.tsx`  
+Article metadata lives in `lib/articles.ts` (`ARTICLES` array). Adding a new article requires: new page + layout under `app/مقالات/`, entry in `ARTICLES`, entry in `app/sitemap.ts`.
+
+### Client pages and SEO
+Pages with `"use client"` **cannot export `metadata`**. Always create a sibling `layout.tsx` for metadata + JSON-LD. Put Article + FAQPage + BreadcrumbList schema in the layout.
+
+---
+
+## API Routes (`app/api/`)
+
+All routes: `export const dynamic = "force-dynamic"`
+
+| Route | Purpose |
+|---|---|
+| `/api/prices?type=metals\|crypto\|currencies\|all` | Aggregates all price sources |
+| `/api/news?lang=ar\|en` | RSS feed aggregator |
+| `/api/alerts` | POST — saves email alert to Supabase |
+| `/api/og` | Dynamic OG image (`?asset=gold\|bitcoin\|ethereum`) |
+| `/api/cron` | Price-alert email dispatch (cron-triggered) |
+| `/api/history` | Mock price history for charts |
+| `/api/location` | IP → country detection |
+
+---
+
+## Cache Strategy
+
+| Target | TTL |
+|---|---|
+| Home page ISR | 60 s |
+| `/api/prices` | 300 s (s-maxage) |
+| `/api/news` | 900 s |
+| `/api/og` | 1 h |
+| `getExchangeRates()` | 3600 s (Next fetch cache) |
+| Crypto/metals via CoinGecko/GoldAPI | 60–300 s |
+| Static assets | 1 year immutable |
+
+---
+
+## SEO Conventions
+
+- Canonical URLs always use the **Arabic slug** (e.g. `https://sardhahab.com/سعر-البيتكوين`), even when the Next.js route is ASCII.
+- `/_next/static/media/` is disallowed in `robots.txt` — prevents font files from burning crawl budget.
+- `/gold/` is disallowed — only Arabic-slug country URLs are indexed.
+- `app/sitemap.ts` uses percent-encoded Arabic paths. When adding pages, encode with `encodeURIComponent`.
+- OG images are always served from `/api/og?asset=<name>` — **never** reference static image files in `/public/`.
+
+---
+
+## Design System Tokens
+
+```
+bg-background / bg-surface / bg-surface-2   — dark hierarchy
+text-text-primary / text-text-secondary      — typography
+text-gold / bg-gold (#C9A84C)               — brand
+text-gold-light                              — hover
+text-rise / bg-rise/10                       — green (up)
+text-fall / bg-fall/10                       — red (down)
+border-border
+```
+
+Font: Tajawal via `--font-tajawal` (Arabic + Latin, weights 300–900).
+
+RTL layout: set `dir={lang === "ar" ? "rtl" : "ltr"}` on the outermost wrapper of every page/component, not on `<html>` (which is always `dir="rtl"` in root layout).
+
+---
+
+## i18n
+
+- `useLang()` from `LanguageContext` → `{ lang, t, toggleLang }`
+- `t` covers nav, home, footer, and common strings (see `lib/i18n.ts`)
+- Page-specific strings: define a local `txt = { ar: {...}, en: {...} }` object and access via `txt[lang].key`
+- New nav links must be added to **both** `navHrefs` in `Navigation.tsx` **and** both language objects in `lib/i18n.ts`
+
+---
+
+## Analytics
+
 ```typescript
 import { track } from "@/lib/analytics";
-// Use existing events or add new ones to lib/analytics.ts
-<button onClick={() => track.navClick("my-page")}>Click</button>
+// Pre-defined events: track.navClick(), track.logoClick(), track.quickLinkClick(), ...
+// All calls are no-ops server-side; fire via window.gtag() client-side
 ```
 
-### Add an ad slot
+Add new event types to `lib/analytics.ts` following existing patterns.
+
+---
+
+## AdSense Ad Slots
+
 ```tsx
 import AdSlot from "@/components/AdSlot";
-// Desktop leaderboard + mobile banner (paired)
-<AdSlot size="leaderboard" slot="YOUR_SLOT_ID" className="mb-6" />
-<AdSlot size="mobile-banner" slot="YOUR_SLOT_ID_2" className="mb-6" />
+// Sizes: "leaderboard" (desktop), "mobile-banner" (mobile), "responsive", "rectangle"
+// Always pair leaderboard + mobile-banner for full coverage:
+<AdSlot size="leaderboard" slot="SLOT_ID" className="mb-6" />
+<AdSlot size="mobile-banner" slot="SLOT_ID_2" className="mb-6" />
 ```
 
-### Add a new translation key
-1. Open `lib/i18n.ts`
-2. Add the key to both `ar` and `en` objects
-3. Use via `t.yourSection.yourKey` in components
+---
+
+## Environment Variables
+
+| Variable | Used in |
+|---|---|
+| `GOLDAPI_KEY` | `lib/goldapi.ts` |
+| `EXCHANGE_RATE_API_KEY` | `lib/exchangerate.ts` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `lib/supabase.ts` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `lib/supabase.ts` |
+
+---
+
+## Responsiveness Rules
+
+- Mobile-first: base styles first, then `sm:` `md:` `lg:` breakpoints
+- Tables: always wrap in `overflow-x-auto` with `min-w-[360px]` on the `<table>`
+- Grids with 3+ columns: never skip `sm:` (e.g. `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`)
+- Flex rows: `flex-col sm:flex-row`
 
 ---
 
 ## Do NOT
-- Do NOT change the AdSense publisher ID (`ca-pub-6286580154921898`)
-- Do NOT change the GA measurement ID (`G-2EFBVGR83R`)
-- Do NOT use hardcoded inline height styles — use Tailwind `h-*` classes
-- Do NOT skip `sm:` breakpoints in grids with 3+ columns
-- Do NOT export `metadata` from pages with `"use client"` — use `layout.tsx` instead
-- Do NOT use fixed pixel widths on elements that should stretch
-- Do NOT modify `app/sitemap.ts` or `app/robots.ts` URLs without updating the domain config
+
+- Change the AdSense publisher ID (`ca-pub-6286580154921898`) or GA ID (`G-2EFBVGR83R`)
+- Use inline `style={{ height: "Xpx" }}` — use Tailwind `h-*` classes
+- Export `metadata` from `"use client"` pages — use `layout.tsx`
+- Create Arabic-path app directories for pages that need middleware rewriting — use ASCII routes
+- Skip `sm:` breakpoints in grids with 3+ columns
+- Reference static OG images — always use `/api/og?asset=…`
+- Update mock fallback prices without checking current market levels

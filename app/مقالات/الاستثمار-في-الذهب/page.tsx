@@ -2,6 +2,7 @@ import ArticlePage from "@/components/ArticlePage";
 export default function Page() {
   return (
     <ArticlePage
+      slug="الاستثمار-في-الذهب"
       icon="💰" category="استثمار" date="2026-04-08" readMins={7}
       titleAr="كيف تستثمر في الذهب؟ — دليل المبتدئين"
       titleEn="How to Invest in Gold? — Beginner's Guide"
