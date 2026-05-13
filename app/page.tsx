@@ -63,34 +63,62 @@ export default async function HomePage() {
   const goldPriceUSD = gold?.price ?? 0;
   const silverPriceUSD = silver?.price ?? 0;
 
+  const OZ = 31.1035;
+  const goldGram24USD = (goldPriceUSD / OZ).toFixed(2);
+  const goldGram21USD = ((goldPriceUSD / OZ) * (21 / 24)).toFixed(2);
+  const goldGram18USD = ((goldPriceUSD / OZ) * (18 / 24)).toFixed(2);
+  const goldChangePct = gold?.changePercent ?? 0;
+  const btcPrice = bitcoin?.price ?? 0;
+  const ethPrice = ethereum?.price ?? 0;
+
+  const homePriceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "أسعار المعادن الثمينة والعملات الرقمية اليوم",
+    url: "https://sardhahab.com",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "سعر الذهب",
+        description: `سعر الذهب اليوم ${goldPriceUSD.toFixed(2)} دولار للأوقية — عيار 24: ${goldGram24USD} دولار للجرام — عيار 21: ${goldGram21USD} دولار للجرام — التغيير: ${goldChangePct >= 0 ? "+" : ""}${goldChangePct.toFixed(2)}%`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "سعر الفضة",
+        description: `سعر الفضة اليوم ${silverPriceUSD.toFixed(2)} دولار للأوقية`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "سعر البيتكوين",
+        description: `سعر البيتكوين اليوم ${btcPrice.toLocaleString("en-US")} دولار`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: "سعر الإيثيريوم",
+        description: `سعر الإيثيريوم اليوم ${ethPrice.toLocaleString("en-US")} دولار`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen">
-      {/* JSON-LD: FinancialProduct structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            name: "أسعار المعادن الثمينة والعملات الرقمية",
-            url: "https://sardhahab.com",
-            itemListElement: [
-              {
-                "@type": "ListItem",
-                position: 1,
-                name: "سعر الذهب",
-                description: `سعر الذهب اليوم: $${goldPriceUSD.toFixed(2)} للأونصة`,
-              },
-              {
-                "@type": "ListItem",
-                position: 2,
-                name: "سعر الفضة",
-                description: `سعر الفضة اليوم: $${silverPriceUSD.toFixed(2)} للأونصة`,
-              },
-            ],
-          }),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homePriceJsonLd) }}
       />
+
+      {/* SSR-visible price summary — crawlers and AI engines read this */}
+      <div className="sr-only">
+        <h2>أسعار الذهب والعملات اليوم</h2>
+        <p>سعر الذهب اليوم {goldPriceUSD.toFixed(2)} دولار للأوقية. عيار 24: {goldGram24USD} دولار للجرام. عيار 21: {goldGram21USD} دولار للجرام. عيار 18: {goldGram18USD} دولار للجرام. التغيير: {goldChangePct >= 0 ? "+" : ""}{goldChangePct.toFixed(2)}%.</p>
+        <p>سعر الفضة اليوم {silverPriceUSD.toFixed(2)} دولار للأوقية.</p>
+        {btcPrice > 0 && <p>سعر البيتكوين اليوم {btcPrice.toLocaleString("en-US")} دولار.</p>}
+        {ethPrice > 0 && <p>سعر الإيثيريوم اليوم {ethPrice.toLocaleString("en-US")} دولار.</p>}
+      </div>
 
       {/* شريط الأسعار المتحرك */}
       <PriceTicker prices={tickerPrices} />
