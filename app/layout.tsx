@@ -102,9 +102,10 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "سعر الذهب",
-              alternateName: "sardhahab",
+              alternateName: ["sardhahab", "Gold Price Arabic", "Sard Dhahab"],
               url: "https://sardhahab.com",
-              description: "أسعار لحظية للذهب والفضة والعملات الرقمية والاقتصادية",
+              description:
+                "أسعار لحظية للذهب والفضة والبيتكوين والإيثيريوم وأكثر من 27 عملة عربية وعالمية — محدّثة كل دقيقة.",
               inLanguage: ["ar", "en"],
               potentialAction: {
                 "@type": "SearchAction",
@@ -124,9 +125,119 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "سعر الذهب",
+              alternateName: "sardhahab.com",
               url: "https://sardhahab.com",
-              logo: "https://sardhahab.com/favicon.ico",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://sardhahab.com/icons/icon-512.png",
+                width: 512,
+                height: 512,
+              },
+              description:
+                "موقع متخصص في أسعار الذهب والفضة والعملات الرقمية والعملات الأجنبية لحظياً باللغة العربية.",
+              foundingDate: "2023",
+              areaServed: [
+                "SA", "AE", "KW", "QA", "BH", "OM", "EG", "JO", "MA", "IQ", "LY", "TN", "DZ", "YE", "SD", "LB",
+              ],
+              inLanguage: ["ar", "en"],
               sameAs: ["https://t.me/sardhahab"],
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                availableLanguage: ["Arabic", "English"],
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "DataCatalog",
+              name: "أسعار الذهب والعملات لحظياً",
+              description:
+                "بيانات لحظية لأسعار الذهب عيار 24 و21 و18، والفضة، والبيتكوين، والإيثيريوم، وأكثر من 27 عملة عربية وعالمية.",
+              url: "https://sardhahab.com/اسعار",
+              provider: {
+                "@type": "Organization",
+                name: "سعر الذهب",
+                url: "https://sardhahab.com",
+              },
+              dataset: [
+                {
+                  "@type": "Dataset",
+                  name: "سعر الذهب اليوم",
+                  description:
+                    "سعر الذهب الفوري بالدولار وبعملات الدول العربية — عيار 24 و22 و21 و18 و14 بالجرام والأوقية والكيلوجرام.",
+                  url: "https://sardhahab.com/اسعار",
+                  temporalCoverage: "لحظي — يتحدث كل دقيقة",
+                  variableMeasured: [
+                    { "@type": "PropertyValue", name: "عيار 24", unitText: "جرام" },
+                    { "@type": "PropertyValue", name: "عيار 21", unitText: "جرام" },
+                    { "@type": "PropertyValue", name: "عيار 18", unitText: "جرام" },
+                  ],
+                },
+                {
+                  "@type": "Dataset",
+                  name: "سعر البيتكوين اليوم",
+                  description:
+                    "سعر البيتكوين (BTC) لحظياً بالريال السعودي والدرهم الإماراتي والدينار الكويتي وجميع العملات العربية.",
+                  url: "https://sardhahab.com/سعر-البيتكوين",
+                  temporalCoverage: "لحظي — يتحدث كل 5 دقائق",
+                },
+                {
+                  "@type": "Dataset",
+                  name: "أسعار العملات الأجنبية",
+                  description:
+                    "أسعار صرف أكثر من 27 عملة عربية وعالمية مقابل الدولار الأمريكي، محدّثة يومياً.",
+                  url: "https://sardhahab.com/اسعار",
+                  temporalCoverage: "يومي",
+                },
+              ],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: "ما هو سعر الذهب اليوم؟",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "سعر الذهب يتغير لحظياً وفق الأسواق العالمية. يمكنك متابعة السعر الفوري لعيار 24 و21 و18 بالجرام بالريال السعودي والدرهم الإماراتي وجميع العملات العربية على sardhahab.com — يتحدث كل دقيقة.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "ما الفرق بين عيار 21 وعيار 24؟",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "عيار 24 هو ذهب خالص بنسبة 99.9%، وهو الأغلى سعراً. عيار 21 يحتوي على 87.5% ذهب خالص وهو الأكثر شيوعاً في المجوهرات العربية. عيار 18 يحتوي على 75% ذهب وغالباً يُستخدم في المجوهرات الأوروبية.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "كيف أحسب زكاة الذهب؟",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "تجب الزكاة على الذهب إذا بلغ نصاب 85 جراماً من عيار 24 وحال عليه الحول. تُحسب الزكاة بنسبة 2.5% من قيمته الإجمالية بسعر اليوم. استخدم حاسبة الزكاة على sardhahab.com للحساب الفوري.",
+                  },
+                },
+                {
+                  "@type": "Question",
+                  name: "ما سعر الذهب في السعودية اليوم؟",
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: "سعر الذهب في السعودية يُحتسب بضرب سعر الأوقية بالدولار في سعر صرف الريال السعودي (3.75) ثم تقسيمه على 31.1 للحصول على سعر الجرام. تابع السعر اللحظي بالريال على sardhahab.com/سعر-الذهب-السعودية.",
+                  },
+                },
+              ],
             }),
           }}
         />
