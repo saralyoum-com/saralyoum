@@ -172,6 +172,8 @@ export default function RootLayout({
                     "سعر الذهب الفوري بالدولار وبعملات الدول العربية — عيار 24 و22 و21 و18 و14 بالجرام والأوقية والكيلوجرام.",
                   url: "https://sardhahab.com/اسعار",
                   temporalCoverage: "لحظي — يتحدث كل دقيقة",
+                  creator: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+                  license: "https://creativecommons.org/licenses/by/4.0/",
                   variableMeasured: [
                     { "@type": "PropertyValue", name: "عيار 24", unitText: "جرام" },
                     { "@type": "PropertyValue", name: "عيار 21", unitText: "جرام" },
@@ -185,6 +187,8 @@ export default function RootLayout({
                     "سعر البيتكوين (BTC) لحظياً بالريال السعودي والدرهم الإماراتي والدينار الكويتي وجميع العملات العربية.",
                   url: "https://sardhahab.com/سعر-البيتكوين",
                   temporalCoverage: "لحظي — يتحدث كل 5 دقائق",
+                  creator: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+                  license: "https://creativecommons.org/licenses/by/4.0/",
                 },
                 {
                   "@type": "Dataset",
@@ -193,6 +197,8 @@ export default function RootLayout({
                     "أسعار صرف أكثر من 27 عملة عربية وعالمية مقابل الدولار الأمريكي، محدّثة يومياً.",
                   url: "https://sardhahab.com/اسعار",
                   temporalCoverage: "يومي",
+                  creator: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+                  license: "https://creativecommons.org/licenses/by/4.0/",
                 },
               ],
             }),

@@ -78,6 +78,23 @@ export default async function Page({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(priceJsonLd) }}
       />
+      {/* SSR price summary — visible to crawlers and AI engines */}
+      <div className="sr-only">
+        <h1>سعر الذهب في {country.nameAr} اليوم بالـ{country.currencyAr}</h1>
+        <p>
+          سعر الذهب في {country.nameAr} ({country.city}) اليوم:
+          عيار 24 بالجرام {fmt(goldPerGram24)} {country.currency} —
+          عيار 21 بالجرام {fmt(goldPerGram21)} {country.currency} —
+          عيار 18 بالجرام {fmt(goldPerGram18)} {country.currency} —
+          الأوقية {fmt(goldPriceUSD * rate)} {country.currency}.
+          التغيير: {changePercent >= 0 ? "+" : ""}{changePercent.toFixed(2)}٪.
+        </p>
+        <p>
+          الأسعار محسوبة من سعر الذهب العالمي بالدولار ({goldPriceUSD.toFixed(2)} دولار للأوقية)
+          مضروباً بسعر صرف {country.currencyAr} ({rate.toFixed(4)} {country.currency} للدولار).
+          تتحدث كل 5 دقائق.
+        </p>
+      </div>
       <CountryGoldPage
         flag={country.flag}
         nameAr={country.nameAr}
