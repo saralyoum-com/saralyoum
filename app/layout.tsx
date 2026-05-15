@@ -204,49 +204,6 @@ export default function RootLayout({
             }),
           }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: [
-                {
-                  "@type": "Question",
-                  name: "ما هو سعر الذهب اليوم؟",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "سعر الذهب يتغير لحظياً وفق الأسواق العالمية. يمكنك متابعة السعر الفوري لعيار 24 و21 و18 بالجرام بالريال السعودي والدرهم الإماراتي وجميع العملات العربية على sardhahab.com — يتحدث كل دقيقة.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "ما الفرق بين عيار 21 وعيار 24؟",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "عيار 24 هو ذهب خالص بنسبة 99.9%، وهو الأغلى سعراً. عيار 21 يحتوي على 87.5% ذهب خالص وهو الأكثر شيوعاً في المجوهرات العربية. عيار 18 يحتوي على 75% ذهب وغالباً يُستخدم في المجوهرات الأوروبية.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "كيف أحسب زكاة الذهب؟",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "تجب الزكاة على الذهب إذا بلغ نصاب 85 جراماً من عيار 24 وحال عليه الحول. تُحسب الزكاة بنسبة 2.5% من قيمته الإجمالية بسعر اليوم. استخدم حاسبة الزكاة على sardhahab.com للحساب الفوري.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "ما سعر الذهب في السعودية اليوم؟",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "سعر الذهب في السعودية يُحتسب بضرب سعر الأوقية بالدولار في سعر صرف الريال السعودي (3.75) ثم تقسيمه على 31.1 للحصول على سعر الجرام. تابع السعر اللحظي بالريال على sardhahab.com/سعر-الذهب-السعودية.",
-                  },
-                },
-              ],
-            }),
-          }}
-        />
       </head>
       <body
         className={`${tajawal.variable} font-tajawal bg-background text-text-primary antialiased min-h-screen`}
