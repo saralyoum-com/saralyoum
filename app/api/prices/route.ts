@@ -4,7 +4,6 @@ import { getCryptoPrice } from "@/lib/coingecko";
 import { getExchangeRates } from "@/lib/exchangerate";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
