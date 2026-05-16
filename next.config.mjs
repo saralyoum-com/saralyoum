@@ -39,25 +39,35 @@ const nextConfig = {
 
   async headers() {
     return [
-      // Static assets — aggressive long-term caching
+      // Static assets — long-term cache + tell Google not to index them
       {
         source: "/_next/static/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
-      // Fonts — long-term caching
+      // Fonts — long-term cache + noindex
       {
         source: "/fonts/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
-      // Favicon & public icons
+      // Favicon + icons — noindex
       {
         source: "/favicon.ico",
         headers: [
           { key: "Cache-Control", value: "public, max-age=86400" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/icons/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
       // API routes — short cache (prices update every 5 min, news every 15 min)
