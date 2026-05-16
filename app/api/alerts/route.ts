@@ -160,18 +160,31 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const email = searchParams.get("email");
+  const token = searchParams.get("token");
 
-  if (!id && !email)
-    return NextResponse.json({ error: "معرّف أو إيميل مطلوب" }, { status: 400 });
+  // Must provide both an alert ID and a token — prevents mass deactivation by email
+  if (!id || !token)
+    return NextResponse.json({ error: "معرّف التنبيه والرمز مطلوبان" }, { status: 400 });
+
+  // Token must be at least 16 chars to prevent trivial brute-force
+  if (token.length < 16)
+    return NextResponse.json({ error: "رمز غير صالح" }, { status: 400 });
 
   try {
     const { createServiceClient } = await import("@/lib/supabase");
     const supabase = createServiceClient();
-    const query = supabase.from("alerts").update({ active: false });
-    if (id) query.eq("id", id);
-    if (email) query.eq("email", email);
-    await query;
+
+    // Only deactivate the specific alert whose unsubscribe_token matches
+    const { error, data } = await supabase
+      .from("alerts")
+      .update({ active: false })
+      .eq("id", id)
+      .eq("unsubscribe_token", token)
+      .select("id");
+
+    if (error) return NextResponse.json({ error: "فشل الحذف" }, { status: 500 });
+    if (!data || data.length === 0) return NextResponse.json({ error: "التنبيه غير موجود أو الرمز غير صحيح" }, { status: 404 });
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "فشل الحذف" }, { status: 500 });

@@ -106,6 +106,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (err) {
     console.error("[history]", err);
-    return NextResponse.json({ asset, range, data: [] }, { status: 200 });
+    return NextResponse.json({ asset, range, data: [], error: "chart_unavailable" }, { status: 503 });
   }
 }
