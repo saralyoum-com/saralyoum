@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useLang } from "@/components/LanguageContext";
 
 export default function Footer() {
@@ -67,9 +68,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* عن الموقع */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">🏅</span>
-              <span className="text-gold font-bold text-lg">{t.siteName}</span>
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/logo-footer.png"
+                alt="سعر الذهب — SARD"
+                width={72}
+                height={72}
+                className="rounded-full shrink-0"
+              />
+              <span className="text-gold font-bold text-xl">{t.siteName}</span>
             </div>
             <p className="text-text-secondary text-sm leading-relaxed">
               {t.footer.about}
