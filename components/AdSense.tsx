@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect } from "react";
 
-const PUB_ID = "ca-pub-6286580154921898";
+const PUB_ID = "ca-pub-4178023712321047";
 
 // سكريبت Auto Ads — يُضاف في layout مرة واحدة
 // Google تضع الإعلانات تلقائياً في أفضل المواضع

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "@/components/LanguageContext";
@@ -53,7 +54,14 @@ export default function Navigation() {
           onClick={() => track.logoClick()}
           className="flex items-center gap-1.5 sm:gap-2 group shrink-0"
         >
-          <span className="text-xl sm:text-2xl">🏅</span>
+          <Image
+            src="/logo.png"
+            alt="سعر الذهب — SARD"
+            width={40}
+            height={40}
+            className="rounded-full shrink-0"
+            priority
+          />
           <div className="leading-tight">
             <div className="text-gold font-bold text-base sm:text-lg group-hover:text-gold-light transition-colors">
               {t.siteName}
