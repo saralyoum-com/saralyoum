@@ -47,7 +47,7 @@ export default function Navigation() {
       dir={lang === "ar" ? "rtl" : "ltr"}
       className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border"
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 sm:h-20 flex items-center justify-between gap-2">
         {/* اللوجو */}
         <Link
           href="/"
@@ -57,9 +57,9 @@ export default function Navigation() {
           <Image
             src="/logo.png"
             alt="سعر الذهب — SARD"
-            width={56}
-            height={56}
-            className="rounded-full transition-opacity group-hover:opacity-90"
+            width={72}
+            height={72}
+            className="rounded-full transition-opacity group-hover:opacity-90 w-14 h-14 sm:w-[72px] sm:h-[72px]"
             priority
           />
         </Link>
