@@ -115,7 +115,7 @@ Rendered by `components/CryptoPricePage.tsx`. Arabic slugs are middleware-rewrit
 Article metadata lives in `lib/articles.ts` (`ARTICLES` array). Adding a new article requires: new page + layout under `app/مقالات/`, entry in `ARTICLES`, entry in `app/sitemap.ts`.
 
 ### Client pages and SEO
-Pages with `"use client"` **cannot export `metadata`**. Always create a sibling `layout.tsx` for metadata + JSON-LD. Put Article + FAQPage + BreadcrumbList schema in the layout.
+Pages with `"use client"` **cannot export `metadata`**. Always create a sibling `layout.tsx` for metadata + JSON-LD. Put Article + BreadcrumbList schema in the layout. **Do NOT add FAQPage schema** — deprecated by Google on May 7 2026, removed sitewide.
 
 ---
 
@@ -132,6 +132,8 @@ All routes: `export const dynamic = "force-dynamic"`
 | `/api/cron` | Price-alert email dispatch (cron-triggered) |
 | `/api/history` | Mock price history for charts |
 | `/api/location` | IP → country detection |
+| `/api/chainlink` | Server-side Ethereum RPC proxy for Chainlink XAU/USD feed |
+| `/api/contact` | POST — contact/partnership form, routes to `CONTACT_INBOX` env var (default: sardhahab@gmail.com). Uses Resend (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`). Email never exposed to client. |
 
 ---
 
@@ -145,6 +147,7 @@ All routes: `export const dynamic = "force-dynamic"`
 | `/api/og` | 1 h |
 | `getExchangeRates()` | 3600 s (Next fetch cache) |
 | Crypto/metals via CoinGecko/GoldAPI | 60–300 s |
+| `/api/chainlink` | 60 s (s-maxage), 120 s stale-while-revalidate |
 | Static assets | 1 year immutable |
 
 ---
@@ -239,3 +242,19 @@ import AdSlot from "@/components/AdSlot";
 - Skip `sm:` breakpoints in grids with 3+ columns
 - Reference static OG images — always use `/api/og?asset=…`
 - Update mock fallback prices without checking current market levels
+- Add FAQPage JSON-LD schema anywhere — deprecated by Google May 2026, removed sitewide
+- Call Ethereum RPC nodes directly from the browser — always proxy via `/api/chainlink` (CORS blocks browser calls)
+- Expose the contact inbox email (`sardhahab@gmail.com`) to the client — it lives only in `CONTACT_INBOX` env var on the server
+
+---
+
+## Changelog (recent sessions)
+
+### May 2026
+- **Logo**: Navbar uses `public/logo.png` (SARD coin, dark bg, 512×512). Footer uses `public/logo-footer.png` (SARD coin, white bg, 512×512). Nav height `h-20 sm:h-28`, logo `h-20 w-20 sm:h-28 sm:w-28`. All text labels removed from nav logo area.
+- **AdSense**: Publisher ID `ca-pub-4178023712321047`. `public/ads.txt` contains correct entry. `app/layout.tsx` has `google-adsense-account` meta tag for crawler verification. Site is in "Requires review" — verification done, request review submitted.
+- **Contact form** (`components/ContactForm.tsx`): Hidden by default, toggle button labeled "شراكات وإعلانات واستفسارات" / "Partnerships & Advertising". Messages sent server-side via `/api/contact` → Resend → `sardhahab@gmail.com`. Email address never in client bundle.
+- **FAQPage schemas**: Removed from all 12 pages/layouts — Google deprecated FAQPage rich results on May 7, 2026. GSC was showing duplicate field errors.
+- **Price charts** (`components/PriceChart.tsx`): Chart header now shows asset name + icon (🥇 الذهب, 🥈 الفضة, ₿ بيتكوين, ⟠ إيثيريوم).
+- **Chainlink badge** (`components/ChainlinkBadge.tsx`): Was failing with "تعذر الاتصال بالشبكة" due to browser CORS on public ETH RPCs. Fixed by creating `/api/chainlink` server-side proxy — component now calls our API, not Ethereum directly.
+- **AdSlot** (`components/AdSlot.tsx`): Real slot IDs centralised in `SLOTS` map, `slot` prop accepted but overridden by internal map (kept for API compatibility).
