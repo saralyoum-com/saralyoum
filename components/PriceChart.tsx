@@ -44,6 +44,13 @@ const ASSET_COLORS: Record<string, string> = {
   ethereum: "#627EEA",
 };
 
+const ASSET_NAMES: Record<string, { ar: string; en: string; icon: string }> = {
+  gold:     { ar: "الذهب",     en: "Gold",     icon: "🥇" },
+  silver:   { ar: "الفضة",     en: "Silver",   icon: "🥈" },
+  bitcoin:  { ar: "بيتكوين",   en: "Bitcoin",  icon: "₿"  },
+  ethereum: { ar: "إيثيريوم",  en: "Ethereum", icon: "⟠"  },
+};
+
 function formatDate(ts: number, range: Range): string {
   const d = new Date(ts);
   if (range === "1d") return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
@@ -78,6 +85,7 @@ export default function PriceChart({ asset, currentPrice, changePercent }: Price
   const [hoverPrice, setHoverPrice] = useState<number | null>(null);
 
   const color = ASSET_COLORS[asset] || "#C9A84C";
+  const assetInfo = ASSET_NAMES[asset];
   const rangeLabels = lang === "ar" ? RANGE_LABELS_AR : RANGE_LABELS_EN;
   const RANGES: Range[] = ["1d", "1w", "1m", "1y", "5y"];
 
@@ -119,9 +127,15 @@ export default function PriceChart({ asset, currentPrice, changePercent }: Price
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <p className="text-text-secondary text-xs mb-0.5">
-            {lang === "ar" ? "الرسم البياني" : "Price Chart"}
-          </p>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-base leading-none">{assetInfo.icon}</span>
+            <span className="text-text-primary font-bold text-base">
+              {lang === "ar" ? assetInfo.ar : assetInfo.en}
+            </span>
+            <span className="text-text-secondary text-xs">
+              — {lang === "ar" ? "الرسم البياني" : "Price Chart"}
+            </span>
+          </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-text-primary">
               {formatPrice(displayPrice, asset)}
