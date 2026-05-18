@@ -7,9 +7,9 @@ type Status = "idle" | "sending" | "sent" | "error";
 
 const txt = {
   ar: {
-    btn: "تواصل معنا",
-    title: "تواصل معنا",
-    subtitle: "لديك سؤال أو اقتراح؟ نحن هنا.",
+    btn: "شراكات وإعلانات واستفسارات",
+    title: "شراكات · إعلانات · استفسارات",
+    subtitle: "للتعاون الإعلاني أو الشراكات أو أي استفسار تجاري — راسلنا مباشرة.",
     name: "الاسم",
     namePh: "اكتب اسمك",
     email: "البريد الإلكتروني",
@@ -23,9 +23,9 @@ const txt = {
     close: "إغلاق",
   },
   en: {
-    btn: "Contact Us",
-    title: "Contact Us",
-    subtitle: "Have a question or suggestion? We're here.",
+    btn: "Partnerships & Advertising",
+    title: "Partnerships · Ads · Inquiries",
+    subtitle: "For advertising, partnerships, or any business inquiry — reach out directly.",
     name: "Name",
     namePh: "Your name",
     email: "Email",
