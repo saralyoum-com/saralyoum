@@ -107,14 +107,6 @@ export default function RootLayout({
               description:
                 "أسعار لحظية للذهب والفضة والبيتكوين والإيثيريوم وأكثر من 27 عملة عربية وعالمية — محدّثة كل دقيقة.",
               inLanguage: ["ar", "en"],
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate: "https://sardhahab.com/اخبار?q={search_term_string}",
-                },
-                "query-input": "required name=search_term_string",
-              },
             }),
           }}
         />
