@@ -52,22 +52,16 @@ export default function Navigation() {
         <Link
           href="/"
           onClick={() => track.logoClick()}
-          className="flex items-center gap-1.5 sm:gap-2 group shrink-0"
+          className="shrink-0 group"
         >
           <Image
             src="/logo.png"
             alt="سعر الذهب — SARD"
-            width={40}
-            height={40}
-            className="rounded-full shrink-0"
+            width={56}
+            height={56}
+            className="rounded-full transition-opacity group-hover:opacity-90"
             priority
           />
-          <div className="leading-tight">
-            <div className="text-gold font-bold text-base sm:text-lg group-hover:text-gold-light transition-colors">
-              {t.siteName}
-            </div>
-            <div className="text-text-secondary text-xs hidden sm:block">{t.tagline}</div>
-          </div>
         </Link>
 
         {/* روابط ديسكتوب */}
