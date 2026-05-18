@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "@/components/LanguageContext";
+import ContactForm from "@/components/ContactForm";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -145,7 +146,10 @@ export default function Footer() {
           </span>
         </a>
 
-        <div className="border-t border-border pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
+        {/* Contact form */}
+        <ContactForm />
+
+        <div className="border-t border-border pt-6 mt-8 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-text-secondary text-xs">
             © {year} {t.siteName}. {t.footer.allRights}
           </p>
