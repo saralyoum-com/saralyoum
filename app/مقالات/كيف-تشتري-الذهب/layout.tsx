@@ -49,45 +49,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     mainEntityOfPage: "https://sardhahab.com/مقالات/كيف-تشتري-الذهب",
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "أين أشتري الذهب في السعودية؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "يمكن شراء الذهب من محلات الصاغة المرخصة في أسواق الذهب الرئيسية (الرياض، جدة، الدمام)، من البنوك التي تبيع السبائك والشهادات، أو من المنصات الرقمية المعتمدة كمنصة ذهبي.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "هل السبائك أفضل من المجوهرات للاستثمار؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "نعم، للاستثمار البحت السبائك أفضل لأنها بدون أجرة صياغة وعيارها 24 (أعلى نقاوة). أما المجوهرات فتناسب الزينة لكن تفقد جزءاً من قيمتها عند البيع بسبب أجرة الصياغة.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "كيف أعرف أن الذهب أصيل؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "تحقق من طابع العيار المنقوش على القطعة (21K، 18K...)، اطلب الوزن أمامك بالميزان، واشتر من محلات مرخصة مع فاتورة رسمية. للسبائك، تأكد من وجود شهادة أصالة من جهة معتمدة.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "ما هو أفضل وقت لشراء الذهب؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "لا يوجد توقيت مثالي مضمون. الاستراتيجية الأفضل للمبتدئ هي الشراء بمبالغ ثابتة شهرياً (التوسط بالتكلفة) للاستفادة من تذبذب الأسعار. تابع sardhahab.com للاطلاع على الأسعار اللحظية.",
-        },
-      },
-    ],
-  };
-
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -101,7 +62,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {children}
     </>

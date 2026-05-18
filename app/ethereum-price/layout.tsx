@@ -34,37 +34,6 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "ما هو سعر الإيثيريوم بالريال السعودي اليوم؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "سعر الإيثيريوم يتغير باستمرار. للاطلاع على السعر اللحظي بالريال السعودي، راجع صفحة سعر الإيثيريوم في sardhahab.com والتي تتحدث كل 5 دقائق.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "هل تجب الزكاة على الإيثيريوم؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "نعم، تجب الزكاة على الإيثيريوم إذا بلغت قيمته نصاب الذهب (ما يعادل 85 جراماً من الذهب) وحال عليه الحول. النسبة 2.5% من القيمة الإجمالية.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "ما الفرق بين البيتكوين والإيثيريوم؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "البيتكوين عملة رقمية للتخزين والتبادل، بينما الإيثيريوم منصة برمجية تدعم العقود الذكية والتطبيقات اللامركزية. كلاهما من أكبر العملات الرقمية من حيث القيمة السوقية.",
-        },
-      },
-    ],
-  };
-
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -76,7 +45,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {children}
     </>

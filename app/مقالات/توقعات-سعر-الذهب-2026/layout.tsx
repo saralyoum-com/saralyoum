@@ -49,37 +49,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     mainEntityOfPage: "https://sardhahab.com/مقالات/توقعات-سعر-الذهب-2026",
   };
 
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "ما هي توقعات سعر الذهب في 2026؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "تتراوح توقعات سعر الذهب 2026 بين 2800 و4500 دولار للأونصة حسب السيناريو. السيناريو الأكثر احتمالاً يرى استقراراً بين 3200 و3800 دولار مع إمكانية تجاوز 4000 في حالة تصاعد التوترات.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "هل سيرتفع الذهب في 2026؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "العوامل المؤثرة تدعم استمرار الارتفاع، خاصة تخفيضات الفائدة الأمريكية وشراء البنوك المركزية. لكن توجد مخاطر انخفاض في حالة تعافي الدولار أو تحسن الاقتصاد العالمي.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "ما هو تأثير الفائدة الأمريكية على سعر الذهب 2026؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "للفائدة الأمريكية تأثير عكسي على الذهب. خفض الفائدة يضعف الدولار ويرفع سعر الذهب. رفع الفائدة يجذب المستثمرين للسندات ويخفض الطلب على الذهب.",
-        },
-      },
-    ],
-  };
-
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -93,7 +62,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {children}
     </>
