@@ -24,7 +24,7 @@ No test runner is configured. Validate changes with `npm run build` before deplo
 - **Framework**: Next.js 14 App Router (TypeScript)  
 - **Styling**: Tailwind CSS (dark theme, custom gold palette)  
 - **Hosting**: Vercel (project: `saralyoum`; domain: `sardhahab.com`)  
-- **Analytics**: GA4 `G-2EFBVGR83R` · **AdSense**: `ca-pub-6286580154921898`
+- **Analytics**: GA4 `G-2EFBVGR83R` · **AdSense**: `ca-pub-4178023712321047`
 
 ---
 
@@ -232,7 +232,7 @@ import AdSlot from "@/components/AdSlot";
 
 ## Do NOT
 
-- Change the AdSense publisher ID (`ca-pub-6286580154921898`) or GA ID (`G-2EFBVGR83R`)
+- Change the AdSense publisher ID (`ca-pub-4178023712321047`) or GA ID (`G-2EFBVGR83R`)
 - Use inline `style={{ height: "Xpx" }}` — use Tailwind `h-*` classes
 - Export `metadata` from `"use client"` pages — use `layout.tsx`
 - Create Arabic-path app directories for pages that need middleware rewriting — use ASCII routes

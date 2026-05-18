@@ -2,7 +2,15 @@
 
 import { useEffect } from "react";
 
-const PUB_ID = "ca-pub-6286580154921898";
+const PUB_ID = "ca-pub-4178023712321047";
+
+// Real AdSense slot IDs — update here if rotated
+const SLOTS = {
+  leaderboard:    "6394553969",
+  "mobile-banner": "7060768372",
+  rectangle:      "8182278356",
+  responsive:     "8182278356",
+} as const;
 
 export type AdSize = "leaderboard" | "rectangle" | "mobile-banner" | "responsive";
 
@@ -21,8 +29,10 @@ interface AdSlotProps {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-export default function AdSlot({ size, slot = "0000000000", className = "" }: AdSlotProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function AdSlot({ size, slot: _slot, className = "" }: AdSlotProps) {
   const config = SIZE_MAP[size];
+  const slot = SLOTS[size]; // always use the real centralised slot ID
 
   useEffect(() => {
     if (!isProduction) return;
