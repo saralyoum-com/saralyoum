@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PROJECT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ ! -f \"$PROJECT/CLAUDE.md\" ] && exit 0; RECENT=$(git -C \"$PROJECT\" log --oneline -20 2>/dev/null); [ -z \"$RECENT\" ] && exit 0; /Users/mr.ayman/.npm-global/bin/claude -p \"Update the Changelog section in CLAUDE.md (at $PROJECT/CLAUDE.md). Recent git commits from this session:\\n$RECENT\\n\\nRules: (1) Add a new dated entry under the correct month heading, or append to today's entry if one exists. (2) Keep each line concise — one change per bullet. (3) Preserve ALL other sections exactly as-is. (4) Do not output anything, just edit the file.\" --allowedTools \"Read,Edit,Write,Bash\" 2>/dev/null || true",
+            "timeout": 60,
+            "statusMessage": "Updating CLAUDE.md changelog…"
+          }
+        ]
+      }
+    ]
+  }
+}
