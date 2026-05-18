@@ -52,14 +52,14 @@ export default function Navigation() {
         <Link
           href="/"
           onClick={() => track.logoClick()}
-          className="shrink-0 group flex items-center h-full py-1"
+          className="shrink-0 group"
         >
           <Image
             src="/logo.png"
             alt="سعر الذهب — SARD"
             width={80}
             height={80}
-            className="rounded-full transition-opacity group-hover:opacity-90 h-full w-auto aspect-square"
+            className="rounded-full transition-opacity group-hover:opacity-90 h-16 w-16 sm:h-20 sm:w-20"
             priority
           />
         </Link>
