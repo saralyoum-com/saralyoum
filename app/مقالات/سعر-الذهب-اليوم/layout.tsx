@@ -46,20 +46,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { "@type": "ListItem", position: 3, name: "سعر الذهب اليوم", item: "https://sardhahab.com/مقالات/سعر-الذهب-اليوم" },
     ],
   };
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      { "@type": "Question", name: "كم سعر الذهب اليوم بالجرام عيار 21؟", acceptedAnswer: { "@type": "Answer", text: "يتغير سعر الذهب عيار 21 يومياً بحسب سعر الأونصة العالمي. للحصول على السعر اللحظي استخدم حاسبة الأسعار على موقعنا." } },
-      { "@type": "Question", name: "ما الفرق بين سعر الذهب عيار 24 و21؟", acceptedAnswer: { "@type": "Answer", text: "الذهب عيار 24 هو الأنقى (99.9%)، أما عيار 21 فيحتوي على 87.5% ذهب خالص. لذلك سعر عيار 24 أعلى بحوالي 14% من عيار 21." } },
-      { "@type": "Question", name: "هل سعر الذهب اليوم مناسب للشراء؟", acceptedAnswer: { "@type": "Answer", text: "قرار الشراء يعتمد على هدفك: للاستثمار طويل الأمد الذهب مخزن قيمة تاريخي. للمضاربة قصيرة الأمد راقب المؤشرات الاقتصادية وقرارات الفائدة الأمريكية." } },
-    ],
-  };
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {children}
     </>
   );

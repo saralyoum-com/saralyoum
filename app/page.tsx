@@ -110,50 +110,6 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homePriceJsonLd) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: [
-              {
-                "@type": "Question",
-                name: "ما هو سعر الذهب اليوم؟",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "سعر الذهب يتغير لحظياً وفق الأسواق العالمية. يمكنك متابعة السعر الفوري لعيار 24 و21 و18 بالجرام بالريال السعودي والدرهم الإماراتي وجميع العملات العربية على sardhahab.com — يتحدث كل دقيقة.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "ما الفرق بين عيار 21 وعيار 24؟",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "عيار 24 هو ذهب خالص بنسبة 99.9%، وهو الأغلى سعراً. عيار 21 يحتوي على 87.5% ذهب خالص وهو الأكثر شيوعاً في المجوهرات العربية. عيار 18 يحتوي على 75% ذهب وغالباً يُستخدم في المجوهرات الأوروبية.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "كيف أحسب زكاة الذهب؟",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "تجب الزكاة على الذهب إذا بلغ نصاب 85 جراماً من عيار 24 وحال عليه الحول. تُحسب الزكاة بنسبة 2.5% من قيمته الإجمالية بسعر اليوم. استخدم حاسبة الزكاة على sardhahab.com للحساب الفوري.",
-                },
-              },
-              {
-                "@type": "Question",
-                name: "ما سعر الذهب في السعودية اليوم؟",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: `سعر الذهب في السعودية اليوم: عيار 24 بالجرام ${(goldPriceUSD / 31.1035 * 3.75).toFixed(2)} ريال، عيار 21 بالجرام ${(goldPriceUSD / 31.1035 * (21/24) * 3.75).toFixed(2)} ريال. تابع السعر اللحظي على sardhahab.com/سعر-الذهب-السعودية.`,
-                },
-              },
-            ],
-          }),
-        }}
-      />
-
       {/* SSR-visible price summary — crawlers and AI engines read this */}
       <div className="sr-only">
         <h2>أسعار الذهب والعملات اليوم</h2>

@@ -29,53 +29,6 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "هل تجب الزكاة على البيتكوين؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "نعم، ذهب جمهور العلماء المعاصرين إلى وجوب الزكاة في العملات الرقمية كالبيتكوين والإيثيريوم إذا بلغت النصاب وحال عليها الحول، وتُحسب بنسبة 2.5% من قيمتها السوقية.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "ما هو نصاب زكاة الكريبتو؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "النصاب هو ما يعادل 85 جراماً من الذهب عيار 24. بناءً على السعر اللحظي للذهب يتغير النصاب يومياً.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "هل تجب الزكاة على BNB وSOL؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "نعم، جميع العملات الرقمية ذات القيمة السوقية تخضع لنفس حكم الزكاة — إذا بلغت قيمتك الإجمالية النصاب وحال الحول، وجبت الزكاة بنسبة 2.5%.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "هل تجب الزكاة على USDT وستيبل كوين؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "نعم، الستيبل كوين كـUSDT وUSDC تُعامل معاملة النقد وتجب فيها الزكاة كالأموال السائلة.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "كيف أشارك نتيجة حساب الزكاة؟",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "بعد إجراء الحساب، تظهر أزرار المشاركة عبر واتساب وتيليجرام لمشاركة النتيجة مع أهلك أو مستشارك الشرعي.",
-        },
-      },
-    ],
-  };
-
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -98,7 +51,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(toolJsonLd) }} />
       {children}
