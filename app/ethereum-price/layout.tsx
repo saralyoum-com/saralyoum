@@ -34,6 +34,8 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const now = new Date().toISOString();
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -43,9 +45,45 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     ],
   };
 
+  const datasetJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "سعر الإيثيريوم اليوم بالعملات العربية",
+    description: "سعر الإيثيريوم (ETH) لحظياً بالريال السعودي والدرهم الإماراتي والدينار الكويتي والجنيه المصري وجميع العملات العربية — محدّث كل 5 دقائق.",
+    url: "https://sardhahab.com/سعر-الاثيريوم",
+    creator: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+    dateModified: now,
+    temporalCoverage: now.slice(0, 10),
+    inLanguage: "ar",
+    license: "https://creativecommons.org/licenses/by/4.0/",
+    distribution: [{
+      "@type": "DataDownload",
+      encodingFormat: "application/json",
+      contentUrl: "https://sardhahab.com/api/prices?type=crypto",
+    }],
+    variableMeasured: [
+      { "@type": "PropertyValue", name: "Ethereum USD", unitText: "USD" },
+      { "@type": "PropertyValue", name: "Ethereum SAR", unitText: "SAR" },
+    ],
+  };
+
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url: "https://sardhahab.com/سعر-الاثيريوم",
+    name: "سعر الإيثيريوم اليوم",
+    dateModified: now,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".price-display", ".price-hero", "[data-speakable]"],
+    },
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       {children}
     </>
   );

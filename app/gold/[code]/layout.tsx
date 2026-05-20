@@ -38,31 +38,58 @@ export default function Layout({
   const country = getCountryByCode(params.code);
   if (!country) return <>{children}</>;
 
+  const now = new Date().toISOString();
+  const pageUrl = `https://sardhahab.com/${country.slug}`;
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "الرئيسية",
-        item: "https://sardhahab.com",
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: `سعر الذهب في ${country.nameAr}`,
-        item: `https://sardhahab.com/${country.slug}`,
-      },
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: "https://sardhahab.com" },
+      { "@type": "ListItem", position: 2, name: `سعر الذهب في ${country.nameAr}`, item: pageUrl },
     ],
+  };
+
+  const datasetJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: `سعر الذهب اليوم في ${country.nameAr} بالـ${country.currencyAr}`,
+    description: `أسعار الذهب اليومية في ${country.nameAr} لعيار 24 و22 و21 و18 بالـ${country.currencyAr} — محدّثة لحظياً.`,
+    url: pageUrl,
+    creator: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+    dateModified: now,
+    temporalCoverage: now.slice(0, 10),
+    inLanguage: "ar",
+    license: "https://creativecommons.org/licenses/by/4.0/",
+    distribution: [{
+      "@type": "DataDownload",
+      encodingFormat: "application/json",
+      contentUrl: "https://sardhahab.com/api/prices?type=metals",
+    }],
+    variableMeasured: [
+      { "@type": "PropertyValue", name: "عيار 24", unitText: "جرام", unitCode: "GRM" },
+      { "@type": "PropertyValue", name: "عيار 21", unitText: "جرام", unitCode: "GRM" },
+      { "@type": "PropertyValue", name: "عيار 18", unitText: "جرام", unitCode: "GRM" },
+    ],
+  };
+
+  const webPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url: pageUrl,
+    name: `سعر الذهب في ${country.nameAr} اليوم`,
+    dateModified: now,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", ".price-display", ".price-hero", "[data-speakable]"],
+    },
   };
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       {children}
     </>
   );
