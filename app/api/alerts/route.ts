@@ -16,8 +16,19 @@ export async function POST(req: NextRequest) {
     if (!["gold","silver","bitcoin","ethereum"].includes(asset))
       return NextResponse.json({ error: "الأصل غير صحيح" }, { status: 400 });
 
+    if (!["daily","price"].includes(type))
+      return NextResponse.json({ error: "نوع التنبيه غير صحيح" }, { status: 400 });
+
     if (type === "price" && !targetPrice)
       return NextResponse.json({ error: "السعر المستهدف مطلوب للتنبيه السعري" }, { status: 400 });
+
+    // Validate targetPrice is a real positive number (prevents HTML injection in email)
+    const parsedPrice = targetPrice ? Number(targetPrice) : null;
+    if (type === "price" && (parsedPrice === null || isNaN(parsedPrice) || parsedPrice <= 0))
+      return NextResponse.json({ error: "السعر المستهدف يجب أن يكون رقماً موجباً" }, { status: 400 });
+
+    if (condition && !["above","below"].includes(condition))
+      return NextResponse.json({ error: "شرط التنبيه غير صحيح" }, { status: 400 });
 
     // ── Check services availability ──────────────────────────────────────────
     const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -59,7 +70,7 @@ export async function POST(req: NextRequest) {
           email,
           asset,
           type,
-          target_price: targetPrice || null,
+          target_price: parsedPrice ?? null,
           condition: condition || null,
           active: true,
         });
@@ -108,7 +119,7 @@ export async function POST(req: NextRequest) {
                 <table style="width:100%;font-size:14px;color:#CCC">
                   <tr><td style="padding:6px 0;color:#888">الأصل</td><td style="text-align:left;color:#C9A84C;font-weight:bold">${assetNames[asset]?.ar}</td></tr>
                   <tr><td style="padding:6px 0;color:#888">نوع التنبيه</td><td style="text-align:left">${type === "daily" ? "⏰ يومي — كل يوم 8:00 صباحاً" : "🎯 تنبيه سعري"}</td></tr>
-                  ${targetPrice ? `<tr><td style="padding:6px 0;color:#888">السعر المستهدف</td><td style="text-align:left;color:#4CAF50"><strong>$${targetPrice}</strong> (${condition === "above" ? "▲ فوق السعر" : "▼ تحت السعر"})</td></tr>` : ""}
+                  ${parsedPrice ? `<tr><td style="padding:6px 0;color:#888">السعر المستهدف</td><td style="text-align:left;color:#4CAF50"><strong>$${parsedPrice.toLocaleString()}</strong> (${condition === "above" ? "▲ فوق السعر" : "▼ تحت السعر"})</td></tr>` : ""}
                 </table>
               </div>
               <p style="font-size:12px;color:#555;text-align:center;margin:0">
