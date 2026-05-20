@@ -38,9 +38,23 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
     ],
   };
 
+  const appJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "حاسبة الذهب والزكاة",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    url: "https://sardhahab.com/حاسبة-الذهب",
+    description: "احسب قيمة ذهبك بجميع العيارات (24/22/21/18) وزكاة الذهب والمدخرات بأسعار لحظية — حاسبة مجانية عربية.",
+    inLanguage: "ar",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    provider: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appJsonLd) }} />
       {children}
     </>
   );
