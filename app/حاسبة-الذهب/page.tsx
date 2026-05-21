@@ -516,6 +516,28 @@ export default function GoldCalculatorPage() {
           </motion.div>
         )}
       </motion.div>
+
+      {/* ── Investment Guide CTA ── */}
+      <Link
+        href="/مقالات/الاستثمار-في-الذهب"
+        onClick={() => track.quickLinkClick("calculator-invest-article")}
+        className="mt-6 flex items-center justify-between gap-4 bg-gold/5 border border-gold/20 hover:border-gold/50 rounded-2xl p-5 transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">💰</span>
+          <div>
+            <p className="font-bold text-text-primary group-hover:text-gold transition-colors">
+              {lang === "ar" ? "كيف تستثمر في الذهب؟" : "How to Invest in Gold?"}
+            </p>
+            <p className="text-text-secondary text-sm">
+              {lang === "ar"
+                ? "سبائك · ETF · مبالغ صغيرة — الدليل الشامل للمبتدئين"
+                : "Bars · ETF · Small amounts — Complete beginner's guide"}
+            </p>
+          </div>
+        </div>
+        <span className="text-gold font-black text-xl shrink-0">←</span>
+      </Link>
     </div>
   );
 }

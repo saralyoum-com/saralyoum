@@ -175,7 +175,7 @@ export default function CountryGoldPage({
         <h2 className="text-sm font-bold text-text-secondary mb-3">
           {lang === "ar" ? "مقالات تهمك" : "Related Articles"}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             {
               href: "/مقالات/زكاة-الذهب",
@@ -194,6 +194,12 @@ export default function CountryGoldPage({
               icon: "🔮",
               labelAr: "توقعات سعر الذهب 2026",
               labelEn: "Gold Price Forecast 2026",
+            },
+            {
+              href: "/مقالات/الاستثمار-في-الذهب",
+              icon: "💰",
+              labelAr: "كيف تستثمر في الذهب؟ دليل شامل",
+              labelEn: "How to Invest in Gold — Full Guide",
             },
           ].map((a) => (
             <Link
