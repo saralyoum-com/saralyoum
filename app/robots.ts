@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
 
-const DISALLOW = ["/api/", "/gold/", "/_next/static/media/", "/_next/static/chunks/", "/_next/static/css/"];
+// Block internal ASCII routes — only Arabic-slug canonicals should be indexed
+// /gold/ = country pages, /zakat-crypto|bitcoin-price|ethereum-price = other pages
+const DISALLOW = ["/api/", "/gold/", "/zakat-crypto", "/bitcoin-price", "/ethereum-price", "/_next/static/media/", "/_next/static/chunks/", "/_next/static/css/"];
 
 const AI_BOTS = [
   "GPTBot",
