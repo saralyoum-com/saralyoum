@@ -26,9 +26,11 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       // Default rule for all crawlers
+      // /api/og is explicitly allowed so Google can fetch OG preview images
+      // (more specific allow takes precedence over the broad /api/ disallow)
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", "/api/og"],
         disallow: DISALLOW,
       },
       // Explicitly welcome all major AI crawlers with no restrictions
