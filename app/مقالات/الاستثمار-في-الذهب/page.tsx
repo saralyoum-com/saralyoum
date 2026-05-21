@@ -3,7 +3,7 @@ export default function Page() {
   return (
     <ArticlePage
       slug="الاستثمار-في-الذهب"
-      icon="💰" category="استثمار" date="2026-04-08" readMins={12}
+      icon="💰" category="استثمار" date="2026-04-08" updatedDate="2026-05-21" readMins={14}
       titleAr="كيف تستثمر في الذهب؟ — الدليل الشامل للمبتدئين 2026"
       titleEn="How to Invest in Gold? — Complete Beginner's Guide 2026"
       descAr="دليل شامل لطرق الاستثمار في الذهب: سبائك، مجوهرات، ETF، وعقود الفيوتشر — مع مقارنة بين كل طريقة ونصائح عملية للمبتدئين."
@@ -15,7 +15,7 @@ export default function Page() {
         },
         {
           heading: "كيف أستثمر في الذهب بمبلغ صغير؟",
-          body: "إذا كان لديك ميزانية محدودة، فلديك خيارات ممتازة للبدء:\n\n**صناديق الذهب المتداولة (ETF):** يمكنك شراء حصة بمبلغ يبدأ من 50-100 دولار. هذا الخيار الأمثل للمبتدئين ذوي الميزانية المحدودة.\n\n**السبائك الصغيرة:** تتوفر سبائك ذهب بأوزان تبدأ من 1 جرام فأكثر. سعر الجرام الواحد يتراوح بين 80-100 دولار حسب السوق.\n\n**المسكوكات الذهبية:** بعض المسكوكات الصغيرة متاحة بأسعار معقولة، وتتميز بسهولة البيع لاحقاً.\n\n**حسابات الذهب:** تتيح بعض البنوك فتح حساب ذهب تتراكم فيه كميات صغيرة بشكل دوري.\n\nالنصيحة: ابدأ بصناديق ETF إذا كنت مبتدئاً بمبلغ صغير — تكاليفها أقل وسيولتها أعلى من الذهب الفيزيائي."
+          body: "السؤال الأكثر شيوعاً بين المبتدئين — والإجابة الجيدة هي: نعم، يمكنك الاستثمار في الذهب حتى بمبلغ لا يتجاوز 100 ريال أو 100 درهم. إليك خياراتك مرتبةً من الأقل تكلفةً للأعلى:\n\n**1. حسابات الذهب البنكية (أقل من 100 ريال)**\nعدة بنوك خليجية تتيح شراء كسور جرام الذهب:\n• بنك الراجحي (السعودية): يتيح الاستثمار في الذهب من خلال منتج \"الذهب المادي\" عبر التطبيق\n• بنك الإمارات دبي الوطني: حسابات ذهب رقمية بحد أدنى منخفض\n• بنك القاهرة وبنوك مصرية عدة: شهادات الذهب\nالميزة: تبدأ بأقل مبلغ ممكن وتضيف عليه كل شهر.\n\n**2. صناديق ETF الذهبية (من 200 ريال / 200 درهم)**\nالأفضل للمبتدئ بميزانية محدودة:\n• تداول (السوق السعودي): صناديق مرتبطة بالذهب متاحة عبر تطبيق تداول\n• DFM وADX (الإمارات): صناديق ETF ذهبية متاحة للمقيمين\n• منصات عالمية: eToro وغيرها تتيح شراء حصة من GLD بعشرات الدولارات\n\n**3. السبائك الصغيرة (من 450 ريال — 1 جرام)**\nسعر جرام الذهب عيار 24 يتراوح حالياً بين 400-450 ريال / 420-450 درهم.\n• بنك الذهب السعودي، المراكز المعتمدة بالمول، أو المتاجر الرسمية\n• تأكد من أن السبيكة تحمل ختم معتمد (LBMA أو معادله)\n\n**خطوات عملية للبدء بمبلغ صغير:**\n1. حدد مبلغاً ثابتاً شهرياً (حتى لو 200 ريال)\n2. اختر قناة واحدة (حساب بنكي أو ETF)\n3. اشترِ في أول كل شهر بغض النظر عن السعر — هذا يُسمّى Dollar Cost Averaging ويقلل المخاطرة\n4. لا تبيع في أول سنتين — الذهب استثمار متوسط وطويل الأمد\n\n**الخلاصة:** ابدأ بحساب ذهب بنكي أو ETF إذا كان مبلغك أقل من 500 ريال. إذا وصلت لـ 1000+ ريال، فكّر بسبيكة 1-2 جرام للاحتفاظ الفيزيائي."
         },
         {
           heading: "1. السبائك والمسكوكات الذهبية",
@@ -61,7 +61,7 @@ export default function Page() {
         },
         {
           heading: "How to Invest in Gold with a Small Amount?",
-          body: "If you have a limited budget, you have excellent options to start:\n\n**Gold ETFs:** You can buy a share starting from $50-100. This is the best option for beginners with limited budgets.\n\n**Small bars:** Gold bars are available starting from 1 gram. The price per gram ranges between $80-100 depending on the market.\n\n**Gold coins:** Some smaller coins are available at reasonable prices and are easy to sell later.\n\n**Gold accounts:** Some banks allow opening a gold account where small amounts accumulate regularly.\n\nTip: Start with ETFs if you're a beginner with a small amount — lower costs and higher liquidity than physical gold."
+          body: "The most common question from beginners — and the good news is: yes, you can invest in gold with as little as $25-50. Here are your options ranked from lowest to highest cost:\n\n**1. Bank Gold Accounts (under $30)**\nMany banks in the Gulf and globally offer fractional gram gold accounts:\n• Rajhi Bank (Saudi Arabia): physical gold product via app\n• Emirates NBD: digital gold accounts with low minimums\n• Multiple Egyptian banks: gold certificates\nAdvantage: start with any amount and add monthly.\n\n**2. Gold ETFs (from $50)**\nBest for beginners with a limited budget:\n• SPDR Gold Shares (GLD) — available on most brokerages\n• iShares Gold Trust (IAU) — lower fees than GLD\n• eToro, Charles Schwab, and similar platforms make this easy\n\n**3. Small Physical Bars (from ~$120 for 1 gram)**\nIf you prefer to hold gold physically:\n• 1-gram bars are available at certified dealers and malls\n• Ensure the bar carries an LBMA-certified stamp\n\n**Practical steps to start with a small amount:**\n1. Set a fixed monthly amount (even $50)\n2. Choose one channel (bank account or ETF)\n3. Buy on the 1st of each month regardless of price — this is Dollar Cost Averaging and reduces risk\n4. Don't sell in the first 2 years — gold is a medium-to-long-term investment\n\n**Bottom line:** Start with a bank gold account or ETF if your budget is under $200. Once you reach $500+, consider a 1-2 gram physical bar for tangible holding."
         },
         {
           heading: "1. Bullion & Coins",

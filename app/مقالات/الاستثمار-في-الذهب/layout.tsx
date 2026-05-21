@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description: "كيف تستثمر في الذهب بمبلغ صغير أو كبير: سبائك، ETF، مجوهرات، وذهب رقمي — مقارنة شاملة للمبتدئين.",
     type: "article",
     publishedTime: "2026-04-08",
-    modifiedTime: "2026-05-19",
+    modifiedTime: "2026-05-21",
   },
   alternates: { canonical: "https://sardhahab.com/مقالات/الاستثمار-في-الذهب" },
 };
@@ -36,7 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             headline: "كيف أستثمر في الذهب؟ — الدليل الشامل للمبتدئين 2026",
             description: "كيف تستثمر في الذهب بمبلغ صغير أو كبير: سبائك، ETF، مجوهرات، وذهب رقمي",
             datePublished: "2026-04-08",
-            dateModified: "2026-05-19",
+            dateModified: "2026-05-21",
             author: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },
             publisher: {
               "@type": "Organization",

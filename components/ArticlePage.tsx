@@ -16,6 +16,7 @@ interface ArticleProps {
   descAr: string;
   descEn: string;
   date: string;
+  updatedDate?: string;
   readMins: number;
   category: string;
   slug?: string;
@@ -24,7 +25,7 @@ interface ArticleProps {
 }
 
 export default function ArticlePage({
-  icon, titleAr, titleEn, descAr, descEn, date, readMins, category, slug,
+  icon, titleAr, titleEn, descAr, descEn, date, updatedDate, readMins, category, slug,
   sectionsAr, sectionsEn,
 }: ArticleProps) {
   const { lang } = useLang();
@@ -49,11 +50,24 @@ export default function ArticlePage({
 
       {/* Hero */}
       <header className="mb-8">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center flex-wrap gap-2 mb-3">
           <span className="text-xs bg-gold/10 text-gold px-2.5 py-1 rounded-full font-medium">{category}</span>
           <span className="text-text-secondary text-xs">
             {new Date(date).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
           </span>
+          {updatedDate && (
+            <>
+              <span className="text-text-secondary text-xs">·</span>
+              <time
+                dateTime={updatedDate}
+                data-speakable
+                className="text-xs text-gold/80 bg-gold/5 border border-gold/20 px-2 py-0.5 rounded-full"
+              >
+                {lang === "ar" ? "آخر تحديث: " : "Updated: "}
+                {new Date(updatedDate).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
+              </time>
+            </>
+          )}
           <span className="text-text-secondary text-xs">·</span>
           <span className="text-text-secondary text-xs">
             {lang === "ar" ? `${readMins} دقائق قراءة` : `${readMins} min read`}
