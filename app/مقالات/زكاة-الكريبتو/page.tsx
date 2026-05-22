@@ -188,7 +188,7 @@ export default function Page() {
                   <a
                     href={s.url}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow"
                     className="font-bold text-text-primary hover:text-gold transition-colors"
                   >
                     {s.label}

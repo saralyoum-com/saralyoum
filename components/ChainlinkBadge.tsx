@@ -240,7 +240,7 @@ export default function ChainlinkBadge({ goldPriceUSD }: Props) {
                 <a
                   href={ETHERSCAN}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener noreferrer nofollow"
                   onClick={() => track.navClick("chainlink-etherscan")}
                   className="flex items-center justify-between w-full bg-surface-2 border border-border hover:border-gold/30 rounded-2xl p-3.5 transition-all group"
                 >
