@@ -69,8 +69,7 @@ export default function ChainlinkBadge({ goldPriceUSD }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(false);
 
-  const load = useCallback(async () => {
-    if (cl) return;
+  const doFetch = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
@@ -80,7 +79,17 @@ export default function ChainlinkBadge({ goldPriceUSD }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [cl]);
+  }, []);
+
+  const load = useCallback(() => {
+    if (cl) return; // already have data
+    doFetch();
+  }, [cl, doFetch]);
+
+  const retry = useCallback(() => {
+    setCl(null);
+    doFetch();
+  }, [doFetch]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -174,7 +183,7 @@ export default function ChainlinkBadge({ goldPriceUSD }: Props) {
                 <p className="text-fall text-sm mb-3">
                   {ar ? "⚠️ تعذر الاتصال بالشبكة" : "⚠️ Could not reach the network"}
                 </p>
-                <button onClick={() => { setCl(null); load(); }} className="text-gold text-xs underline">
+                <button onClick={retry} className="text-gold text-xs underline">
                   {ar ? "إعادة المحاولة" : "Retry"}
                 </button>
               </div>
