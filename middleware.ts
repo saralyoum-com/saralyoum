@@ -76,6 +76,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Run on all paths except Next.js internals and static files
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/|gold/|zakat-crypto|bitcoin-price|ethereum-price|.*\\.(?:png|jpg|svg|ico|webp|css|js)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|ads\\.txt|api/|gold/|zakat-crypto|bitcoin-price|ethereum-price|.*\\.(?:png|jpg|svg|ico|webp|css|js|txt|xml)).*)",
   ],
 };
