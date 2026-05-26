@@ -1,10 +1,19 @@
 import { MetadataRoute } from "next";
 
 // Block internal ASCII routes — only Arabic-slug canonicals should be indexed
-// /gold/ = country pages, /zakat-crypto|bitcoin-price|ethereum-price = other pages
+// /gold/ = country pages, /zakat-crypto|bitcoin-price|ethereum-price = ASCII routes
+// /اخبار? blocks query-param variants (?q=...) of the news page — only /اخبار (clean) is indexed
 // /_next/static/media/ blocks font files (crawl budget) — CSS/JS must NOT be blocked
 // per Google: "Don't block CSS and JavaScript files from crawlers"
-const DISALLOW = ["/api/", "/gold/", "/zakat-crypto", "/bitcoin-price", "/ethereum-price", "/_next/static/media/"];
+const DISALLOW = [
+  "/api/",
+  "/gold/",
+  "/zakat-crypto",
+  "/bitcoin-price",
+  "/ethereum-price",
+  "/اخبار?",
+  "/_next/static/media/",
+];
 
 const AI_BOTS = [
   "GPTBot",
