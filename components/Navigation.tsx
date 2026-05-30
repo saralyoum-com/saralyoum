@@ -94,7 +94,7 @@ export default function Navigation() {
             className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border border-border text-text-secondary hover:text-text-primary hover:border-gold/40 transition-all"
             aria-label="Toggle language"
           >
-            🌐 {lang === "ar" ? "EN" : "عر"}
+            {lang === "ar" ? "EN" : "عر"}
           </button>
 
           <a
@@ -104,7 +104,7 @@ export default function Navigation() {
             onClick={() => track.subscribeHeaderClick()}
             className="hidden md:flex items-center gap-1.5 bg-gold text-background px-3 lg:px-4 py-2 rounded-xl text-sm font-bold hover:bg-gold-light transition-colors whitespace-nowrap"
           >
-            <span>✈️</span> {t.nav.subscribe}
+            {t.nav.subscribe}
           </a>
 
           <button
@@ -161,7 +161,7 @@ export default function Navigation() {
                 onClick={() => { track.subscribeHeaderClick(); setMenuOpen(false); }}
                 className="flex items-center justify-center gap-2 bg-gold text-background px-4 py-3 rounded-xl text-sm font-bold mt-2"
               >
-                ✈️ {t.nav.subscribe}
+                {t.nav.subscribe}
               </a>
             </div>
           </motion.div>

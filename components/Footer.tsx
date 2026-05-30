@@ -40,6 +40,8 @@ export default function Footer() {
               { href: "/سعر-الذهب-اليمن",    label: lang === "ar" ? "🇾🇪 اليمن"      : "🇾🇪 Yemen" },
               { href: "/سعر-الذهب-السودان",  label: lang === "ar" ? "🇸🇩 السودان"    : "🇸🇩 Sudan" },
               { href: "/سعر-الذهب-لبنان",    label: lang === "ar" ? "🇱🇧 لبنان"      : "🇱🇧 Lebanon" },
+              { href: "/سعر-الذهب-سوريا",    label: lang === "ar" ? "🇸🇾 سوريا"      : "🇸🇾 Syria" },
+              { href: "/سعر-الذهب-فلسطين",   label: lang === "ar" ? "🇵🇸 فلسطين"     : "🇵🇸 Palestine" },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
                 {l.label}
@@ -132,18 +134,31 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Telegram CTA */}
-        <a
-          href="https://t.me/sardhahab"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3 bg-[#229ED9]/10 border border-[#229ED9]/30 rounded-2xl p-4 mb-6 hover:bg-[#229ED9]/15 transition-all group"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
-          <span className="text-[#229ED9] font-bold text-sm group-hover:text-[#1a8bc4] transition-colors">
-            {lang === "ar" ? "🔔 انضم لقناة سعر الذهب على تيليجرام — @sardhahab" : "🔔 Join sardhahab on Telegram — @sardhahab"}
-          </span>
-        </a>
+        {/* Social CTAs */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <a
+            href="https://t.me/sardhahab"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-3 bg-[#229ED9]/10 border border-[#229ED9]/30 rounded-2xl p-4 hover:bg-[#229ED9]/15 transition-all group"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
+            <span className="text-[#229ED9] font-bold text-sm group-hover:text-[#1a8bc4] transition-colors">
+              {lang === "ar" ? "تيليجرام @sardhahab" : "Telegram @sardhahab"}
+            </span>
+          </a>
+          <a
+            href="https://x.com/sardhahab"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-3 bg-white/5 border border-white/20 rounded-2xl p-4 hover:bg-white/10 transition-all group"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-text-primary"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            <span className="text-text-primary font-bold text-sm group-hover:text-gold transition-colors">
+              {lang === "ar" ? "تابعنا @sardhahab" : "Follow @sardhahab"}
+            </span>
+          </a>
+        </div>
 
         {/* Contact form */}
         <ContactForm />

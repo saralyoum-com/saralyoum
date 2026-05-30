@@ -132,10 +132,10 @@ export default function RootLayout({
                 "موقع متخصص في أسعار الذهب والفضة والعملات الرقمية والعملات الأجنبية لحظياً باللغة العربية.",
               foundingDate: "2023",
               areaServed: [
-                "SA", "AE", "KW", "QA", "BH", "OM", "EG", "JO", "MA", "IQ", "LY", "TN", "DZ", "YE", "SD", "LB",
+                "SA", "AE", "KW", "QA", "BH", "OM", "EG", "JO", "MA", "IQ", "LY", "TN", "DZ", "YE", "SD", "LB", "SY", "PS",
               ],
               inLanguage: ["ar", "en"],
-              sameAs: ["https://t.me/sardhahab"],
+              sameAs: ["https://t.me/sardhahab", "https://x.com/sardhahab"],
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer support",

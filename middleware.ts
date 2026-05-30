@@ -30,6 +30,8 @@ const COUNTRY_SLUGS: Record<string, string> = {
   "سعر-الذهب-اليمن":    "ye",
   "سعر-الذهب-السودان":  "sd",
   "سعر-الذهب-لبنان":    "lb",
+  "سعر-الذهب-سوريا":    "sy",
+  "سعر-الذهب-فلسطين":   "ps",
 };
 
 // Arabic slug → ASCII page path (non-country pages)
