@@ -33,13 +33,13 @@ export function OneSignalInit() {
             prompts: [
               {
                 type: "push",
-                autoPrompt: false,
+                autoPrompt: true,
                 text: {
                   actionMessage: "اشترك لتلقّي تنبيهات أسعار الذهب فوراً",
                   acceptButton: "اشترك",
                   cancelButton: "لاحقاً",
                 },
-                delay: { pageViews: 2, timeDelay: 10 },
+                delay: { pageViews: 1, timeDelay: 15 },
               },
             ],
           },

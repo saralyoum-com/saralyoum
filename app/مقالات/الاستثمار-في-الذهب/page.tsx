@@ -3,11 +3,11 @@ export default function Page() {
   return (
     <ArticlePage
       slug="الاستثمار-في-الذهب"
-      icon="💰" category="استثمار" date="2026-04-08" updatedDate="2026-05-21" readMins={14}
-      titleAr="كيف تستثمر في الذهب؟ — الدليل الشامل للمبتدئين 2026"
-      titleEn="How to Invest in Gold? — Complete Beginner's Guide 2026"
-      descAr="دليل شامل لطرق الاستثمار في الذهب: سبائك، مجوهرات، ETF، وعقود الفيوتشر — مع مقارنة بين كل طريقة ونصائح عملية للمبتدئين."
-      descEn="A complete guide to gold investment methods: bullion, jewelry, ETFs, and futures — with a comparison of each method and practical tips for beginners."
+      icon="💰" category="استثمار" date="2026-04-08" updatedDate="2026-05-30" readMins={18}
+      titleAr="الاستثمار في الذهب — كيف تستثمر بمبلغ صغير أو كبير (دليل 2026)"
+      titleEn="Investing in Gold — How to Start with Any Budget (2026 Guide)"
+      descAr="كيف استثمر في الذهب؟ دليل شامل للمبتدئين: سبائك، حسابات ذهب بنكية، صناديق ETF، ذهب رقمي — مع خطوات البدء بأقل من 100 ريال وأفضل وقت للشراء."
+      descEn="How to invest in gold? A complete beginner's guide: bullion, bank gold accounts, ETFs, digital gold — with steps to start with under $25 and the best time to buy."
       sectionsAr={[
         {
           heading: "لماذا الاستثمار في الذهب؟",
@@ -50,6 +50,14 @@ export default function Page() {
           body: "**1. حدد هدفك أولاً:**\n• هل تريد التحوط من التضخم؟ → سبائك أو ETF\n• هل تريد نمواً سريعاً؟ → أسهم شركات التعدين (مع مخاطرة أعلى)\n• هل ميزانيتك محدودة؟ → ETF أو حسابات ذهب رقمية\n\n**2. لا تستثمر كل مدخراتك في الذهب:**\nالتوصية المعتادة هي 5-15% من المحفظة الاستثمارية. الذهب أداة تحوط، ليس مصدر دخل رئيسي.\n\n**3. فكّر على المدى الطويل:**\nالذهب يُبلي أداءً ممتازاً على مدى 5-10 سنوات أو أكثر. على المدى القصير، قد تكون تقلباته محبطة.\n\n**4. اشترِ بانتظام (Dollar Cost Averaging):**\nبدلاً من استثمار مبلغ كبير دفعة واحدة، استثمر مبالغ صغيرة بشكل منتظم (شهرياً مثلاً). هذا يقلل من تأثير تقلبات الأسعار.\n\n**5. تابع السعر يومياً:**\nسعر الذهب يتغير بشكل مستمر بناءً على عوامل عالمية كأسعار الفائدة الأمريكية، مستوى التضخم، والأحداث الجيوسياسية. تابع السعر اللحظي على sardhahab.com لتتخذ قرارات مبنية على بيانات دقيقة."
         },
         {
+          heading: "أفضل وقت لشراء الذهب",
+          body: "لا يوجد وقت \"مثالي\" واحد لشراء الذهب، لكن هناك أنماط يمكنك الاستفادة منها:\n\n**مؤشرات الشراء:**\n• عند ارتفاع التضخم العالمي — الذهب تاريخياً يرتفع مع التضخم\n• عند خفض أسعار الفائدة الأمريكية — العلاقة عكسية بين الفائدة والذهب\n• في فترات التوتر الجيوسياسي — الحروب والأزمات تدفع المستثمرين للذهب\n• عند انخفاض مؤشر الدولار (DXY) — ضعف الدولار يعني ذهباً أغلى\n\n**أوقات يُفضّل فيها الانتظار:**\n• بعد ارتفاع حاد ومتتالٍ في السعر — قد يحدث تصحيح\n• عند رفع الفائدة الأمريكية بشكل مفاجئ — يضغط على الذهب مؤقتاً\n• إذا كانت الأسواق في حالة نشوة شديدة (FOMO) — الشراء بعاطفة خطر\n\n**النصيحة الذهبية:** إذا كنت مستثمراً طويل الأمد، لا تحاول توقيت السوق. استخدم طريقة الشراء المنتظم (DCA): اشترِ كل شهر بنفس المبلغ مهما كان السعر. الدراسات تثبت أن هذه الطريقة تتفوق على محاولة التوقيت في 90% من الحالات."
+        },
+        {
+          heading: "مخاطر الاستثمار في الذهب — ما لا يقوله لك أحد",
+          body: "الذهب ليس استثماراً خالياً من المخاطر. قبل أن تضع أموالك، اعرف هذه الحقائق:\n\n**1. لا يُنتج دخلاً**\nبخلاف الأسهم (توزيعات أرباح) أو العقارات (إيجار)، الذهب لا يدفع لك شيئاً أثناء الاحتفاظ به. ربحك الوحيد هو فارق السعر عند البيع.\n\n**2. تقلبات قصيرة الأمد قد تكون حادة**\nالذهب انخفض 28% بين 2020 و2022 قبل أن يعود للارتفاع. إذا اشتريت في القمة واحتجت البيع في القاع، ستخسر.\n\n**3. تكاليف خفية**\n• فروقات البيع والشراء (Spread) — خاصة في المجوهرات والسبائك الصغيرة\n• رسوم التخزين والتأمين للذهب الفيزيائي\n• رسوم الإدارة السنوية لصناديق ETF (0.25-0.40%)\n• ضرائب أرباح رأس المال في بعض الدول\n\n**4. خطر الاحتيال**\nسبائك مغشوشة، تطبيقات ذهب رقمي غير مرخصة، مخططات \"استثمر واربح\" — تأكد دائماً من:\n• ختم LBMA على السبائك\n• ترخيص الجهة المالية من البنك المركزي أو هيئة السوق المالية\n• عدم وجود وعود بعوائد مضمونة (لا يوجد استثمار مضمون)\n\n**القاعدة الذهبية:** لا تستثمر في الذهب أكثر من 15% من إجمالي محفظتك. الذهب أداة تنويع وتحوط، ليس استثمارك الرئيسي."
+        },
+        {
           heading: "متى تبيع ذهبك؟",
           body: "السؤال الذي يغفل عنه كثير من المستثمرين. إليك بعض المؤشرات:\n\n• عندما يحقق استثمارك الهدف المحدد مسبقاً (مثلاً: 30-50% ربح)\n• عندما تحتاج السيولة لغرض أهم\n• عندما تتغير ظروف السوق بشكل جذري (مثلاً: رفع الفائدة الأمريكية بشكل حاد)\n• عندما يشكّل الذهب نسبة كبيرة جداً من محفظتك (أكثر من 20%)\n\nلا تبيع بسبب الذعر من انخفاض قصير الأمد — الذهب يسترد قيمته تاريخياً على المدى البعيد."
         },
@@ -78,6 +86,14 @@ export default function Page() {
         {
           heading: "Comparison of Gold Investment Methods",
           body: "| Method | Min. Amount | Risk | Liquidity | Suitable For |\n|---|---|---|---|---|\n| Bars & Coins | Medium-High | Low | Medium | Long-term |\n| Jewelry | Medium | Low | Low | Adornment + storage |\n| ETFs | Low | Low | High | Most investors |\n| Gold accounts | Very Low | Low | Medium | Beginners |\n| Mining stocks | Medium | High | High | Experienced |\n| Futures | High | Very High | High | Experts only |"
+        },
+        {
+          heading: "Best Time to Buy Gold",
+          body: "There's no single \"perfect\" time to buy gold, but there are patterns you can use:\n\n**Buy signals:**\n• Rising global inflation — gold historically rises with inflation\n• US interest rate cuts — inverse relationship between rates and gold\n• Geopolitical tension — wars and crises push investors to gold\n• Dollar index (DXY) falling — weaker dollar means pricier gold\n\n**Wait signals:**\n• After a steep, consecutive price rally — a correction may follow\n• Sudden US rate hikes — temporarily pressures gold\n• Market euphoria (FOMO) — emotional buying is dangerous\n\n**The golden rule:** If you're a long-term investor, don't try to time the market. Use Dollar Cost Averaging (DCA): buy the same amount every month regardless of price. Studies show this method beats market timing in 90% of cases."
+        },
+        {
+          heading: "Risks of Investing in Gold — What Nobody Tells You",
+          body: "Gold is not a risk-free investment. Before committing your money, know these facts:\n\n**1. It produces no income**\nUnlike stocks (dividends) or real estate (rent), gold pays you nothing while you hold it. Your only profit is the price difference when you sell.\n\n**2. Short-term volatility can be harsh**\nGold dropped 28% between 2020 and 2022 before recovering. If you bought at the peak and needed to sell at the bottom, you'd lose.\n\n**3. Hidden costs**\n• Buy/sell spreads — especially on jewelry and small bars\n• Storage and insurance for physical gold\n• Annual management fees for ETFs (0.25-0.40%)\n• Capital gains taxes in some countries\n\n**4. Fraud risk**\nCounterfeit bars, unlicensed digital gold apps, \"invest and earn\" schemes — always verify:\n• LBMA stamp on bars\n• Financial authority licensing\n• No guaranteed returns promises (no investment is guaranteed)\n\n**The golden rule:** Don't invest more than 15% of your total portfolio in gold. Gold is a diversification and hedging tool, not your primary investment."
         },
         {
           heading: "Practical Tips Before You Start Investing in Gold",

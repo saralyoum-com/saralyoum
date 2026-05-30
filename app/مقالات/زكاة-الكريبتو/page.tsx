@@ -165,7 +165,7 @@ export default function Page() {
             <p className="text-text-secondary text-sm">{ar ? "حاسبة BTC + ETH + BNB + SOL + USDT بأسعار لحظية" : "BTC + ETH + BNB + SOL + USDT with live prices"}</p>
           </div>
           <Link
-            href="/zakat-crypto"
+            href="/زكاة-الكريبتو"
             className="bg-gold text-background font-bold px-5 py-2.5 rounded-xl hover:bg-gold-light transition-colors whitespace-nowrap"
           >
             {ar ? "الحاسبة" : "Calculator"}

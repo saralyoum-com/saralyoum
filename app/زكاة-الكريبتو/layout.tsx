@@ -22,7 +22,7 @@ export const metadata: Metadata = {
       "احسب زكاة البيتكوين والإيثيريوم وكل عملاتك الرقمية بأسعار لحظية وآراء العلماء.",
     type: "website",
   },
-  alternates: { canonical: "https://sardhahab.com/zakat-crypto" },
+  alternates: { canonical: "https://sardhahab.com/زكاة-الكريبتو" },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -31,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "الرئيسية", item: "https://sardhahab.com" },
-      { "@type": "ListItem", position: 2, name: "حاسبة زكاة الكريبتو", item: "https://sardhahab.com/zakat-crypto" },
+      { "@type": "ListItem", position: 2, name: "حاسبة زكاة الكريبتو", item: "https://sardhahab.com/زكاة-الكريبتو" },
     ],
   };
 
