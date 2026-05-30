@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useLang } from "@/components/LanguageContext";
 import { useSetCurrency } from "@/components/LocalCurrency";
@@ -82,7 +83,11 @@ export default function CountryGoldPage({
       <div className="bg-surface border border-border rounded-3xl p-5 sm:p-8 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <span className="text-5xl">{flag}</span>
+            {flag.startsWith("/") ? (
+              <Image src={flag} alt="" width={48} height={32} className="w-12 h-8 rounded-sm object-cover" />
+            ) : (
+              <span className="text-5xl">{flag}</span>
+            )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-text-primary">
                 {lang === "ar" ? `سعر الذهب في ${nameAr}` : `Gold Price in ${nameEn}`}

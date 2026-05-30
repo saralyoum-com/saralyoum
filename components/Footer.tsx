@@ -40,10 +40,11 @@ export default function Footer() {
               { href: "/سعر-الذهب-اليمن",    label: lang === "ar" ? "🇾🇪 اليمن"      : "🇾🇪 Yemen" },
               { href: "/سعر-الذهب-السودان",  label: lang === "ar" ? "🇸🇩 السودان"    : "🇸🇩 Sudan" },
               { href: "/سعر-الذهب-لبنان",    label: lang === "ar" ? "🇱🇧 لبنان"      : "🇱🇧 Lebanon" },
-              { href: "/سعر-الذهب-سوريا",    label: lang === "ar" ? "🇸🇾 سوريا"      : "🇸🇾 Syria" },
+              { href: "/سعر-الذهب-سوريا",    label: lang === "ar" ? "سوريا"      : "Syria", flagImg: "/flags/sy.svg" },
               { href: "/سعر-الذهب-فلسطين",   label: lang === "ar" ? "🇵🇸 فلسطين"     : "🇵🇸 Palestine" },
             ].map((l) => (
-              <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
+              <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1">
+                {"flagImg" in l && l.flagImg ? <Image src={l.flagImg} alt="" width={16} height={11} className="inline-block rounded-[2px]" /> : null}
                 {l.label}
               </Link>
             ))}

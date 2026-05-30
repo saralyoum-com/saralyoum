@@ -12,7 +12,7 @@ export default async function Page() {
   const sypRate = rates.find((r) => r.code === "SYP")?.rate ?? 13000;
   return (
     <CountryGoldPage
-      flag="🇸🇾" nameAr="سوريا" nameEn="Syria"
+      flag="/flags/sy.svg" nameAr="سوريا" nameEn="Syria"
       city="دمشق" currency="SYP" currencyAr="ليرة سورية" currencyEn="Syrian Pound"
       goldPriceUSD={gold?.price ?? 4787} silverPriceUSD={silver?.price ?? 76.48}
       rate={sypRate} changePercent={gold?.changePercent ?? 0}
