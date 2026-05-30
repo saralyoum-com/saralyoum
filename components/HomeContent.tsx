@@ -25,9 +25,9 @@ export function HomeHero() {
     <div className="text-center mb-8 sm:mb-10">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-text-primary mb-3">
         {lang === "ar" ? (
-          <>أسعار <span className="text-gold">لحظية</span></>
+          <>سعر الذهب <span className="text-gold">اليوم</span></>
         ) : (
-          <><span className="text-gold">Live</span> Prices</>
+          <>Gold Price <span className="text-gold">Today</span></>
         )}
       </h1>
       <p className="text-text-secondary text-base sm:text-lg">{t.home.subtitle}</p>
