@@ -173,7 +173,7 @@ export default function CryptoPricePage({
 
         {/* ── Zakat CTA ── */}
         <Link
-          href="/zakat-crypto"
+          href="/زكاة-الكريبتو"
           onClick={() => track.navClick("zakat-crypto-from-crypto-page")}
           className="flex items-center justify-between gap-4 bg-surface border border-gold/30 hover:border-gold rounded-2xl p-5 transition-colors group"
         >

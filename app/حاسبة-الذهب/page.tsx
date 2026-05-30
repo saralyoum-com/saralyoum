@@ -394,7 +394,7 @@ export default function GoldCalculatorPage() {
 
       {/* ── Crypto Zakat CTA ── */}
       <Link
-        href="/zakat-crypto"
+        href="/زكاة-الكريبتو"
         onClick={() => track.navClick("crypto-zakat-cta")}
         className="mt-6 flex items-center justify-between gap-4 bg-surface border border-border hover:border-gold/40 rounded-2xl p-5 transition-all group"
       >

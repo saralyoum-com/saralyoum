@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "حاسبة الذهب والزكاة",
+  title: "حاسبة الذهب — حساب سعر الذهب بالجرام وزكاة الذهب",
   description:
-    "احسب قيمة ذهبك بجميع العيارات (24/22/21/18) وزكاة الذهب والمدخرات بدقة — أسعار لحظية محدّثة. حاسبة مجانية عربية.",
+    "احسب سعر الذهب بالجرام لجميع العيارات (24/22/21/18) وطريقة حساب زكاة الذهب — أسعار لحظية بالريال والدرهم والدينار. حاسبة مجانية.",
   keywords: [
     "حاسبة الذهب",
+    "حساب الذهب",
+    "طريقة حساب الذهب",
+    "كيف احسب الذهب",
+    "كيف احسب سعر الذهب",
+    "طريقة حساب سعر الذهب",
     "حاسبة زكاة الذهب",
+    "كيف احسب زكاة الذهب",
     "سعر جرام الذهب",
     "عيار 24",
     "عيار 21",
@@ -19,8 +25,8 @@ export const metadata: Metadata = {
     "gold gram price",
   ],
   openGraph: {
-    title: "حاسبة الذهب والزكاة — سعر الذهب",
-    description: "احسب قيمة ذهبك وزكاتك بأسعار لحظية لجميع العيارات",
+    title: "حاسبة الذهب — حساب سعر الذهب بالجرام وزكاة الذهب",
+    description: "احسب سعر الذهب بالجرام لجميع العيارات وطريقة حساب زكاة الذهب بأسعار لحظية",
     type: "website",
   },
   alternates: {
@@ -34,18 +40,18 @@ export default function CalculatorLayout({ children }: { children: React.ReactNo
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "الرئيسية", item: "https://sardhahab.com" },
-      { "@type": "ListItem", position: 2, name: "حاسبة الذهب والزكاة", item: "https://sardhahab.com/حاسبة-الذهب" },
+      { "@type": "ListItem", position: 2, name: "حاسبة الذهب", item: "https://sardhahab.com/حاسبة-الذهب" },
     ],
   };
 
   const appJsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "حاسبة الذهب والزكاة",
+    name: "حاسبة الذهب — حساب سعر الذهب بالجرام",
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
     url: "https://sardhahab.com/حاسبة-الذهب",
-    description: "احسب قيمة ذهبك بجميع العيارات (24/22/21/18) وزكاة الذهب والمدخرات بأسعار لحظية — حاسبة مجانية عربية.",
+    description: "احسب سعر الذهب بالجرام لجميع العيارات (24/22/21/18) وطريقة حساب زكاة الذهب — أسعار لحظية بالريال والدرهم والدينار.",
     inLanguage: "ar",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     provider: { "@type": "Organization", name: "سعر الذهب", url: "https://sardhahab.com" },

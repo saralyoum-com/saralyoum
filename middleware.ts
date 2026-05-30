@@ -39,8 +39,24 @@ const OTHER_SLUGS: Record<string, string> = {
   "سعر-الاثيريوم":   "/ethereum-price",
 };
 
+// ASCII internal routes → Arabic canonical (301 redirect for SEO)
+const ASCII_REDIRECTS: Record<string, string> = {
+  "/zakat-crypto":   "/زكاة-الكريبتو",
+  "/bitcoin-price":  "/سعر-البيتكوين",
+  "/ethereum-price": "/سعر-الاثيريوم",
+};
+
 export function middleware(request: NextRequest) {
   const raw = request.nextUrl.pathname;
+
+  // 301-redirect ASCII routes to their Arabic canonical URLs
+  // This fixes Google indexing /zakat-crypto instead of /زكاة-الكريبتو
+  const arabicCanonical = ASCII_REDIRECTS[raw];
+  if (arabicCanonical) {
+    const url = request.nextUrl.clone();
+    url.pathname = arabicCanonical;
+    return NextResponse.redirect(url, { status: 301 });
+  }
 
   // Decode percent-encoding then normalise to NFC
   // (handles both NFD from macOS builds and NFC from browsers/crawlers)
@@ -76,6 +92,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Run on all paths except Next.js internals and static files
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|ads\\.txt|api/|gold/|zakat-crypto|bitcoin-price|ethereum-price|.*\\.(?:png|jpg|svg|ico|webp|css|js|txt|xml)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|ads\\.txt|api/|gold/|.*\\.(?:png|jpg|svg|ico|webp|css|js|txt|xml)).*)",
   ],
 };

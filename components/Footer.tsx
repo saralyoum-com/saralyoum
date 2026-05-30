@@ -57,7 +57,7 @@ export default function Footer() {
             {[
               { href: "/سعر-البيتكوين",  label: lang === "ar" ? "₿ سعر البيتكوين"   : "₿ Bitcoin Price" },
               { href: "/سعر-الاثيريوم",  label: lang === "ar" ? "Ξ سعر الإثيريوم"   : "Ξ Ethereum Price" },
-              { href: "/zakat-crypto",    label: lang === "ar" ? "⚖️ زكاة الكريبتو"   : "⚖️ Crypto Zakat" },
+              { href: "/زكاة-الكريبتو",    label: lang === "ar" ? "⚖️ زكاة الكريبتو"   : "⚖️ Crypto Zakat" },
             ].map((l) => (
               <Link key={l.href} href={l.href} className="text-text-secondary hover:text-gold text-xs bg-surface-2 border border-border rounded-lg px-3 py-1.5 transition-colors">
                 {l.label}
