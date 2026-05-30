@@ -78,9 +78,9 @@ export default async function Page({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(priceJsonLd) }}
       />
-      {/* SSR price summary — visible to crawlers and AI engines */}
+      {/* SSR price summary — visible to crawlers and AI engines (H1 is in CountryGoldPage) */}
       <div className="sr-only">
-        <h1>سعر الذهب في {country.nameAr} اليوم بالـ{country.currencyAr}</h1>
+        <p data-speakable><strong>سعر الذهب في {country.nameAr} اليوم بالـ{country.currencyAr}</strong></p>
         <p>
           سعر الذهب في {country.nameAr} ({country.city}) اليوم:
           عيار 24 بالجرام {fmt(goldPerGram24)} {country.currency} —
