@@ -3,6 +3,7 @@ import Disclaimer from "@/components/Disclaimer";
 import PriceCardsClient from "@/components/PriceCardsClient";
 import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
 import EngagementSection from "@/components/EngagementSection";
+import PortfolioTracker from "@/components/PortfolioTracker";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getMockTechnicalData } from "@/lib/technical";
@@ -145,6 +146,12 @@ export default async function HomePage() {
       {/* قسم التفاعل — توقعات واستطلاع */}
       <EngagementSection
         goldPrice={goldPriceUSD}
+        changePercent={goldChangePct}
+      />
+
+      {/* محفظتي الذهبية */}
+      <PortfolioTracker
+        goldPriceUSD={goldPriceUSD}
         changePercent={goldChangePct}
       />
 
