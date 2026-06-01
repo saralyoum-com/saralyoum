@@ -304,49 +304,6 @@ function SentimentPoll() {
 }
 
 /* ═══════════════════════════════════════════════════
-   4. LIVE VISITORS COUNTER
-   ═══════════════════════════════════════════════════ */
-function LiveVisitors() {
-  const { lang } = useLang();
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    // Realistic visitor count based on time of day
-    // Peak hours (10AM-10PM) = more visitors
-    const hour = new Date().getHours();
-    const base = hour >= 10 && hour <= 22 ? 80 : 20;
-    const variance = Math.floor(Math.random() * 60);
-    setCount(base + variance);
-
-    // Gentle fluctuation every 30s
-    const interval = setInterval(() => {
-      setCount(prev => {
-        const delta = Math.floor(Math.random() * 11) - 5; // -5 to +5
-        return Math.max(15, prev + delta);
-      });
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  if (count === 0) return null;
-
-  return (
-    <div className="flex items-center justify-center gap-2 text-text-secondary text-xs py-2">
-      <span className="relative flex h-2 w-2">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rise opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-rise" />
-      </span>
-      <span>
-        {lang === "ar"
-          ? `${count} شخص يتابعون الأسعار الآن`
-          : `${count} people watching prices now`}
-      </span>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
    5. "WHAT IF" CALCULATOR
    ═══════════════════════════════════════════════════ */
 function WhatIfCalculator({ currentPrice }: { currentPrice: number }) {
@@ -397,9 +354,6 @@ export default function EngagementSection({ goldPrice, changePercent }: Engageme
 
   return (
     <section dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 sm:pb-12">
-      {/* Live visitors */}
-      <LiveVisitors />
-
       {/* Section header */}
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gold/10 border border-gold/20 rounded-2xl flex items-center justify-center text-xl sm:text-2xl">
