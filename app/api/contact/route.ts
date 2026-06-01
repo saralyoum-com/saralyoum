@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
         html: `
           <div dir="rtl" style="font-family:Helvetica,Arial,sans-serif;background:#0D0D0D;color:#F5F5F5;padding:32px;border-radius:16px;max-width:520px;margin:0 auto">
             <div style="text-align:center;margin-bottom:24px">
-              <span style="font-size:36px">🏅</span>
-              <h1 style="color:#C9A84C;margin:8px 0 4px;font-size:20px">رسالة جديدة — سعر الذهب</h1>
-              <p style="color:#777;font-size:12px;margin:0">sardhahab.com</p>
+              <img src="https://sardhahab.com/logo.png" alt="سعر الذهب — SARD" width="80" height="80" style="border-radius:50%;margin-bottom:8px" />
+              <h1 style="color:#C9A84C;margin:8px 0 4px;font-size:20px">رسالة جديدة</h1>
+              <p style="color:#777;font-size:12px;margin:0"><a href="https://sardhahab.com" style="color:#C9A84C;text-decoration:none">sardhahab.com</a></p>
             </div>
             <div style="background:#1A1A1A;border:1px solid #2A2A2A;border-radius:12px;padding:20px;margin-bottom:16px">
               <table style="width:100%;font-size:14px;color:#CCC">
