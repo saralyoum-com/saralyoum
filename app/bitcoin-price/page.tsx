@@ -1,4 +1,5 @@
 import CryptoPricePage from "@/components/CryptoPricePage";
+import BitcoinExtraContent from "@/components/BitcoinExtraContent";
 import { getAllCryptoPrices } from "@/lib/coingecko";
 import { getExchangeRates } from "@/lib/exchangerate";
 
@@ -11,6 +12,7 @@ export default async function Page() {
   ]);
 
   const btc = cryptos.find((c) => c.symbol === "BTC");
+  const priceUSD = btc?.price ?? 95000;
 
   const currencies = rates.map((r) => ({
     code: r.code,
@@ -21,19 +23,22 @@ export default async function Page() {
   }));
 
   return (
-    <CryptoPricePage
-      coin="bitcoin"
-      symbol="BTC"
-      nameAr="البيتكوين"
-      nameEn="Bitcoin"
-      icon="₿"
-      priceUSD={btc?.price ?? 95000}
-      changePercent={btc?.changePercent ?? 0}
-      high24h={btc?.high24h ?? 96000}
-      low24h={btc?.low24h ?? 93000}
-      marketCapUSD={btc?.marketCap ?? 1870000000000}
-      volume24hUSD={btc?.volume24h ?? 35000000000}
-      currencies={currencies}
-    />
+    <>
+      <CryptoPricePage
+        coin="bitcoin"
+        symbol="BTC"
+        nameAr="البيتكوين"
+        nameEn="Bitcoin"
+        icon="₿"
+        priceUSD={priceUSD}
+        changePercent={btc?.changePercent ?? 0}
+        high24h={btc?.high24h ?? 96000}
+        low24h={btc?.low24h ?? 93000}
+        marketCapUSD={btc?.marketCap ?? 1870000000000}
+        volume24hUSD={btc?.volume24h ?? 35000000000}
+        currencies={currencies}
+      />
+      <BitcoinExtraContent priceUSD={priceUSD} />
+    </>
   );
 }
