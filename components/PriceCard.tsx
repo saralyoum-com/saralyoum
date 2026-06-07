@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PriceData, TechnicalSignal } from "@/types";
 import { formatPercent } from "@/lib/format";
 import { track } from "@/lib/analytics";
+import CurrencySymbol from "@/components/CurrencySymbol";
 
 interface Props {
   data: PriceData;
@@ -12,6 +13,7 @@ interface Props {
   index?: number;
   localRate?: number;
   localSymbol?: string;
+  localCode?: string;
   lang?: string;
 }
 
@@ -39,6 +41,7 @@ export default function PriceCard({
   index = 0,
   localRate = 1,
   localSymbol = "$",
+  localCode = "USD",
   lang = "ar",
 }: Props) {
   const [showKarats, setShowKarats] = useState(false);
@@ -46,9 +49,9 @@ export default function PriceCard({
   const isGold = data.symbol === "XAU";
 
   const isBTC = data.symbol === "BTC";
-  const usdPriceText = isBTC
-    ? `$${data.price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-    : `$${data.price.toFixed(2)}`;
+  const usdPriceNum = isBTC
+    ? data.price.toLocaleString("en-US", { maximumFractionDigits: 0 })
+    : data.price.toFixed(2);
 
   const signalColor =
     signal?.signal === "شراء"
@@ -64,8 +67,9 @@ export default function PriceCard({
   const localPriceValue = data.price * localRate;
   // Use fewer decimals for high-rate currencies (LBP, IQD, etc.)
   const localDecimals = localRate > 1000 ? 0 : localRate > 100 ? 0 : localRate < 1 ? 2 : 0;
-  const localPriceText = `${localPriceValue.toLocaleString("en-US", { maximumFractionDigits: localDecimals })} ${localSymbol}`;
+  const localPriceNum = localPriceValue.toLocaleString("en-US", { maximumFractionDigits: localDecimals });
   const localChangeValue = data.change * localRate;
+  const localChangeNum = Math.abs(localChangeValue).toLocaleString("en-US", { maximumFractionDigits: localDecimals });
 
   function handleKaratToggle() {
     if (!showKarats) track.viewKaratsOpen(data.symbol);
@@ -104,28 +108,31 @@ export default function PriceCard({
         {showLocalPrice ? (
           <>
             {/* Local currency — BIG headline */}
-            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
-              {localPriceText}
+            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors flex items-center gap-1.5 flex-wrap">
+              <span>{localPriceNum}</span>
+              <CurrencySymbol currency={localCode} size="md" className="text-gold/80" />
             </div>
             {/* USD — small reference */}
-            <div className="text-xs text-text-secondary mt-0.5">
-              ≈ {usdPriceText}
+            <div className="text-xs text-text-secondary mt-1 flex items-center gap-1">
+              <span>≈ {usdPriceNum}</span>
+              <CurrencySymbol currency="USD" size="sm" />
             </div>
             {/* Change in local currency */}
-            <div className={`text-sm mt-1 ${isPositive ? "text-rise" : "text-fall"}`}>
-              {isPositive ? "+" : ""}
-              {localChangeValue.toLocaleString("en-US", { maximumFractionDigits: localDecimals })} {localSymbol}
+            <div className={`text-sm mt-1 flex items-center gap-1 ${isPositive ? "text-rise" : "text-fall"}`}>
+              <span>{isPositive ? "+" : "-"}{localChangeNum}</span>
+              <CurrencySymbol currency={localCode} size="sm" />
             </div>
           </>
         ) : (
           <>
             {/* USD mode — original layout */}
-            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
-              {usdPriceText}
+            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors flex items-center gap-1.5">
+              <span>{usdPriceNum}</span>
+              <CurrencySymbol currency="USD" size="md" className="text-gold/80" />
             </div>
-            <div className={`text-sm mt-1 ${isPositive ? "text-rise" : "text-fall"}`}>
-              {isPositive ? "+" : ""}
-              {data.change.toFixed(2)} USD
+            <div className={`text-sm mt-1 flex items-center gap-1 ${isPositive ? "text-rise" : "text-fall"}`}>
+              <span>{isPositive ? "+" : ""}{data.change.toFixed(2)}</span>
+              <CurrencySymbol currency="USD" size="sm" />
             </div>
           </>
         )}
@@ -164,16 +171,21 @@ export default function PriceCard({
                       <div className="text-text-secondary text-xs mb-1">{k.label}</div>
                       {showLocalPrice ? (
                         <>
-                          <div className="text-text-primary font-bold text-xs sm:text-sm">
-                            {(k.price * localRate).toLocaleString("en-US", { maximumFractionDigits: localDecimals })} {localSymbol}
+                          <div className="text-text-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-1">
+                            <span>
+                              {(k.price * localRate).toLocaleString("en-US", { maximumFractionDigits: localDecimals })}
+                            </span>
+                            <CurrencySymbol currency={localCode} size="sm" />
                           </div>
-                          <div className="text-text-secondary text-xs mt-0.5">
-                            ≈ ${k.price.toFixed(2)}
+                          <div className="text-text-secondary text-xs mt-0.5 flex items-center justify-center gap-0.5">
+                            <span>≈ {k.price.toFixed(2)}</span>
+                            <CurrencySymbol currency="USD" size="sm" />
                           </div>
                         </>
                       ) : (
-                        <div className="text-text-primary font-bold text-xs sm:text-sm">
-                          ${k.price.toFixed(2)}
+                        <div className="text-text-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-1">
+                          <span>{k.price.toFixed(2)}</span>
+                          <CurrencySymbol currency="USD" size="sm" />
                         </div>
                       )}
                       <div className="text-text-secondary text-xs">
