@@ -1,7 +1,8 @@
 "use client";
 
 import PriceCard from "@/components/PriceCard";
-import { CurrencyBadge, useLocation } from "@/components/LocalCurrency";
+import { useLocation } from "@/components/LocalCurrency";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 import { useLang } from "@/components/LanguageContext";
 import ChainlinkBadge from "@/components/ChainlinkBadge";
 import { PriceData, TechnicalSignal } from "@/types";
@@ -20,7 +21,9 @@ export default function PriceCardsClient({ gold, silver, bitcoin, ethereum, sign
 
   return (
     <>
-      <CurrencyBadge />
+      <div className="flex justify-center mb-4">
+        <CurrencySwitcher />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
         <PriceCard data={gold}    signal={signals.gold}    index={0} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />
         <PriceCard data={silver}  signal={signals.silver}  index={1} localRate={loc.rate} localSymbol={loc.currencySymbol} lang={lang} />

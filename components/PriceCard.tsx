@@ -45,10 +45,10 @@ export default function PriceCard({
   const isPositive = data.changePercent >= 0;
   const isGold = data.symbol === "XAU";
 
-  const priceDisplay =
-    data.symbol === "BTC"
-      ? `$${data.price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-      : `$${data.price.toFixed(2)}`;
+  const isBTC = data.symbol === "BTC";
+  const usdPriceText = isBTC
+    ? `$${data.price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
+    : `$${data.price.toFixed(2)}`;
 
   const signalColor =
     signal?.signal === "شراء"
@@ -59,6 +59,13 @@ export default function PriceCard({
 
   const karats = isGold ? getKaratPrices(data.price, lang) : [];
   const showLocalPrice = localRate !== 1 && localSymbol !== "$";
+
+  // Local currency big number formatting
+  const localPriceValue = data.price * localRate;
+  // Use fewer decimals for high-rate currencies (LBP, IQD, etc.)
+  const localDecimals = localRate > 1000 ? 0 : localRate > 100 ? 0 : localRate < 1 ? 2 : 0;
+  const localPriceText = `${localPriceValue.toLocaleString("en-US", { maximumFractionDigits: localDecimals })} ${localSymbol}`;
+  const localChangeValue = data.change * localRate;
 
   function handleKaratToggle() {
     if (!showKarats) track.viewKaratsOpen(data.symbol);
@@ -94,18 +101,34 @@ export default function PriceCard({
 
       {/* السعر */}
       <div className="mb-3">
-        <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
-          {priceDisplay}
-        </div>
-        {showLocalPrice && (
-          <div className="text-sm text-gold/80 mt-0.5">
-            ≈ {(data.price * localRate).toLocaleString("en-US", { maximumFractionDigits: 0 })} {localSymbol}
-          </div>
+        {showLocalPrice ? (
+          <>
+            {/* Local currency — BIG headline */}
+            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
+              {localPriceText}
+            </div>
+            {/* USD — small reference */}
+            <div className="text-xs text-text-secondary mt-0.5">
+              ≈ {usdPriceText}
+            </div>
+            {/* Change in local currency */}
+            <div className={`text-sm mt-1 ${isPositive ? "text-rise" : "text-fall"}`}>
+              {isPositive ? "+" : ""}
+              {localChangeValue.toLocaleString("en-US", { maximumFractionDigits: localDecimals })} {localSymbol}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* USD mode — original layout */}
+            <div className="text-xl sm:text-2xl font-bold text-text-primary group-hover:text-gold transition-colors">
+              {usdPriceText}
+            </div>
+            <div className={`text-sm mt-1 ${isPositive ? "text-rise" : "text-fall"}`}>
+              {isPositive ? "+" : ""}
+              {data.change.toFixed(2)} USD
+            </div>
+          </>
         )}
-        <div className={`text-sm mt-1 ${isPositive ? "text-rise" : "text-fall"}`}>
-          {isPositive ? "+" : ""}
-          {data.change.toFixed(2)} USD
-        </div>
       </div>
 
       {/* حد أعلى / أدنى */}
@@ -139,12 +162,18 @@ export default function PriceCard({
                   {karats.map((k) => (
                     <div key={k.karat} className="bg-surface-2 rounded-xl p-2 sm:p-2.5 text-center">
                       <div className="text-text-secondary text-xs mb-1">{k.label}</div>
-                      <div className="text-text-primary font-bold text-xs sm:text-sm">
-                        ${k.price.toFixed(2)}
-                      </div>
-                      {showLocalPrice && (
-                        <div className="text-gold/70 text-xs mt-0.5">
-                          {(k.price * localRate).toFixed(0)} {localSymbol}
+                      {showLocalPrice ? (
+                        <>
+                          <div className="text-text-primary font-bold text-xs sm:text-sm">
+                            {(k.price * localRate).toLocaleString("en-US", { maximumFractionDigits: localDecimals })} {localSymbol}
+                          </div>
+                          <div className="text-text-secondary text-xs mt-0.5">
+                            ≈ ${k.price.toFixed(2)}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-text-primary font-bold text-xs sm:text-sm">
+                          ${k.price.toFixed(2)}
                         </div>
                       )}
                       <div className="text-text-secondary text-xs">

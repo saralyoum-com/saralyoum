@@ -98,17 +98,3 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function CurrencyBadge() {
-  const loc = useLocation();
-  if (loc.currency === "USD") return null;
-  return (
-    <div className="flex items-center justify-center gap-2 text-xs text-text-secondary bg-surface border border-border rounded-full px-3 py-1 w-fit mx-auto mb-4">
-      <span>{loc.flag}</span>
-      <span>العملة:</span>
-      <span className="text-gold font-medium">{loc.currencyName}</span>
-      <span className="text-text-secondary">
-        ($1 = {loc.rate >= 1 ? loc.rate.toFixed(2) : loc.rate.toFixed(4)} {loc.currencySymbol})
-      </span>
-    </div>
-  );
-}
