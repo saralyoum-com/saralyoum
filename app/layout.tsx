@@ -52,12 +52,30 @@ export const metadata: Metadata = {
     siteName: "سعر الذهب",
     locale: "ar_SA",
     type: "website",
-    images: [{ url: "/api/og?asset=gold&price=4%2C787&change=%2B0.85%25", width: 1200, height: 630 }],
+    images: [
+      {
+        url: "https://sardhahab.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "سعر الذهب اليوم — sardhahab.com",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
+    site: "@sardhahab",
+    creator: "@sardhahab",
     title: "سعر الذهب اليوم — عيار 24 و21 و18 بالريال والدرهم والدينار",
     description: "سعر جرام الذهب عيار 24 و21 و18 لحظياً بالريال السعودي والدرهم الإماراتي والدينار الكويتي — محدّث كل دقيقة.",
+    images: [
+      {
+        url: "https://sardhahab.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "سعر الذهب اليوم — sardhahab.com",
+      },
+    ],
   },
   alternates: {
     canonical: "https://sardhahab.com",
