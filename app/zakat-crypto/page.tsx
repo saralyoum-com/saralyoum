@@ -129,12 +129,12 @@ export default function ZakatCryptoPage() {
     if (!result) return "";
     if (!result.meetsNisab) {
       return ar
-        ? `💰 حسبت زكاة الكريبتو على sardhahab.com\n🔢 قيمة المحفظة: $${fmt(result.total, 0)}\n⚖️ النصاب: $${fmt(result.nisabUSD, 0)}\n⏳ لم تبلغ النصاب بعد\n\nاحسب زكاتك 👇\nhttps://sardhahab.com/zakat-crypto`
-        : `💰 I calculated crypto Zakat on sardhahab.com\n🔢 Portfolio: $${fmt(result.total, 0)}\n⚖️ Nisab: $${fmt(result.nisabUSD, 0)}\n⏳ Below Nisab — No Zakat yet\n\nCalculate yours 👇\nhttps://sardhahab.com/zakat-crypto`;
+        ? `💰 حسبت زكاة الكريبتو على sardhahab.com\n🔢 قيمة المحفظة: $${fmt(result.total, 0)}\n⚖️ النصاب: $${fmt(result.nisabUSD, 0)}\n⏳ لم تبلغ النصاب بعد\n\nاحسب زكاتك 👇\nhttps://sardhahab.com/زكاة-الكريبتو`
+        : `💰 I calculated crypto Zakat on sardhahab.com\n🔢 Portfolio: $${fmt(result.total, 0)}\n⚖️ Nisab: $${fmt(result.nisabUSD, 0)}\n⏳ Below Nisab — No Zakat yet\n\nCalculate yours 👇\nhttps://sardhahab.com/زكاة-الكريبتو`;
     }
     return ar
-      ? `🤲 حسبت زكاة الكريبتو على sardhahab.com\n💼 قيمة المحفظة: $${fmt(result.total, 0)}\n✅ تجب الزكاة!\n💸 الزكاة الواجبة: $${fmt(result.zakat)} (${fmtLocal(result.zakat)})\n\nاحسب زكاتك الآن 👇\nhttps://sardhahab.com/zakat-crypto`
-      : `🤲 Calculated crypto Zakat on sardhahab.com\n💼 Portfolio: $${fmt(result.total, 0)}\n✅ Zakat is Due!\n💸 Zakat amount: $${fmt(result.zakat)} (${fmtLocal(result.zakat)})\n\nCalculate yours 👇\nhttps://sardhahab.com/zakat-crypto`;
+      ? `🤲 حسبت زكاة الكريبتو على sardhahab.com\n💼 قيمة المحفظة: $${fmt(result.total, 0)}\n✅ تجب الزكاة!\n💸 الزكاة الواجبة: $${fmt(result.zakat)} (${fmtLocal(result.zakat)})\n\nاحسب زكاتك الآن 👇\nhttps://sardhahab.com/زكاة-الكريبتو`
+      : `🤲 Calculated crypto Zakat on sardhahab.com\n💼 Portfolio: $${fmt(result.total, 0)}\n✅ Zakat is Due!\n💸 Zakat amount: $${fmt(result.zakat)} (${fmtLocal(result.zakat)})\n\nCalculate yours 👇\nhttps://sardhahab.com/زكاة-الكريبتو`;
   };
 
   const shareWhatsApp = () => {
@@ -145,7 +145,7 @@ export default function ZakatCryptoPage() {
 
   const shareTelegram = () => {
     const text = encodeURIComponent(getShareText());
-    window.open(`https://t.me/share/url?url=https://sardhahab.com/zakat-crypto&text=${text}`, "_blank");
+    window.open(`https://t.me/share/url?url=https://sardhahab.com/%D8%B2%D9%83%D8%A7%D8%A9-%D8%A7%D9%84%D9%83%D8%B1%D9%8A%D8%A8%D8%AA%D9%88&text=${text}`, "_blank");
     track.navClick?.("crypto-zakat-share-tg");
   };
 
