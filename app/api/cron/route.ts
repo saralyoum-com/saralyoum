@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     const { createServiceClient } = await import("@/lib/supabase");
     const { getGoldPrice, getSilverPrice } = await import("@/lib/goldapi");
     const { getCryptoPrice } = await import("@/lib/coingecko");
+    const { sendPushToAll } = await import("@/lib/onesignal");
     const { Resend } = await import("resend");
 
     const supabase = createServiceClient();
@@ -114,7 +115,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ sent: sentCount, total: alerts.length });
+    // إرسال تنبيه push يومي لجميع مشتركي المتصفح
+    const goldChange = gold.changePercent ?? 0;
+    const arrow = goldChange >= 0 ? "▲" : "▼";
+    const pushResult = await sendPushToAll({
+      headingAr: `سعر الذهب اليوم — ${arrow} ${Math.abs(goldChange).toFixed(1)}%`,
+      contentAr: `الذهب $${gold.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} للأوقية — اضغط للتفاصيل`,
+      url: "https://sardhahab.com",
+    });
+
+    return NextResponse.json({ sent: sentCount, total: alerts.length, push: pushResult });
   } catch (error) {
     console.error("Cron error:", error);
     return NextResponse.json({ error: "فشل تنفيذ الكرون" }, { status: 500 });
