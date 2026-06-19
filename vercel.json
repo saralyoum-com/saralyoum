@@ -19,6 +19,6 @@
     {
       "path": "/api/cron/x-posts/countries",
       "schedule": "0 5 * * *"
-    },
+    }
   ]
 }
