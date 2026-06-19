@@ -103,7 +103,6 @@ const nextConfig = {
         headers: [
           { key: "Content-Type", value: "text/plain; charset=utf-8" },
           { key: "Cache-Control", value: "public, max-age=3600" },
-          { key: "X-Robots-Tag", value: "noindex" },
         ],
       },
       // Security headers for all routes
