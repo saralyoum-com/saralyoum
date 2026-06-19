@@ -263,10 +263,9 @@ function SentimentPoll() {
   }
 
   function castVote(dir: "up" | "down") {
-    const newTotal = results.total + 1;
-    const newUp = dir === "up" ? results.up + (100 / newTotal) : results.up - (100 / newTotal) * 0.5;
-    const finalUp = Math.round(Math.min(Math.max(newUp, 20), 80));
-    const newResults = { up: finalUp, down: 100 - finalUp, total: newTotal };
+    const shift = dir === "up" ? 1 : -1;
+    const newUp = Math.min(Math.max(results.up + shift, 15), 85);
+    const newResults = { up: newUp, down: 100 - newUp, total: results.total + 1 };
 
     setVote(dir);
     setResults(newResults);
