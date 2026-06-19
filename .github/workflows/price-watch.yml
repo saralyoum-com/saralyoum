@@ -1,0 +1,17 @@
+name: Gold Price Watch
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # كل 30 دقيقة
+  workflow_dispatch:          # تشغيل يدوي للاختبار
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check gold price & send push if needed
+        run: |
+          curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://sardhahab.com/api/cron/price-watch
+          cat response.json
