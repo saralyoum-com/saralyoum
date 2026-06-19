@@ -1,8 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLang } from "@/components/LanguageContext";
 import { track } from "@/lib/analytics";
+
+/* ─── animated counter hook ─── */
+function useCountUp(target: number, duration = 1200, decimals = 0) {
+  const [value, setValue] = useState(0);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (target === 0 || started.current) return;
+    started.current = true;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
+      setValue(parseFloat((eased * target).toFixed(decimals)));
+      if (p < 1) requestAnimationFrame(tick);
+      else setValue(target);
+    };
+    requestAnimationFrame(tick);
+  }, [target, duration, decimals]);
+
+  return value;
+}
 
 /* ─── helpers ─── */
 function todayKey() {
@@ -195,6 +218,16 @@ function PredictionGame({ currentPrice }: { currentPrice: number }) {
   );
 }
 
+/* small helper rendered inside SentimentPoll */
+function AnimatedTotal({ total, lang }: { total: number; lang: string }) {
+  const animated = useCountUp(total, 1000);
+  return (
+    <span className="text-text-secondary text-xs tabular-nums">
+      {Math.round(animated).toLocaleString()} {lang === "ar" ? "صوت" : "votes"}
+    </span>
+  );
+}
+
 /* ═══════════════════════════════════════════════════
    3. SENTIMENT POLL
    ═══════════════════════════════════════════════════ */
@@ -248,9 +281,7 @@ function SentimentPoll() {
         <span className="text-text-secondary text-xs font-medium">
           {lang === "ar" ? "رأي المتابعين هذا الأسبوع" : "Weekly Sentiment"}
         </span>
-        <span className="text-text-secondary text-xs">
-          {results.total.toLocaleString()} {lang === "ar" ? "صوت" : "votes"}
-        </span>
+        <AnimatedTotal total={results.total} lang={lang} />
       </div>
 
       <p className="text-text-primary text-sm font-bold mb-3">
@@ -308,12 +339,15 @@ function SentimentPoll() {
    ═══════════════════════════════════════════════════ */
 function WhatIfCalculator({ currentPrice }: { currentPrice: number }) {
   const { lang } = useLang();
-  // Gold was ~$2,300/oz a year ago (May 2025)
   const yearAgoPrice = 2330;
-  const gainPct = ((currentPrice - yearAgoPrice) / yearAgoPrice * 100).toFixed(1);
   const investAmount = 1000;
   const currentValue = Math.round(investAmount * (currentPrice / yearAgoPrice));
   const profit = currentValue - investAmount;
+  const gainPct = ((currentPrice - yearAgoPrice) / yearAgoPrice * 100).toFixed(1);
+
+  const animatedValue = useCountUp(currentValue, 1400);
+  const animatedProfit = useCountUp(profit, 1400);
+  const animatedPct = useCountUp(parseFloat(gainPct), 1400, 1);
 
   return (
     <div className="rounded-2xl border border-gold/20 bg-gradient-to-br from-gold/5 to-transparent p-4">
@@ -327,8 +361,12 @@ function WhatIfCalculator({ currentPrice }: { currentPrice: number }) {
             : `If you invested $${investAmount.toLocaleString()} in gold 1 year ago...`}
         </p>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-black text-rise">${currentValue.toLocaleString()}</span>
-          <span className="text-rise text-sm font-bold">+${profit} ({gainPct}%)</span>
+          <span className="text-2xl font-black text-rise tabular-nums">
+            ${Math.round(animatedValue).toLocaleString()}
+          </span>
+          <span className="text-rise text-sm font-bold tabular-nums">
+            +${Math.round(animatedProfit).toLocaleString()} ({animatedPct.toFixed(1)}%)
+          </span>
         </div>
         <p className="text-text-secondary text-xs">
           {lang === "ar"
