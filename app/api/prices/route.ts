@@ -42,14 +42,15 @@ export async function GET(request: Request) {
     }
 
     // الكل
-    const [gold, silver, bitcoin, ethereum] = await Promise.all([
+    const [gold, silver, bitcoin, ethereum, currencies] = await Promise.all([
       getGoldPrice(),
       getSilverPrice(),
       getCryptoPrice("bitcoin"),
       getCryptoPrice("ethereum"),
+      getExchangeRates(),
     ]);
 
-    return NextResponse.json({ gold, silver, bitcoin, ethereum });
+    return NextResponse.json({ gold, silver, bitcoin, ethereum, currencies });
   } catch {
     return NextResponse.json(
       { error: "فشل في جلب الأسعار" },
