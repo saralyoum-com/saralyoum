@@ -2,16 +2,78 @@ name: Gold Price Watch
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # كل 30 دقيقة
-  workflow_dispatch:          # تشغيل يدوي للاختبار
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check gold price & send push if needed
+      - name: Get today's date
+        id: date
+        run: echo "today=$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Restore notification state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: push-state-${{ steps.date.outputs.today }}-${{ github.run_id }}
+          restore-keys: push-state-${{ steps.date.outputs.today }}-
+
+      - name: Check price and send alerts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          ONESIGNAL_APP_ID: ${{ secrets.ONESIGNAL_APP_ID }}
+          ONESIGNAL_REST_KEY: ${{ secrets.ONESIGNAL_REST_KEY }}
         run: |
-          curl -s -o response.json -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://sardhahab.com/api/cron/price-watch
-          cat response.json
+          set -e
+
+          # Initialize state for the day
+          [ -f state.json ] || echo '{"notified":[]}' > state.json
+
+          # Get gold price from our secure endpoint
+          DATA=$(curl -sf --max-time 15 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://sardhahab.com/api/cron/price-watch") || { echo "API unavailable"; exit 0; }
+
+          CHANGE=$(echo "$DATA" | jq -r '.change // 0')
+          PRICE=$(echo "$DATA"  | jq -r '.price  // 0')
+          ABS=$(echo "$CHANGE"  | awk '{v=$1; if(v<0)v=-v; printf "%.1f",v}')
+
+          echo "Gold: $PRICE USD | Change: ${CHANGE}%"
+
+          # Check thresholds: 2%, 3%, 4%, 5%
+          for T in 2 3 4 5; do
+            CROSSED=$(echo "$ABS >= $T" | bc -l)
+            [ "$CROSSED" = "1" ] || continue
+
+            DIR_NUM=$(echo "$CHANGE >= 0" | bc -l)
+            DIR=$([ "$DIR_NUM" = "1" ] && echo "above" || echo "below")
+            KEY="${T}_${DIR}"
+
+            ALREADY=$(jq -r ".notified | contains([\"$KEY\"])" state.json)
+            if [ "$ALREADY" = "true" ]; then
+              echo "Already notified: $KEY — skipping"
+              continue
+            fi
+
+            EMOJI=$([ "$DIR" = "above" ] && echo "🔺" || echo "🔻")
+            VERB=$([ "$DIR"  = "above" ] && echo "ارتفع" || echo "انخفض")
+
+            PUSH=$(curl -s -X POST "https://onesignal.com/api/v1/notifications" \
+              -H "Authorization: Key $ONESIGNAL_REST_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"app_id\": \"$ONESIGNAL_APP_ID\",
+                \"included_segments\": [\"All\"],
+                \"headings\": {\"ar\": \"${EMOJI} الذهب ${VERB} ${ABS}% اليوم\"},
+                \"contents\": {\"ar\": \"سعر الذهب الآن \$${PRICE} للأوقية — اضغط للتفاصيل\"},
+                \"url\": \"https://sardhahab.com\"
+              }")
+
+            echo "Push sent ($KEY): $PUSH"
+
+            # Save to state to avoid resending
+            jq ".notified += [\"$KEY\"]" state.json > tmp.json && mv tmp.json state.json
+          done
