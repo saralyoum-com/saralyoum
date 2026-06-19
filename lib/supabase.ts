@@ -24,4 +24,10 @@ CREATE TABLE IF NOT EXISTS alerts (
 -- فهرس على الإيميل
 CREATE INDEX IF NOT EXISTS alerts_email_idx ON alerts(email);
 CREATE INDEX IF NOT EXISTS alerts_active_idx ON alerts(active);
+
+-- جدول تتبع تنبيهات Push المرسلة (يمنع التكرار)
+CREATE TABLE IF NOT EXISTS push_log (
+  key TEXT PRIMARY KEY,
+  sent_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
