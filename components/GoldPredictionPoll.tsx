@@ -226,174 +226,159 @@ export default function GoldPredictionPoll() {
         </div>
       </div>
 
-      <div className="max-w-xl mx-auto">
-        <div className="rounded-2xl border border-gold/20 bg-surface p-4 sm:p-5">
+      <div className="rounded-2xl border border-gold/20 bg-surface p-4 sm:p-5">
 
-          {/* Tabs */}
-          <div className="flex gap-1 bg-surface-2 p-1 rounded-xl mb-4">
-            {tabs.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  tab === t.id
-                    ? "bg-gold/15 text-gold border border-gold/30"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                {isAr ? t.ar : t.en}
-              </button>
-            ))}
+        {/* Tabs */}
+        <div className="flex gap-1 bg-surface-2 p-1 rounded-xl mb-4">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                tab === t.id
+                  ? "bg-gold/15 text-gold border border-gold/30"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              {isAr ? t.ar : t.en}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="text-center py-10 text-text-secondary text-sm animate-pulse">
+            {isAr ? "جاري تحميل التحليل..." : "Loading analysis..."}
           </div>
-
-          {loading ? (
-            <div className="text-center py-8 text-text-secondary text-sm animate-pulse">
-              {isAr ? "جاري تحميل التحليل..." : "Loading analysis..."}
-            </div>
-          ) : (
-            <>
+        ) : (
+          <>
+            {/* Top stat boxes */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
               {/* Direction */}
-              <div className="text-center mb-3">
-                <p className="text-text-secondary text-xs mb-1">
-                  {isAr ? "التحليل يقول:" : "Analysis says:"}
-                </p>
-                <p className="text-lg font-bold shimmer-pred">
-                  {isAr
-                    ? `${isUp ? "سيرتفع" : "سينخفض"} الذهب ${tabLabel}`
-                    : `Gold will ${isUp ? "rise" : "fall"} ${tabLabel}`}
-                </p>
-                <div className="text-4xl my-1 leading-none" style={{ color }}>
-                  {isUp ? "↑" : "↓"}
-                </div>
-                <p className="text-xs text-text-secondary">
-                  {isAr ? "السعر الحالي" : "Current"}{" "}
-                  <span className="text-text-primary font-medium">${data?.current.toLocaleString()}</span>
-                  {" → "}
-                  {isAr ? "المستهدف" : "Target"}{" "}
-                  <span className="font-bold" style={{ color }}>
-                    {pred && <AnimatedTarget value={pred.target} />}
-                  </span>
+              <div className="bg-surface-2 rounded-xl p-3 text-center">
+                <p className="text-[11px] text-text-secondary mb-1">{isAr ? "التوقع" : "Direction"}</p>
+                <div className="text-2xl sm:text-3xl leading-none mb-1" style={{ color }}>{isUp ? "↑" : "↓"}</div>
+                <p className="text-xs font-bold shimmer-pred">
+                  {isAr ? (isUp ? "ارتفاع" : "انخفاض") : (isUp ? "Rise" : "Fall")}
                 </p>
               </div>
 
-              {/* Sparkline */}
+              {/* Target price */}
+              <div className="bg-surface-2 rounded-xl p-3 text-center">
+                <p className="text-[11px] text-text-secondary mb-1">{isAr ? "السعر المستهدف" : "Target Price"}</p>
+                <p className="text-lg sm:text-xl font-bold shimmer-pred">
+                  {pred && <AnimatedTarget value={pred.target} />}
+                </p>
+                <p className="text-[10px] text-text-secondary mt-0.5">
+                  {isAr ? "من" : "from"} ${data?.current.toLocaleString()}
+                </p>
+              </div>
+
+              {/* Confidence */}
+              <div className="bg-surface-2 rounded-xl p-3 text-center">
+                <p className="text-[11px] text-text-secondary mb-1">{isAr ? "ثقة التحليل" : "Confidence"}</p>
+                <p className="text-lg sm:text-xl font-bold text-gold">{pred?.confidence}%</p>
+                <div className="h-1 bg-surface rounded-full overflow-hidden mt-1.5">
+                  <div className="h-full bg-gold rounded-full transition-all duration-1000" style={{ width: `${pred?.confidence ?? 0}%` }} />
+                </div>
+              </div>
+            </div>
+
+            {/* AI reason */}
+            {pred?.reason && (
+              <div className="bg-gold/5 border border-gold/15 rounded-xl px-3 py-2 mb-4 text-xs text-text-secondary leading-relaxed">
+                <span className="text-gold font-medium">{isAr ? "✦ التحليل: " : "✦ Analysis: "}</span>
+                {pred.reason}
+              </div>
+            )}
+
+            {/* Two-column: chart | signals+vote */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+              {/* Chart */}
               {pred && (
-                <div className="bg-surface-2 rounded-xl p-2 mb-3">
-                  <p className="text-[10px] text-text-secondary mb-1 px-1">{periodLabel}</p>
+                <div className="bg-surface-2 rounded-xl p-3">
+                  <p className="text-[11px] text-text-secondary mb-1">{periodLabel}</p>
                   <Sparkline prices={pred.prices} color={color} />
-                  <div className="flex justify-between text-[10px] text-text-secondary px-1 mt-0.5">
+                  <div className="flex justify-between text-[10px] text-text-secondary mt-1">
                     <span>${Math.min(...pred.prices).toLocaleString()}</span>
                     <span>${Math.max(...pred.prices).toLocaleString()}</span>
                   </div>
                 </div>
               )}
 
-              {/* Confidence bar */}
-              <div className="mb-3">
-                <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gold transition-all duration-1000"
-                    style={{ width: `${pred?.confidence ?? 0}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-[11px] mt-1">
-                  <span className="text-text-secondary">{isAr ? "ثقة التحليل" : "Confidence"}</span>
-                  <span className="text-gold font-medium">{pred?.confidence}%</span>
+              {/* Signals + Vote */}
+              <div className="flex flex-col gap-3">
+                {signals.length > 0 && (
+                  <div className="bg-surface-2 rounded-xl p-3 flex-1">
+                    <p className="text-[11px] text-text-secondary mb-2">{isAr ? "المؤشرات التقنية" : "Technical Indicators"}</p>
+                    <div className="space-y-1.5">
+                      {signals.map((s, i) => (
+                        <div key={i} className="flex justify-between items-center text-[11px]">
+                          <span className="text-text-secondary">{s.name}</span>
+                          <span className={`px-2 py-0.5 rounded-md font-medium ${
+                            s.cls === "rise" ? "bg-rise/10 text-rise"
+                            : s.cls === "fall" ? "bg-fall/10 text-fall"
+                            : "bg-surface text-text-secondary"
+                          }`}>{s.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-surface-2 rounded-xl p-3">
+                  {!voted ? (
+                    <>
+                      <p className="text-[11px] text-text-secondary text-center mb-2">
+                        {isAr ? "هل تتفق مع التحليل؟" : "Do you agree?"}
+                      </p>
+                      <div className="flex gap-2">
+                        <button onClick={() => castVote("up")} className="flex-1 bg-rise/10 hover:bg-rise/20 border border-rise/30 text-rise font-bold py-2 rounded-xl transition-colors text-sm">
+                          {isAr ? "↑ أتفق" : "↑ Agree"}
+                        </button>
+                        <button onClick={() => castVote("down")} className="flex-1 bg-fall/10 hover:bg-fall/20 border border-fall/30 text-fall font-bold py-2 rounded-xl transition-colors text-sm">
+                          {isAr ? "↓ لا أتفق" : "↓ Disagree"}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[11px] text-text-secondary text-center mb-2">{isAr ? "رأي المجتمع" : "Community vote"}</p>
+                      <div className="space-y-1.5">
+                        <div>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-rise font-medium">{isAr ? "↑ أتفق" : "↑ Agree"}</span>
+                            <span className="text-rise font-bold">{res.up}%</span>
+                          </div>
+                          <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                            <div className="h-full bg-rise rounded-full transition-all duration-500" style={{ width: `${res.up}%` }} />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-fall font-medium">{isAr ? "↓ لا أتفق" : "↓ Disagree"}</span>
+                            <span className="text-fall font-bold">{res.down}%</span>
+                          </div>
+                          <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                            <div className="h-full bg-fall rounded-full transition-all duration-500" style={{ width: `${res.down}%` }} />
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-text-secondary pt-0.5">
+                          <span>{res.total.toLocaleString()} {isAr ? "صوت" : "votes"}</span>
+                          <span>{isAr ? "دقة: 65%" : "Accuracy: 65%"}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
+            </div>
 
-              {/* AI reason */}
-              {pred?.reason && (
-                <div className="bg-gold/5 border border-gold/15 rounded-xl px-3 py-2 mb-3 text-xs text-text-secondary leading-relaxed">
-                  <span className="text-gold font-medium">{isAr ? "✦ التحليل: " : "✦ Analysis: "}</span>
-                  {pred.reason}
-                </div>
-              )}
-
-              {/* Technical signals */}
-              {signals.length > 0 && (
-                <div className="bg-surface-2 rounded-xl p-3 mb-3 space-y-1.5">
-                  <p className="text-[11px] text-text-secondary mb-2">
-                    {isAr ? "المؤشرات التقنية" : "Technical Indicators"}
-                  </p>
-                  {signals.map((s, i) => (
-                    <div key={i} className="flex justify-between items-center text-[11px]">
-                      <span className="text-text-secondary">{s.name}</span>
-                      <span className={`px-2 py-0.5 rounded-md font-medium ${
-                        s.cls === "rise" ? "bg-rise/10 text-rise"
-                        : s.cls === "fall" ? "bg-fall/10 text-fall"
-                        : "bg-surface text-text-secondary"
-                      }`}>
-                        {s.val}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="border-t border-border my-3" />
-
-              {/* Vote section */}
-              {!voted ? (
-                <>
-                  <p className="text-xs text-text-secondary text-center mb-2">
-                    {isAr ? "هل تتفق مع التحليل؟" : "Do you agree with the analysis?"}
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => castVote("up")}
-                      className="flex-1 bg-rise/10 hover:bg-rise/20 border border-rise/30 text-rise font-bold py-2.5 rounded-xl transition-colors text-sm"
-                    >
-                      {isAr ? "↑ أتفق" : "↑ Agree"}
-                    </button>
-                    <button
-                      onClick={() => castVote("down")}
-                      className="flex-1 bg-fall/10 hover:bg-fall/20 border border-fall/30 text-fall font-bold py-2.5 rounded-xl transition-colors text-sm"
-                    >
-                      {isAr ? "↓ لا أتفق" : "↓ Disagree"}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="text-xs text-text-secondary text-center mb-2">
-                    {isAr ? "رأي المجتمع" : "Community vote"}
-                  </p>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-rise font-medium">{isAr ? "↑ أتفق" : "↑ Agree"}</span>
-                        <span className="text-rise font-bold">{res.up}%</span>
-                      </div>
-                      <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
-                        <div className="h-full bg-rise rounded-full transition-all duration-500" style={{ width: `${res.up}%` }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-fall font-medium">{isAr ? "↓ لا أتفق" : "↓ Disagree"}</span>
-                        <span className="text-fall font-bold">{res.down}%</span>
-                      </div>
-                      <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
-                        <div className="h-full bg-fall rounded-full transition-all duration-500" style={{ width: `${res.down}%` }} />
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-text-secondary pt-1">
-                      <span>{res.total.toLocaleString()} {isAr ? "صوت" : "votes"}</span>
-                      <span>{isAr ? "دقة توقعاتنا: 65%" : "Accuracy: 65%"}</span>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <p className="text-[10px] text-text-secondary text-center mt-3">
-                {isAr
-                  ? "للأغراض التحليلية فقط · ليست توصية استثمارية"
-                  : "For analytical purposes only · Not investment advice"}
-              </p>
-            </>
-          )}
-        </div>
+            <p className="text-[10px] text-text-secondary text-center mt-3">
+              {isAr ? "للأغراض التحليلية فقط · ليست توصية استثمارية" : "For analytical purposes only · Not investment advice"}
+            </p>
+          </>
+        )}
       </div>
     </section>
   );
