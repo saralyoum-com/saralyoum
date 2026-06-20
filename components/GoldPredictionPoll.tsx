@@ -60,11 +60,13 @@ interface Prediction {
   direction: "up" | "down";
   confidence: number;
   target: number;
+  reason?: string;
   prices: number[];
 }
 
 interface PredData {
   current: number;
+  aiPowered?: boolean;
   indicators: {
     rsi: number;
     mom3d: number;
@@ -208,9 +210,16 @@ export default function GoldPredictionPoll() {
           ✦
         </div>
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
-            {isAr ? "التحليل التقني للذهب" : "Gold Technical Analysis"}
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
+              {isAr ? "التحليل التقني للذهب" : "Gold Technical Analysis"}
+            </h2>
+            {data?.aiPowered && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/10 border border-gold/30 text-gold font-medium">
+                {isAr ? "✦ ذكاء اصطناعي" : "✦ AI-powered"}
+              </span>
+            )}
+          </div>
           <p className="text-text-secondary text-xs sm:text-sm">
             {isAr ? "توقعات مبنية على بيانات السوق الحقيقية" : "Predictions built on real market data"}
           </p>
@@ -292,6 +301,14 @@ export default function GoldPredictionPoll() {
                   <span className="text-gold font-medium">{pred?.confidence}%</span>
                 </div>
               </div>
+
+              {/* AI reason */}
+              {pred?.reason && (
+                <div className="bg-gold/5 border border-gold/15 rounded-xl px-3 py-2 mb-3 text-xs text-text-secondary leading-relaxed">
+                  <span className="text-gold font-medium">{isAr ? "✦ التحليل: " : "✦ Analysis: "}</span>
+                  {pred.reason}
+                </div>
+              )}
 
               {/* Technical signals */}
               {signals.length > 0 && (
