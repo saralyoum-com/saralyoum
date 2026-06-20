@@ -192,10 +192,6 @@ export default function GoldPredictionPoll() {
     },
   ] : [];
 
-  const tabLabel = isAr
-    ? tab === "daily" ? "اليوم" : tab === "weekly" ? "هذا الأسبوع" : "هذا الشهر"
-    : tab === "daily" ? "today" : tab === "weekly" ? "this week" : "this month";
-
   const periodLabel = isAr
     ? tab === "daily" ? "آخر 7 أيام" : tab === "weekly" ? "آخر 4 أسابيع" : "آخر 6 أشهر"
     : tab === "daily" ? "Last 7 days" : tab === "weekly" ? "Last 4 weeks" : "Last 6 months";
