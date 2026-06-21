@@ -67,6 +67,24 @@ body {
   animation: slideUp 0.4s ease-out;
 }
 
+/* KAST Banner Animations */
+@keyframes kastScan {
+  0% { left: -80%; }
+  100% { left: 140%; }
+}
+@keyframes kastTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes kastGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.35); }
+  55% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
+}
+@keyframes kastBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
 /* RTL tweaks */
 [dir="rtl"] input,
 [dir="rtl"] select,

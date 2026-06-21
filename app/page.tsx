@@ -4,6 +4,7 @@ import PriceCardsClient from "@/components/PriceCardsClient";
 import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
 import EngagementSection from "@/components/EngagementSection";
 import GoldPredictionPoll from "@/components/GoldPredictionPoll";
+import KastBanner from "@/components/KastBanner";
 import PortfolioTracker from "@/components/PortfolioTracker";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
@@ -158,6 +159,9 @@ export default async function HomePage() {
         goldPriceUSD={goldPriceUSD}
         changePercent={goldChangePct}
       />
+
+      {/* بانر KAST — بنك رقمي */}
+      <KastBanner />
 
       {/* قسم الرسوم البيانية */}
       <HomePriceChartsSection
