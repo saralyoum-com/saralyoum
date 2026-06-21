@@ -4,6 +4,7 @@ import Link from "next/link";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { track } from "@/lib/analytics";
+import KastBanner from "@/components/KastBanner";
 
 interface CurrencyRow {
   code: string;
@@ -116,6 +117,8 @@ export default function CryptoPricePage({
             ))}
           </div>
         </div>
+
+        <KastBanner variant="crypto" />
 
         <AdSlot size="responsive" slot="9876543210" />
 

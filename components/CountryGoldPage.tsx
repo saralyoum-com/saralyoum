@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useLang } from "@/components/LanguageContext";
 import { useSetCurrency } from "@/components/LocalCurrency";
 import { track } from "@/lib/analytics";
+import KastBanner from "@/components/KastBanner";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 
@@ -173,6 +174,11 @@ export default function CountryGoldPage({
         >
           📊 {lang === "ar" ? "جدول الأسعار الكامل" : "Full Prices Table"}
         </Link>
+      </div>
+
+      {/* KAST Banner */}
+      <div className="mt-6">
+        <KastBanner variant="compact" />
       </div>
 
       {/* Related Articles */}
