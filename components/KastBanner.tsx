@@ -49,7 +49,10 @@ export default function KastBanner() {
         target="_blank"
         rel="noopener noreferrer sponsored"
         className="relative block rounded-2xl overflow-hidden"
-        style={{ background: "#07070D", border: "1px solid rgba(255,255,255,0.07)" }}
+        style={{
+          background: "#07070D",
+          animation: "kastBorderPulse 3s ease-in-out infinite",
+        }}
       >
         {/* Scan line */}
         <div
