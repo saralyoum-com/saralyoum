@@ -6,6 +6,7 @@ import { useLocation } from "@/components/LocalCurrency";
 import { useLang } from "@/components/LanguageContext";
 import { track } from "@/lib/analytics";
 import AdSlot from "@/components/AdSlot";
+import KastBanner from "@/components/KastBanner";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const NISAB_GOLD_GRAMS = 85;
@@ -453,7 +454,7 @@ export default function ZakatCryptoPage() {
       </div>
 
       {/* CTAs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <Link href="/حاسبة-الذهب" className="flex items-center justify-center gap-2 bg-gold text-background font-bold py-3.5 rounded-xl hover:bg-gold-light transition-colors">
           🥇 {ar ? "زكاة الذهب والمال" : "Gold & Cash Zakat"}
         </Link>
@@ -461,6 +462,8 @@ export default function ZakatCryptoPage() {
           📊 {ar ? "أسعار الكريبتو الآن" : "Live Crypto Prices"}
         </Link>
       </div>
+
+      <KastBanner variant="crypto" />
     </div>
   );
 }

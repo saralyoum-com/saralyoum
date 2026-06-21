@@ -6,6 +6,7 @@ import PriceCard from "@/components/PriceCard";
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
+import KastBanner from "@/components/KastBanner";
 import { useLang } from "@/components/LanguageContext";
 import { getMockTechnicalData } from "@/lib/technical";
 import { track } from "@/lib/analytics";
@@ -414,6 +415,8 @@ export default function PricesPage() {
           </div>
         )}
       </div>
+
+      <KastBanner variant="compact" />
 
     </div>
   );

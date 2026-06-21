@@ -6,6 +6,7 @@ import { useLocation } from "@/components/LocalCurrency";
 import { useLang } from "@/components/LanguageContext";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
+import KastBanner from "@/components/KastBanner";
 import { motion } from "framer-motion";
 import { track } from "@/lib/analytics";
 
@@ -538,6 +539,8 @@ export default function GoldCalculatorPage() {
         </div>
         <span className="text-gold font-black text-xl shrink-0">←</span>
       </Link>
+
+      <KastBanner variant="compact" />
     </div>
   );
 }
