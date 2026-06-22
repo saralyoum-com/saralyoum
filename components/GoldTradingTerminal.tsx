@@ -66,7 +66,9 @@ export default function GoldTradingTerminal() {
   const [longPct, setLongPct]     = useState(72);
   const [shortPct, setShortPct]   = useState(28);
   const [voters, setVoters]       = useState(1834);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [livePrice, setLivePrice] = useState<{price:number;change:number;changePercent:number}|null>(null);
+  const timer      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const priceTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Read community votes
   useEffect(() => {
@@ -89,6 +91,22 @@ export default function GoldTradingTerminal() {
     return () => window.removeEventListener("storage", handle);
   }, []);
 
+  // Live price ticker — every 5 s
+  useEffect(() => {
+    const fetchLive = async () => {
+      try {
+        const r = await fetch("/api/live-price");
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.error) setLivePrice(d);
+      } catch { /* noop */ }
+    };
+    fetchLive();
+    if (priceTimer.current) clearInterval(priceTimer.current);
+    priceTimer.current = setInterval(fetchLive, 5000);
+    return () => { if (priceTimer.current) clearInterval(priceTimer.current); };
+  }, []);
+
   // Fetch chart data when timeframe changes
   useEffect(() => {
     const tfCode = TF_CODES[tfIdx];
@@ -103,13 +121,16 @@ export default function GoldTradingTerminal() {
     setLoading(true);
     load();
     if (timer.current) clearInterval(timer.current);
-    timer.current = setInterval(load, 60000);
+    timer.current = setInterval(load, 30000);
     return () => { if (timer.current) clearInterval(timer.current); };
   }, [tfIdx]);
 
-  const tfCode = TF_CODES[tfIdx];
-  const isUp   = (data?.changePercent ?? 0) >= 0;
-  const sigUp  = data?.signal.direction === "up";
+  const tfCode        = TF_CODES[tfIdx];
+  const displayPrice  = livePrice?.price      ?? data?.current      ?? 0;
+  const displayChange = livePrice?.change     ?? data?.change       ?? 0;
+  const displayPct    = livePrice?.changePercent ?? data?.changePercent ?? 0;
+  const isUp          = displayPct >= 0;
+  const sigUp         = data?.signal.direction === "up";
 
   // ── SVG chart renderer ─────────────────────────────────────────────────
   function Chart({ d }: { d: ChartData }) {
@@ -295,17 +316,25 @@ export default function GoldTradingTerminal() {
 
   return (
     <div dir={isAr?"rtl":"ltr"} className="rounded-2xl border border-gold/20 bg-surface overflow-hidden">
-      <style>{`@keyframes gt-spin{to{transform:rotate(360deg);}}.gt-spin{animation:gt-spin 1s linear infinite;transform-origin:center;}`}</style>
+      <style>{`@keyframes gt-spin{to{transform:rotate(360deg);}}.gt-spin{animation:gt-spin 1s linear infinite;transform-origin:center;}@keyframes gt-blink{0%,100%{opacity:1}50%{opacity:0.25}}.gt-blink{animation:gt-blink 1.4s ease-in-out infinite;}`}</style>
 
       {/* ── Price header ── */}
       <div className="px-4 sm:px-5 pt-4 pb-3 flex flex-col sm:flex-row sm:items-center gap-2 justify-between border-b border-border">
         <div className="flex items-center gap-3">
           <div>
-            {data
-              ? <p className="text-xl font-black text-text-primary">${data.current.toLocaleString()}</p>
-              : <div className="h-7 w-28 bg-surface-2 rounded animate-pulse"/>}
+            <div className="flex items-center gap-2">
+              {(data || livePrice)
+                ? <p className="text-xl font-black text-text-primary">${displayPrice.toLocaleString()}</p>
+                : <div className="h-7 w-28 bg-surface-2 rounded animate-pulse"/>}
+              {(data || livePrice) && (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-rise">
+                  <span className="gt-blink inline-block w-1.5 h-1.5 rounded-full bg-rise"/>
+                  LIVE
+                </span>
+              )}
+            </div>
             <p className={`text-sm font-semibold ${isUp?"text-rise":"text-fall"}`}>
-              {data ? `${isUp?"+":""}${data.change} (${isUp?"+":""}${data.changePercent}%)` : "—"}
+              {(data || livePrice) ? `${isUp?"+":""}${displayChange.toFixed(2)} (${isUp?"+":""}${displayPct.toFixed(2)}%)` : "—"}
               {" "}<span className="text-text-secondary text-xs font-normal">XAU/USD</span>
             </p>
           </div>
@@ -357,7 +386,7 @@ export default function GoldTradingTerminal() {
             </svg>
           </div>
         )}
-        {data ? <Chart d={data}/> : (
+        {data ? <Chart d={displayPrice ? {...data, current: displayPrice} : data}/> : (
           <div style={{height:TOTAL_H}} className="bg-surface-2/20 animate-pulse"/>
         )}
       </div>
