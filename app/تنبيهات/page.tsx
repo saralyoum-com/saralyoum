@@ -6,6 +6,7 @@ import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
+import { PushSubscribeButton } from "@/components/PushNotifications";
 
 type Step = "form" | "success";
 
@@ -142,6 +143,22 @@ export default function AlertsPage() {
           {lang === "ar" ? "انضم الآن" : "Join Now"} ←
         </div>
       </a>
+
+      {/* Browser push notifications */}
+      <div className="flex items-center justify-between gap-4 bg-surface border border-border rounded-2xl p-4 sm:p-5 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 w-11 h-11 bg-gold/10 rounded-xl flex items-center justify-center text-xl">🔔</div>
+          <div>
+            <p className="font-bold text-text-primary text-sm">
+              {lang === "ar" ? "تنبيهات المتصفح الفورية" : "Browser Push Notifications"}
+            </p>
+            <p className="text-text-secondary text-xs mt-0.5">
+              {lang === "ar" ? "تنبيهات تظهر مباشرة على شاشتك بدون بريد إلكتروني" : "Alerts appear directly on your screen — no email needed"}
+            </p>
+          </div>
+        </div>
+        <PushSubscribeButton />
+      </div>
 
       {/* Ad at top */}
       <AdSlot size="leaderboard" slot="5678901234" className="mb-6" />

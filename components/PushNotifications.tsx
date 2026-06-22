@@ -39,7 +39,7 @@ export function OneSignalInit() {
                   acceptButton: "اشترك",
                   cancelButton: "لاحقاً",
                 },
-                delay: { pageViews: 1, timeDelay: 15 },
+                delay: { pageViews: 1, timeDelay: 5 },
               },
             ],
           },
