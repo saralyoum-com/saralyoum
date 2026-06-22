@@ -10,6 +10,7 @@ export const translations = {
       articles: "المقالات",
       news: "الأخبار",
       alerts: "التنبيهات",
+      analysis: "التحليل",
       subscribe: "اشترك مجاناً",
     },
     home: {
@@ -54,6 +55,7 @@ export const translations = {
       articles: "Articles",
       news: "News",
       alerts: "Alerts",
+      analysis: "Analysis",
       subscribe: "Subscribe Free",
     },
     home: {

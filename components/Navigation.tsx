@@ -17,6 +17,7 @@ const navHrefs = [
   { href: "/مقالات", key: "articles" },
   { href: "/اخبار", key: "news" },
   { href: "/تنبيهات", key: "alerts" },
+  { href: "/تحليل-تقني-الذهب", key: "analysis" },
 ] as const;
 
 export default function Navigation() {
