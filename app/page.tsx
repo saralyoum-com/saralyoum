@@ -3,7 +3,7 @@ import Disclaimer from "@/components/Disclaimer";
 import PriceCardsClient from "@/components/PriceCardsClient";
 import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
 import EngagementSection from "@/components/EngagementSection";
-import GoldPredictionPoll from "@/components/GoldPredictionPoll";
+import GoldSignalCard from "@/components/GoldSignalCard";
 import KastBanner from "@/components/KastBanner";
 import PortfolioTracker from "@/components/PortfolioTracker";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
@@ -145,8 +145,8 @@ export default async function HomePage() {
         <HomeAdAndCTA />
       </section>
 
-      {/* التحليل التقني + تصويت المجتمع */}
-      <GoldPredictionPoll />
+      {/* كرت الإشارة + تصويت المجتمع */}
+      <GoldSignalCard />
 
       {/* قسم التفاعل — سلسلة الأسعار + ماذا لو استثمرت */}
       <EngagementSection
