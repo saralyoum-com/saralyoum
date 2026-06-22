@@ -11,8 +11,16 @@ const IND_TOP = VOL_BOT + 8,   H_IND = 114, IND_BOT = IND_TOP + H_IND; // 408
 const TOTAL_H = IND_BOT + 22;  // 430
 const CW = W - ML - MR;        // 880
 
-const TIMEFRAMES = ["1م", "5م", "15م", "30م", "1س", "4س", "1ي"];
-const TF_CODES   = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"];
+const TF_AR    = ["1م",  "5م",  "15م", "30م", "1س", "4س", "1ي"];
+const TF_EN    = ["1m",  "5m",  "15m", "30m", "1h", "4h", "1d"];
+const TF_CODES = ["1m",  "5m",  "15m", "30m", "1h", "4h", "1d"];
+
+const IND = [
+  { key: "RSI",  ar: "RSI",  en: "RSI"  },
+  { key: "MACD", ar: "MACD", en: "MACD" },
+  { key: "VOL",  ar: "حجم",  en: "Vol"  },
+] as const;
+type IndKey = "RSI" | "MACD" | "VOL";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
@@ -52,7 +60,7 @@ export default function GoldTradingTerminal() {
   const { lang } = useLang();
   const isAr = lang === "ar";
   const [tfIdx, setTfIdx]         = useState(6); // default 1ي
-  const [indicator, setIndicator] = useState<"RSI"|"MACD"|"حجم">("RSI");
+  const [indicator, setIndicator] = useState<IndKey>("RSI");
   const [data, setData]           = useState<ChartData | null>(null);
   const [loading, setLoading]     = useState(true);
   const [longPct, setLongPct]     = useState(72);
@@ -252,7 +260,7 @@ export default function GoldTradingTerminal() {
         )}
 
         {/* Volume big panel */}
-        {indicator==="حجم" && candles.map((c,i)=>{
+        {indicator==="VOL" && candles.map((c,i)=>{
           const bh = (c.v/vMax)*H_IND;
           return <rect key={i} x={bX(i)} y={IND_BOT-bh} width={bodyW} height={bh}
             fill={c.c>=c.o?"rgba(34,197,94,0.45)":"rgba(239,68,68,0.45)"} rx={0.5}/>;
@@ -323,18 +331,18 @@ export default function GoldTradingTerminal() {
       <div className="flex items-center justify-between px-4 sm:px-5 py-2 border-b border-border flex-wrap gap-1">
         <div className="flex items-center gap-0.5">
           <span className="text-[10px] text-text-secondary me-1.5">{isAr?"الفترة:":"TF:"}</span>
-          {TIMEFRAMES.map((tf,i)=>(
-            <button key={tf} onClick={()=>setTfIdx(i)}
+          {TF_CODES.map((_,i)=>(
+            <button key={i} onClick={()=>setTfIdx(i)}
               className={`px-2 py-1 text-[11px] rounded-lg font-medium transition-colors ${tfIdx===i?"bg-gold/15 text-gold":"text-text-secondary hover:text-text-primary"}`}>
-              {tf}
+              {isAr ? TF_AR[i] : TF_EN[i]}
             </button>
           ))}
         </div>
         <div className="flex gap-1">
-          {(["RSI","MACD","حجم"] as const).map(ind=>(
-            <button key={ind} onClick={()=>setIndicator(ind)}
-              className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-colors border ${indicator===ind?"bg-surface-2 text-text-primary border-border":"text-text-secondary border-transparent hover:text-text-primary"}`}>
-              {ind}
+          {IND.map(ind=>(
+            <button key={ind.key} onClick={()=>setIndicator(ind.key)}
+              className={`px-2.5 py-1 text-[11px] rounded-lg font-medium transition-colors border ${indicator===ind.key?"bg-surface-2 text-text-primary border-border":"text-text-secondary border-transparent hover:text-text-primary"}`}>
+              {isAr ? ind.ar : ind.en}
             </button>
           ))}
         </div>
