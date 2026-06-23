@@ -24,6 +24,13 @@ const assetIcons: Record<string, string> = {
   ETH: "⟠",
 };
 
+const assetNamesEn: Record<string, string> = {
+  XAU: "Gold",
+  XAG: "Silver",
+  BTC: "Bitcoin",
+  ETH: "Ethereum",
+};
+
 // أسعار العيارات بالجرام من سعر الأونصة
 function getKaratPrices(pricePerOz: number, lang: string) {
   const pricePerGram = pricePerOz / 31.1035;
@@ -82,7 +89,7 @@ export default function PriceCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      dir="rtl"
+      dir={lang === "ar" ? "rtl" : "ltr"}
       className="bg-surface border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/40 transition-all duration-300 group"
     >
       {/* رأس البطاقة */}
@@ -90,7 +97,7 @@ export default function PriceCard({
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-xl sm:text-2xl">{assetIcons[data.symbol] || "💰"}</span>
           <div>
-            <h3 className="text-text-primary font-bold text-sm sm:text-base">{data.nameAr}</h3>
+            <h3 className="text-text-primary font-bold text-sm sm:text-base">{lang === "ar" ? data.nameAr : (assetNamesEn[data.symbol] ?? data.nameAr)}</h3>
             <span className="text-text-secondary text-xs">{data.symbol}</span>
           </div>
         </div>
