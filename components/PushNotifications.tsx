@@ -62,15 +62,29 @@ export function PushSubscribeButton() {
 
   const handleSubscribe = async () => {
     setLoading(true);
+    // Safety timeout — unstick loading after 8s if OneSignal never responds
+    const timeout = setTimeout(() => setLoading(false), 8000);
     try {
       if (window.OneSignalDeferred) {
-        window.OneSignalDeferred.push(async (OneSignal: { User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } } }) => {
-          await OneSignal.User.PushSubscription.optIn();
+        window.OneSignalDeferred.push(async (OneSignal: {
+          Notifications: { requestPermission: () => Promise<void>; permission: boolean };
+          User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } };
+        }) => {
+          // v16: requestPermission triggers the native browser dialog
+          await OneSignal.Notifications.requestPermission();
+          if (OneSignal.Notifications.permission) {
+            await OneSignal.User.PushSubscription.optIn();
+          }
           setSubscribed(OneSignal.User.PushSubscription.optedIn);
+          clearTimeout(timeout);
           setLoading(false);
         });
+      } else {
+        clearTimeout(timeout);
+        setLoading(false);
       }
     } catch {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
