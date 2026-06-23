@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
+const ONESIGNAL_APP_ID = (process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "").trim();
 
 export function OneSignalInit() {
   useEffect(() => {
