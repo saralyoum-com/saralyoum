@@ -7,6 +7,8 @@ declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     OneSignalDeferred?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    OneSignal?: any;
   }
 }
 
@@ -62,23 +64,28 @@ export function PushSubscribeButton() {
 
   const handleSubscribe = async () => {
     setLoading(true);
-    // Safety timeout — unstick loading after 8s if OneSignal never responds
     const timeout = setTimeout(() => setLoading(false), 8000);
+
+    const doSubscribe = async (OS: {
+      Notifications: { requestPermission: () => Promise<void>; permission: boolean };
+      User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } };
+    }) => {
+      await OS.Notifications.requestPermission();
+      if (OS.Notifications.permission) {
+        await OS.User.PushSubscription.optIn();
+      }
+      setSubscribed(OS.User.PushSubscription.optedIn);
+      clearTimeout(timeout);
+      setLoading(false);
+    };
+
     try {
-      if (window.OneSignalDeferred) {
-        window.OneSignalDeferred.push(async (OneSignal: {
-          Notifications: { requestPermission: () => Promise<void>; permission: boolean };
-          User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } };
-        }) => {
-          // v16: requestPermission triggers the native browser dialog
-          await OneSignal.Notifications.requestPermission();
-          if (OneSignal.Notifications.permission) {
-            await OneSignal.User.PushSubscription.optIn();
-          }
-          setSubscribed(OneSignal.User.PushSubscription.optedIn);
-          clearTimeout(timeout);
-          setLoading(false);
-        });
+      // If SDK already initialized, window.OneSignal is live — use it directly
+      if (window.OneSignal) {
+        await doSubscribe(window.OneSignal);
+      } else if (window.OneSignalDeferred) {
+        // SDK not yet initialized — queue the callback
+        window.OneSignalDeferred.push(doSubscribe);
       } else {
         clearTimeout(timeout);
         setLoading(false);
