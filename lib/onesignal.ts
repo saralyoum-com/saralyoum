@@ -1,5 +1,6 @@
 const APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
 const REST_KEY = (process.env.ONESIGNAL_REST_API_KEY || "").trim();
+const ICON_URL = "https://sardhahab.com/logo.png";
 
 interface PushPayload {
   headingAr: string;
@@ -22,6 +23,9 @@ export async function sendPushToAll({ headingAr, contentAr, url = "https://sardh
       headings: { ar: headingAr, en: headingAr },
       contents: { ar: contentAr, en: contentAr },
       url,
+      chrome_web_icon: ICON_URL,
+      firefox_icon: ICON_URL,
+      chrome_web_badge: ICON_URL,
       web_push_topic: "daily-gold-price",
     }),
   });
