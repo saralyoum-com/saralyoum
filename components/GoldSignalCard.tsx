@@ -123,31 +123,34 @@ export default function GoldSignalCard() {
         <Link
           href="/تحليل-تقني-الذهب"
           onClick={() => track.quickLinkClick("signal-card-cta")}
-          className="group relative flex flex-col sm:flex-row sm:items-center gap-0 sm:h-[70px] overflow-hidden"
+          className="group relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 pt-4 pb-3 sm:py-0 sm:h-[70px] overflow-hidden"
           style={{ textDecoration: "none" }}
         >
           {/* Gold left accent */}
           <div className="absolute inset-y-0 start-0 w-[3px] rounded-s-2xl bg-gradient-to-b from-gold/20 via-gold to-gold/20" />
 
-          {/* Asset + price */}
-          <div className="flex items-center gap-2.5 px-5 sm:px-0 pt-4 sm:pt-0 sm:ps-6 sm:border-e border-border sm:h-full" style={{ minWidth: 0 }}>
-            <span className="text-2xl shrink-0">🥇</span>
-            <div>
-              <p className="text-[10px] text-text-secondary mb-0.5">
-                {isAr ? "الذهب — التوقع الأسبوعي" : "Gold — Weekly Signal"}
-              </p>
-              {sig.current > 0
-                ? <p className="gsc-price text-lg font-black leading-tight">${sig.current.toLocaleString()}</p>
-                : <div className="h-5 w-20 bg-surface-2 rounded animate-pulse" />}
+          {/* Price (start) + badge (end) share one row on mobile; separate cells on desktop */}
+          <div className="flex items-center justify-between gap-3 px-5 sm:contents">
+            {/* Asset + price */}
+            <div className="flex items-center gap-2.5 sm:ps-6 sm:border-e border-border sm:h-full" style={{ minWidth: 0 }}>
+              <span className="text-2xl shrink-0">🥇</span>
+              <div style={{ minWidth: 0 }}>
+                <p className="text-[10px] text-text-secondary mb-0.5">
+                  {isAr ? "الذهب — التوقع الأسبوعي" : "Gold — Weekly Signal"}
+                </p>
+                {sig.current > 0
+                  ? <p className="gsc-price text-lg font-black leading-tight">${sig.current.toLocaleString()}</p>
+                  : <div className="h-5 w-20 bg-surface-2 rounded animate-pulse" />}
+              </div>
             </div>
-          </div>
 
-          {/* Direction badge */}
-          <div className="flex items-center px-5 sm:px-5 sm:border-e border-border sm:h-full shrink-0">
-            <span className="gsc-badge" style={{ color: col, background: colBg, border: `1px solid ${colBdr}` }}>
-              <span className="text-sm">{arrow}</span>
-              {label}
-            </span>
+            {/* Direction badge */}
+            <div className="flex items-center sm:px-5 sm:border-e border-border sm:h-full shrink-0">
+              <span className="gsc-badge" style={{ color: col, background: colBg, border: `1px solid ${colBdr}` }}>
+                <span className="text-sm">{arrow}</span>
+                {label}
+              </span>
+            </div>
           </div>
 
           {/* Confidence bar */}

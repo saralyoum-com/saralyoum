@@ -122,11 +122,11 @@ export default function KastBanner({ variant = "default" }: { variant?: Variant 
           />
 
           {/* Copy */}
-          <div className="flex-1 text-center sm:text-start min-w-0">
-            <p className={`text-white font-bold leading-snug mb-0.5 ${isCompact ? "text-xs sm:text-sm" : "text-sm sm:text-base"}`}>
+          <div className="flex-1 w-full sm:w-auto text-center sm:text-start min-w-0">
+            <p className={`text-white font-bold leading-snug mb-0.5 break-words ${isCompact ? "text-xs sm:text-sm" : "text-sm sm:text-base"}`}>
               {copy.headline}
             </p>
-            <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p className="text-xs break-words sm:truncate" style={{ color: "rgba(255,255,255,0.35)" }}>
               {copy.sub}
             </p>
           </div>
@@ -155,7 +155,7 @@ export default function KastBanner({ variant = "default" }: { variant?: Variant 
 
           {/* CTA */}
           <span
-            className={`flex-shrink-0 rounded-xl font-extrabold transition-transform hover:scale-105 active:scale-95 whitespace-nowrap ${isCompact ? "px-4 py-2 text-xs" : "px-5 py-2.5 text-sm"}`}
+            className={`flex-shrink-0 w-full sm:w-auto text-center rounded-xl font-extrabold transition-transform hover:scale-105 active:scale-95 whitespace-nowrap ${isCompact ? "px-4 py-2 text-xs" : "px-5 py-2.5 text-sm"}`}
             style={{
               background: "linear-gradient(135deg,#A07020,#C9A84C)",
               color: "#07070D",
