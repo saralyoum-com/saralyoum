@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import CountryGoldPage from "@/components/CountryGoldPage";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getExchangeRates } from "@/lib/exchangerate";
+import { getGoldHistory7d } from "@/lib/goldHistory";
 import { COUNTRIES, getCountryByCode } from "@/lib/countries";
 
 export const revalidate = 300;
@@ -18,10 +19,11 @@ export default async function Page({
   const country = getCountryByCode(params.code);
   if (!country) notFound();
 
-  const [gold, silver, rates] = await Promise.all([
+  const [gold, silver, rates, history] = await Promise.all([
     getGoldPrice(),
     getSilverPrice(),
     getExchangeRates(),
+    getGoldHistory7d(),
   ]);
 
   const rate =
@@ -109,6 +111,8 @@ export default async function Page({
         rate={rate}
         changePercent={changePercent}
         canonicalSlug={country.slug}
+        code={country.code}
+        history={history}
       />
     </>
   );

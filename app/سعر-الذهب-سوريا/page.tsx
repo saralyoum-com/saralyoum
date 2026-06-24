@@ -1,12 +1,13 @@
 import CountryGoldPage from "@/components/CountryGoldPage";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getExchangeRates } from "@/lib/exchangerate";
+import { getGoldHistory7d } from "@/lib/goldHistory";
 
 export const revalidate = 300;
 
 export default async function Page() {
-  const [gold, silver, rates] = await Promise.all([
-    getGoldPrice(), getSilverPrice(), getExchangeRates(),
+  const [gold, silver, rates, history] = await Promise.all([
+    getGoldPrice(), getSilverPrice(), getExchangeRates(), getGoldHistory7d(),
   ]);
   // SYP rate (Syrian Pound, ~13,000 per USD)
   const sypRate = rates.find((r) => r.code === "SYP")?.rate ?? 13000;
@@ -15,7 +16,7 @@ export default async function Page() {
       flag="/flags/sy.svg" nameAr="سوريا" nameEn="Syria"
       city="دمشق" currency="SYP" currencyAr="ليرة سورية" currencyEn="Syrian Pound"
       goldPriceUSD={gold?.price ?? 4787} silverPriceUSD={silver?.price ?? 76.48}
-      rate={sypRate} changePercent={gold?.changePercent ?? 0}
+      rate={sypRate} changePercent={gold?.changePercent ?? 0} code="sy" history={history}
     />
   );
 }

@@ -8,6 +8,8 @@ import { useLang } from "@/components/LanguageContext";
 import { useSetCurrency } from "@/components/LocalCurrency";
 import { track } from "@/lib/analytics";
 import KastBanner from "@/components/KastBanner";
+import GoldPriceTables from "@/components/GoldPriceTables";
+import type { GoldDay } from "@/lib/goldHistory";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 
@@ -25,11 +27,13 @@ interface Props {
   rate: number;
   changePercent: number;
   canonicalSlug?: string;
+  code: string;
+  history: GoldDay[];
 }
 
 export default function CountryGoldPage({
   flag, nameAr, nameEn, city, currency, currencyAr, currencyEn, currencySymbol,
-  goldPriceUSD, silverPriceUSD, rate, changePercent,
+  goldPriceUSD, silverPriceUSD, rate, changePercent, code, history,
 }: Props) {
   const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
@@ -49,17 +53,8 @@ export default function CountryGoldPage({
 
   const OZ = 31.1035;
   const goldPerOz    = goldPriceUSD * rate;
-  const goldPerGram24 = (goldPriceUSD / OZ) * rate;
   const silverPerOz  = silverPriceUSD * rate;
   const silverPerGram = (silverPriceUSD / OZ) * rate;
-
-  const karats = [
-    { label: lang === "ar" ? "عيار 24" : "24K", factor: 1 },
-    { label: lang === "ar" ? "عيار 22" : "22K", factor: 22 / 24 },
-    { label: lang === "ar" ? "عيار 21" : "21K", factor: 21 / 24 },
-    { label: lang === "ar" ? "عيار 18" : "18K", factor: 18 / 24 },
-    { label: lang === "ar" ? "عيار 14" : "14K", factor: 14 / 24 },
-  ];
 
   // Smart decimal precision based on rate magnitude
   const decimals = rate > 1000 ? 0 : rate > 100 ? 1 : rate < 1 ? 4 : rate < 5 ? 3 : 2;
@@ -110,21 +105,20 @@ export default function CountryGoldPage({
           </div>
         </div>
 
-        {/* Karats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {karats.map(({ label, factor }) => (
-            <div key={label} className="bg-surface-2 border border-border rounded-2xl p-3 sm:p-4 text-center">
-              <p className="text-text-secondary text-xs mb-1">{label}</p>
-              <p className="text-gold font-black text-lg sm:text-xl">
-                {fmt(goldPerGram24 * factor)}
-              </p>
-              <p className="text-text-secondary text-xs">
-                {currency} / {lang === "ar" ? "جرام" : "gram"}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
+
+      {/* Comprehensive price tables: spot · buy/sell · مصنعية · سبائك · history */}
+      <GoldPriceTables
+        code={code}
+        goldPriceUSD={goldPriceUSD}
+        rate={rate}
+        currency={currency}
+        currencyAr={currencyAr}
+        currencyEn={currencyEn}
+        nameAr={nameAr}
+        nameEn={nameEn}
+        history={history}
+      />
 
       {/* Chart */}
       <PriceChart asset="gold" currentPrice={goldPriceUSD} changePercent={changePercent} />

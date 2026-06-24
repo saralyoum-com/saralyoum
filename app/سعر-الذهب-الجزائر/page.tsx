@@ -1,12 +1,13 @@
 import CountryGoldPage from "@/components/CountryGoldPage";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getExchangeRates } from "@/lib/exchangerate";
+import { getGoldHistory7d } from "@/lib/goldHistory";
 
 export const revalidate = 300;
 
 export default async function Page() {
-  const [gold, silver, rates] = await Promise.all([
-    getGoldPrice(), getSilverPrice(), getExchangeRates(),
+  const [gold, silver, rates, history] = await Promise.all([
+    getGoldPrice(), getSilverPrice(), getExchangeRates(), getGoldHistory7d(),
   ]);
   const dzdRate = rates.find((r) => r.code === "DZD")?.rate ?? 134.5;
   return (
@@ -14,7 +15,7 @@ export default async function Page() {
       flag="🇩🇿" nameAr="الجزائر" nameEn="Algeria"
       city="الجزائر" currency="DZD" currencyAr="دينار جزائري" currencyEn="Algerian Dinar"
       goldPriceUSD={gold?.price ?? 4787} silverPriceUSD={silver?.price ?? 76.48}
-      rate={dzdRate} changePercent={gold?.changePercent ?? 0}
+      rate={dzdRate} changePercent={gold?.changePercent ?? 0} code="dz" history={history}
     />
   );
 }
