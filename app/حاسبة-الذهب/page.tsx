@@ -31,6 +31,7 @@ export default function GoldCalculatorPage() {
   // Gold value calculator
   const [weight, setWeight] = useState("");
   const [karat, setKarat] = useState(21);
+  const [making, setMaking] = useState("");
 
   // Zakat calculator
   const [goldWeightZakat, setGoldWeightZakat] = useState("");
@@ -57,6 +58,16 @@ export default function GoldCalculatorPage() {
   const pricePerGramSelected = pricePerGram24k * selectedKarat.purity;
   const totalUSD = weight ? parseFloat(weight) * pricePerGramSelected : 0;
   const totalLocal = totalUSD * loc.rate;
+
+  // Making charge (مصنعية) → true out-the-door total. VAT applies to the
+  // making charge; investment-grade metal (999) is treated as exempt.
+  const vatByCurrency: Record<string, number> = { SAR: 0.15, AED: 0.05, OMR: 0.05, EGP: 0.14, BHD: 0.10, QAR: 0, KWD: 0 };
+  const vatRate = vatByCurrency[loc.currency] ?? 0.05;
+  const wNum = parseFloat(weight) || 0;
+  const makingNum = parseFloat(making) || 0;
+  const makingLocal = wNum * makingNum;
+  const vatLocal = makingLocal * vatRate;
+  const grandTotalLocal = totalLocal + makingLocal + vatLocal;
 
   // Zakat calculation
   const selectedKaratZakat = KARATS.find((k) => k.value === karatZakat)!;
@@ -161,6 +172,20 @@ export default function GoldCalculatorPage() {
                 ))}
               </div>
             </div>
+
+            <div>
+              <label className="block text-text-secondary text-sm mb-2">
+                {lang === "ar" ? "المصنعية لكل جرام (اختياري)" : "Making charge / gram (optional)"}
+              </label>
+              <input
+                type="number"
+                value={making}
+                onChange={(e) => setMaking(e.target.value)}
+                placeholder={lang === "ar" ? `بالـ${loc.currencySymbol} — اسأل المحل` : `In ${loc.currency} — ask the shop`}
+                dir="ltr"
+                className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold transition-colors"
+              />
+            </div>
           </div>
 
           {weight && parseFloat(weight) > 0 && (
@@ -173,6 +198,9 @@ export default function GoldCalculatorPage() {
                 <div className="text-text-secondary text-sm mb-1">
                   {weight}{lang === "ar" ? "جم" : "g"} × {lang === "ar" ? selectedKarat.labelAr : selectedKarat.labelEn} × ${pricePerGramSelected.toFixed(2)}/{lang === "ar" ? "جم" : "g"}
                 </div>
+                <div className="text-text-secondary text-xs mb-0.5">
+                  {lang === "ar" ? "قيمة الذهب" : "Gold value"}
+                </div>
                 <div className="text-3xl font-black text-gold">
                   ${totalUSD.toFixed(2)}
                 </div>
@@ -182,6 +210,30 @@ export default function GoldCalculatorPage() {
                   </div>
                 )}
               </div>
+
+              {makingNum > 0 && (
+                <div className="mt-4 pt-3 border-t border-gold/20 space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">{lang === "ar" ? "قيمة الذهب" : "Gold value"}</span>
+                    <span className="text-text-primary">{totalLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currencySymbol}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">{lang === "ar" ? `المصنعية (${wNum}×${makingNum})` : `Making (${wNum}×${makingNum})`}</span>
+                    <span className="text-text-primary">{makingLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currencySymbol}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-secondary">{lang === "ar" ? `ضريبة ${Math.round(vatRate * 100)}%` : `VAT ${Math.round(vatRate * 100)}%`}</span>
+                    <span className="text-text-primary">{vatLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currencySymbol}</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-gold/20">
+                    <span className="text-gold font-bold">{lang === "ar" ? "الإجمالي" : "Total"}</span>
+                    <span className="text-gold font-bold">{grandTotalLocal.toLocaleString("en-US", { maximumFractionDigits: 0 })} {loc.currencySymbol}</span>
+                  </div>
+                  <p className="text-[11px] text-text-secondary pt-1 leading-relaxed">
+                    {lang === "ar" ? "الضريبة على المصنعية · الذهب الاستثماري (سبائك 999) معفى · تقديري" : "VAT on making charge · investment bullion (999) exempt · estimate"}
+                  </p>
+                </div>
+              )}
             </motion.div>
           )}
         </motion.div>
