@@ -12,6 +12,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
   {
+    slug: "مصنعية-الذهب",
+    titleAr: "مصنعية الذهب — ما هي؟ ولماذا تختلف؟ وهل تُسترد عند البيع؟",
+    titleEn: "Gold Making Charge — What It Is, Why It Varies, and Is It Refundable?",
+    descAr: "دليل شامل لمصنعية الذهب: ما هي، لماذا تختلف من محل لآخر، متوسطها في الخليج ومصر، هل تُسترد عند البيع، وكيف توفّر فيها.",
+    descEn: "Complete guide to gold making charges: what they are, why they vary, average rates across the Gulf and Egypt, whether they're refundable, and how to save.",
+    category: "تعليم",
+    date: "2026-06-24",
+    readMins: 7,
+    icon: "🏷️",
+  },
+  {
     slug: "توقعات-سعر-الذهب-2026",
     titleAr: "توقعات سعر الذهب 2026 — هل يصل إلى 4000 دولار؟",
     titleEn: "Gold Price Forecast 2026 — Will It Reach $4,000?",
