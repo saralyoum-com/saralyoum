@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useLang } from "@/components/LanguageContext";
 import {
   OZ,
@@ -106,38 +105,6 @@ export default function GoldPriceTables({
                 : `"Buy" includes making charge · +${vatPct}% VAT · "Sell" is the shop buy-back · in ${currencyEn} · estimated`}
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* ── MASNAEYA ── */}
-      <section className="bg-surface border border-border rounded-2xl overflow-hidden">
-        <Header>{ar ? "متوسط المصنعية (تقديري)" : "Average making charge (est.)"}</Header>
-        <div className="flex items-center px-4 py-2.5 text-sm">
-          <span className="flex-[1.4] text-text-primary">{ar ? "مشغولات بسيطة" : "Simple pieces"}</span>
-          <span className="flex-1 text-end text-text-primary font-medium">
-            {market.masnaeyaSimple[0]} – {market.masnaeyaSimple[1]}{" "}
-            <span className="text-[11px] text-text-secondary">{ar ? `${currencyAr}/جرام` : `${currency}/g`}</span>
-          </span>
-        </div>
-        <div className="flex items-center px-4 py-2.5 text-sm bg-surface-2">
-          <span className="flex-[1.4] text-text-primary">{ar ? "تصاميم وماركات" : "Designer / branded"}</span>
-          <span className="flex-1 text-end text-text-primary font-medium">
-            {market.masnaeyaDesigner[0]} – {market.masnaeyaDesigner[1]}{" "}
-            <span className="text-[11px] text-text-secondary">{ar ? `${currencyAr}/جرام` : `${currency}/g`}</span>
-          </span>
-        </div>
-        <p className="text-[11px] text-text-secondary px-4 py-2 border-t border-border leading-relaxed">
-          {ar
-            ? `تختلف حسب التصميم والمحل · الضريبة ${vatPct}% على المصنعية · ${market.vat24Exempt ? "السبائك (999) معفاة" : ""}`
-            : `Varies by design & shop · ${vatPct}% VAT on making · ${market.vat24Exempt ? "bullion (999) exempt" : ""}`}
-        </p>
-        <div className="px-4 pb-4 pt-1">
-          <Link
-            href="/حاسبة-الذهب"
-            className="flex items-center justify-center gap-2 bg-gold/10 text-gold border border-gold/30 hover:bg-gold/15 font-bold text-sm py-2.5 rounded-xl transition-colors"
-          >
-            🧮 {ar ? "احسب سعرك مع المصنعية ←" : "Calculate your total with making charge →"}
-          </Link>
         </div>
       </section>
 

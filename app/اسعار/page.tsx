@@ -8,6 +8,8 @@ import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import KastBanner from "@/components/KastBanner";
 import { useLang } from "@/components/LanguageContext";
+import { useLocation } from "@/components/LocalCurrency";
+import BullionTable from "@/components/BullionTable";
 import { getMockTechnicalData } from "@/lib/technical";
 import { track } from "@/lib/analytics";
 import { PriceData } from "@/types";
@@ -151,6 +153,7 @@ export default function PricesPage() {
   const [crypto, setCrypto] = useState<PriceData[]>([]);
   const [currencies, setCurrencies] = useState<{ code: string; nameAr: string; rate: number; flag: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const loc = useLocation();
 
   const signals = getMockTechnicalData();
 
@@ -275,7 +278,12 @@ export default function PricesPage() {
                     <tr key={item.symbol} className="border-b border-border hover:bg-surface-2 transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <span>{item.symbol === "XAU" ? "🥇" : "🥈"}</span>
+                          <span
+                            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0"
+                            style={{ background: item.symbol === "XAU" ? "#C9A84C" : "#C0C0C0", color: "#0A0A0C" }}
+                          >
+                            {item.symbol === "XAU" ? "Au" : "Ag"}
+                          </span>
                           <div>
                             <div className="font-bold text-text-primary">{item.nameAr}</div>
                             <div className="text-text-secondary text-xs">{item.unit}</div>
@@ -301,6 +309,9 @@ export default function PricesPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Bullion (سبائك) */}
+            <BullionTable goldPriceUSD={metals.gold.price} rate={loc.rate} currency={loc.currency} />
 
             {/* Charts */}
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
