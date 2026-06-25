@@ -18,10 +18,14 @@ interface Props {
 }
 
 const assetIcons: Record<string, string> = {
-  XAU: "🥇",
-  XAG: "🥈",
   BTC: "₿",
   ETH: "⟠",
+};
+
+// Gold/silver get a clean metal disc (Au/Ag) instead of a medal emoji
+const metalDisc: Record<string, { sym: string; bg: string }> = {
+  XAU: { sym: "Au", bg: "#C9A84C" },
+  XAG: { sym: "Ag", bg: "#C0C0C0" },
 };
 
 const assetNamesEn: Record<string, string> = {
@@ -95,7 +99,16 @@ export default function PriceCard({
       {/* رأس البطاقة */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
-          <span className="text-xl sm:text-2xl">{assetIcons[data.symbol] || "💰"}</span>
+          {metalDisc[data.symbol] ? (
+            <span
+              className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold shrink-0"
+              style={{ background: metalDisc[data.symbol].bg, color: "#0A0A0C" }}
+            >
+              {metalDisc[data.symbol].sym}
+            </span>
+          ) : (
+            <span className="text-xl sm:text-2xl">{assetIcons[data.symbol] || "💰"}</span>
+          )}
           <div>
             <h3 className="text-text-primary font-bold text-sm sm:text-base">{lang === "ar" ? data.nameAr : (assetNamesEn[data.symbol] ?? data.nameAr)}</h3>
             <span className="text-text-secondary text-xs">{data.symbol}</span>

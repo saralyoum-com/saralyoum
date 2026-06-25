@@ -135,30 +135,30 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Social CTAs */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <a
-            href="https://t.me/sardhahab"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-3 bg-[#229ED9]/10 border border-[#229ED9]/30 rounded-2xl p-4 hover:bg-[#229ED9]/15 transition-all group"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
-            <span className="text-[#229ED9] font-bold text-sm group-hover:text-[#1a8bc4] transition-colors">
-              {lang === "ar" ? "تيليجرام @sardhahab" : "Telegram @sardhahab"}
-            </span>
-          </a>
-          <a
-            href="https://x.com/sardhahab"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-3 bg-white/5 border border-white/20 rounded-2xl p-4 hover:bg-white/10 transition-all group"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-text-primary"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            <span className="text-text-primary font-bold text-sm group-hover:text-gold transition-colors">
-              {lang === "ar" ? "تابعنا @sardhahab" : "Follow @sardhahab"}
-            </span>
-          </a>
+        {/* Social icons */}
+        <div className="mb-8">
+          <p className="text-text-secondary text-xs mb-3">
+            {lang === "ar" ? "تابعنا على" : "Follow us"}
+          </p>
+          <div className="flex gap-3">
+            {[
+              { label: "X", href: "https://x.com/sardhahab", path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" },
+              { label: "Telegram", href: "https://t.me/sardhahab", path: "M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.27 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" },
+              { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61591348885569", path: "M9.198 21.5h4v-8.01h3.604l.396-3.98h-4V7.5a1 1 0 011-1h3v-4h-3a5 5 0 00-5 5v2.01h-2l-.396 3.98h2.396v8.01z" },
+              { label: "LinkedIn", href: "https://www.linkedin.com/company/sardhahab", path: "M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" },
+            ].map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="w-11 h-11 rounded-full bg-gold/10 border border-gold/30 text-gold hover:bg-gold hover:text-background flex items-center justify-center transition-all"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* Contact form */}
