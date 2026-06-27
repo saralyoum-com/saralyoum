@@ -16,10 +16,9 @@ const PLATFORMS = [
     name: "Instagram",
     nameAr: "إنستغرام",
     icon: "📸",
-    desc: "اربط أولاً من صفحة فيسبوك",
-    authUrl: null,
-    active: false,
-    note: "اربط Instagram من إعدادات صفحة فيسبوك",
+    desc: "حساب SARD — يُربط عبر Facebook OAuth",
+    authUrl: "/api/auth/facebook",
+    active: true,
   },
   {
     id: "linkedin",

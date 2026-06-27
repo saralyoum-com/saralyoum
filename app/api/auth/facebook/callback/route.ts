@@ -76,10 +76,18 @@ export async function GET(req: NextRequest) {
     const page = (pagesRes.data ?? []).find((p: { id: string }) => p.id === PAGE_ID);
     const pageToken: string = page?.access_token ?? longToken;
 
-    // 4 — save to Vercel env vars (persists across deploys)
-    await upsertVercelEnv("FB_PAGE_TOKEN", pageToken, API_TOKEN);
+    // 4 — get Instagram Business Account ID linked to the page
+    const igRes = await graphGet(
+      `/${PAGE_ID}?fields=instagram_business_account&access_token=${pageToken}`
+    );
+    const igId: string = igRes.instagram_business_account?.id ?? "";
 
-    return NextResponse.redirect("https://sardhahab.com/connect?success=facebook");
+    // 5 — save everything to Vercel env vars (persists across deploys)
+    await upsertVercelEnv("FB_PAGE_TOKEN", pageToken, API_TOKEN);
+    if (igId) await upsertVercelEnv("INSTAGRAM_ACCOUNT_ID", igId, API_TOKEN);
+
+    const success = igId ? "facebook&success=instagram" : "facebook";
+    return NextResponse.redirect(`https://sardhahab.com/connect?success=${success}`);
 
   } catch (e) {
     console.error("fb-callback error", e);
