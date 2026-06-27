@@ -365,13 +365,13 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
               {/* Buy price (optional) */}
               <div>
                 <label className="text-text-secondary text-xs mb-1 block">
-                  {lang === "ar" ? `سعر الشراء (${curSymbol})` : `Buy price (${curSymbol})`}
+                  {lang === "ar" ? `سعر شراء الجرام (${curSymbol})` : `Buy / gram (${curSymbol})`}
                 </label>
                 <input
                   type="number"
                   value={newBuyPrice}
                   onChange={(e) => setNewBuyPrice(e.target.value)}
-                  placeholder={lang === "ar" ? "اختياري" : "Optional"}
+                  placeholder={lang === "ar" ? "للجرام · اختياري" : "per gram · optional"}
                   min="0"
                   step="0.01"
                   className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none placeholder:text-text-secondary/50"
