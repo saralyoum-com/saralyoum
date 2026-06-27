@@ -69,12 +69,14 @@ export async function GET(req: NextRequest) {
     );
     const longToken: string = longRes.access_token ?? tokenRes.access_token;
 
-    // 3 — get never-expiring page token
+    // 3 — get never-expiring page token (must use PAGE token, not user token)
     const pagesRes = await graphGet(
-      `/me/accounts?access_token=${longToken}&fields=id,access_token`
+      `/me/accounts?access_token=${longToken}&fields=id,access_token&limit=25`
     );
-    const page = (pagesRes.data ?? []).find((p: { id: string }) => p.id === PAGE_ID);
-    const pageToken: string = page?.access_token ?? longToken;
+    const allPages: Array<{ id: string; access_token: string }> = pagesRes.data ?? [];
+    const page = allPages.find(p => p.id === PAGE_ID);
+    if (!page) throw new Error(`Page ${PAGE_ID} not found in accounts. Available: ${allPages.map(p=>p.id).join(",")}`);
+    const pageToken: string = page.access_token;
 
     // 4 — get Instagram Business Account ID linked to the page
     const igRes = await graphGet(
