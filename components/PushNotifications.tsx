@@ -117,3 +117,39 @@ export function PushSubscribeButton() {
     </button>
   );
 }
+
+// iOS only allows web push from a home-screen (PWA) install. Show iPhone-Safari
+// users how to enable it instead of leaving them with a bell that can't work.
+export function IosInstallNotice() {
+  const { lang } = useLang();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent || "";
+    const isIOS = /iphone|ipad|ipod/i.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const standalone =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    setShow(isIOS && !standalone);
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <div dir={lang === "ar" ? "rtl" : "ltr"} className="bg-surface border border-gold/30 rounded-2xl p-4 sm:p-5 mb-6">
+      <div className="flex items-center gap-2 text-gold font-bold text-sm mb-2">
+        📲 {lang === "ar" ? "لتفعيل التنبيهات على iPhone" : "Enable notifications on iPhone"}
+      </div>
+      <ul className="text-text-secondary text-xs sm:text-sm leading-relaxed space-y-1">
+        <li>{lang === "ar" ? "1. اضغط زر المشاركة في Safari ⬆️" : "1. Tap the Share button in Safari ⬆️"}</li>
+        <li>{lang === "ar" ? "2. اختر «إضافة إلى الشاشة الرئيسية»" : "2. Choose “Add to Home Screen”"}</li>
+        <li>{lang === "ar" ? "3. افتح الموقع من الأيقونة الجديدة" : "3. Open the site from the new icon"}</li>
+        <li>{lang === "ar" ? "4. اضغط 🔔 ثم اسمح بالتنبيهات" : "4. Tap 🔔 then Allow notifications"}</li>
+      </ul>
+      <p className="text-text-secondary/60 text-[11px] mt-2 pt-2 border-t border-border">
+        {lang === "ar" ? "خطوة يفرضها نظام iPhone لتفعيل تنبيهات الويب — أندرويد يعمل مباشرة." : "Required by iOS for web push — Android works directly."}
+      </p>
+    </div>
+  );
+}

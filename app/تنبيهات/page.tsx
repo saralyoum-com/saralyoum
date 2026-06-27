@@ -6,7 +6,7 @@ import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
-import { PushSubscribeButton } from "@/components/PushNotifications";
+import { PushSubscribeButton, IosInstallNotice } from "@/components/PushNotifications";
 
 type Step = "form" | "success";
 
@@ -143,6 +143,9 @@ export default function AlertsPage() {
           {lang === "ar" ? "انضم الآن" : "Join Now"} ←
         </div>
       </a>
+
+      {/* iOS install guidance — shows only to iPhone-Safari users */}
+      <IosInstallNotice />
 
       {/* Browser push notifications */}
       <div className="flex items-center justify-between gap-4 bg-surface border border-border rounded-2xl p-4 sm:p-5 mb-6">
