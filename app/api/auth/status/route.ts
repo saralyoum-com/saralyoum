@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const sb = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { data } = await sb
-    .from("social_tokens")
-    .select("platform, connected, updated_at");
+// Each platform → the env var that holds its token (set by OAuth callbacks)
+const TOKEN_VARS: Record<string, string> = {
+  facebook:  "FB_PAGE_TOKEN",
+  instagram: "INSTAGRAM_TOKEN",
+  linkedin:  "LINKEDIN_TOKEN",
+  twitter:   "TWITTER_TOKEN",
+};
 
-  const out: Record<string, { connected: boolean; updated_at?: string }> = {};
-  for (const row of data ?? []) {
-    out[row.platform] = { connected: row.connected, updated_at: row.updated_at };
+export async function GET() {
+  const out: Record<string, { connected: boolean }> = {};
+  for (const [platform, envVar] of Object.entries(TOKEN_VARS)) {
+    const val = process.env[envVar] ?? "";
+    out[platform] = { connected: val.length > 20 };
   }
   return NextResponse.json(out);
 }
