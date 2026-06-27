@@ -8,9 +8,6 @@ const SCOPE        = [
   "pages_manage_posts",
   "pages_show_list",
   "pages_read_engagement",
-  "pages_manage_metadata",
-  "instagram_basic",
-  "instagram_content_publish",
 ].join(",");
 
 export async function GET() {
