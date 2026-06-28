@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { postToFacebook, postToInstagram } from "@/lib/social";
 
 export const dynamic = "force-dynamic";
 
@@ -80,9 +81,20 @@ export async function GET(req: NextRequest) {
       message += `\n\n─────────────────\n🚨 <b>منشور عاجل</b>\n\n${trendPost}`;
     }
 
-    await sendTelegramMessage(message);
+    const imageUrl = "https://sardhahab.com/api/og?asset=gold";
 
-    return NextResponse.json({ ok: true, trending: trendPost !== "SKIP" });
+    const [, fbId, igId] = await Promise.allSettled([
+      sendTelegramMessage(message),
+      postToFacebook(engPost, imageUrl),
+      postToInstagram(engPost, imageUrl),
+    ]);
+
+    return NextResponse.json({
+      ok: true,
+      trending: trendPost !== "SKIP",
+      fb: fbId.status === "fulfilled" ? fbId.value : String((fbId as PromiseRejectedResult).reason),
+      ig: igId.status === "fulfilled" ? igId.value : String((igId as PromiseRejectedResult).reason),
+    });
   } catch (err) {
     console.error("x-posts/engagement error:", err);
     return NextResponse.json({ error: "failed" }, { status: 500 });
