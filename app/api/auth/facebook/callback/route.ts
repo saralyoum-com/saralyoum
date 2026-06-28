@@ -88,6 +88,8 @@ export async function GET(req: NextRequest) {
 
     // 5 — save everything to Vercel env vars (persists across deploys)
     await upsertVercelEnv("FB_PAGE_TOKEN", pageToken, API_TOKEN);
+    // Instagram publishing requires a USER token (not page token)
+    await upsertVercelEnv("FB_USER_TOKEN", longToken, API_TOKEN);
     if (igId) await upsertVercelEnv("INSTAGRAM_ACCOUNT_ID", igId, API_TOKEN);
 
     const success = igId ? "facebook&success=instagram" : "facebook";
