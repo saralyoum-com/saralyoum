@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthed, unauthorized, verifyState, clearState } from "@/lib/connectAuth";
+import { isAuthed, unauthorized } from "@/lib/connectAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -45,21 +45,11 @@ export async function GET(req: NextRequest) {
   if (!isAuthed(req)) return unauthorized();
 
   const code  = req.nextUrl.searchParams.get("code");
-  const state = req.nextUrl.searchParams.get("state");
   const error = req.nextUrl.searchParams.get("error_description");
-
-  // CSRF: the state param must match the single-use state cookie.
-  if (!verifyState(req, state)) {
-    const res = NextResponse.redirect("https://sardhahab.com/connect?error=invalid_state");
-    clearState(res);
-    return res;
-  }
 
   if (!code) {
     const msg = error ?? "cancelled";
-    const res = NextResponse.redirect(`https://sardhahab.com/connect?error=${encodeURIComponent(msg)}`);
-    clearState(res);
-    return res;
+    return NextResponse.redirect(`https://sardhahab.com/connect?error=${encodeURIComponent(msg)}`);
   }
 
   const APP_SECRET  = process.env.FB_APP_SECRET ?? "";
@@ -101,16 +91,12 @@ export async function GET(req: NextRequest) {
     if (igId) await upsertVercelEnv("INSTAGRAM_ACCOUNT_ID", igId, API_TOKEN);
 
     const success = igId ? "facebook&success=instagram" : "facebook";
-    const res = NextResponse.redirect(`https://sardhahab.com/connect?success=${success}`);
-    clearState(res);
-    return res;
+    return NextResponse.redirect(`https://sardhahab.com/connect?success=${success}`);
 
   } catch (e) {
     console.error("fb-callback error", e);
-    const res = NextResponse.redirect(
+    return NextResponse.redirect(
       `https://sardhahab.com/connect?error=${encodeURIComponent(String(e))}`
     );
-    clearState(res);
-    return res;
   }
 }
