@@ -16,25 +16,23 @@ async function graphGet(path: string) {
 }
 
 async function upsertVercelEnv(key: string, value: string, apiToken: string) {
-  const base = `https://api.vercel.com/v9/projects/${PROJECT_ID}/env?teamId=${TEAM_ID}`;
+  const base = `https://api.vercel.com/v9/projects/${PROJECT_ID}/env`;
 
-  // Check if env exists
-  const listRes = await fetch(`${base}&key=${key}`, {
+  // List all env vars and find an exact key match (Vercel's key= filter is unreliable).
+  const listRes = await fetch(`${base}?teamId=${TEAM_ID}&limit=100`, {
     headers: { Authorization: `Bearer ${apiToken}` },
   });
   const existing = await listRes.json();
-  const envId = existing.envs?.[0]?.id;
+  const match = (existing.envs ?? []).find((e: { key: string }) => e.key === key);
 
-  if (envId) {
-    // PATCH existing
-    await fetch(`${base.split("?")[0]}/${envId}?teamId=${TEAM_ID}`, {
+  if (match?.id) {
+    await fetch(`${base}/${match.id}?teamId=${TEAM_ID}`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ value, target: VERCEL_ENVS }),
     });
   } else {
-    // POST new
-    await fetch(base, {
+    await fetch(`${base}?teamId=${TEAM_ID}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ key, value, type: "encrypted", target: VERCEL_ENVS }),
