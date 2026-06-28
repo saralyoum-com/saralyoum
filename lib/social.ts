@@ -2,6 +2,26 @@
 // Facebook uses graph.facebook.com with FB_PAGE_TOKEN (never-expiring page token)
 // Instagram uses graph.instagram.com with IG_USER_TOKEN (60-day, from Instagram Login flow)
 
+// Build a dynamic 1080×1350 social card URL with live price data embedded as params.
+// Instagram downloads this URL when publishing — prices are baked in at cron time.
+export function buildSocialCardUrl(params: {
+  type: "morning" | "educational" | "breaking";
+  gold: string;
+  change: string;
+  dir: "up" | "down";
+  date?: string;
+  silver?: string;
+  btc?: string;
+  topic?: string;
+}): string {
+  const sp = new URLSearchParams({ type: params.type, gold: params.gold, change: params.change, dir: params.dir });
+  if (params.date)   sp.set("date",   params.date);
+  if (params.silver) sp.set("silver", params.silver);
+  if (params.btc)    sp.set("btc",    params.btc);
+  if (params.topic)  sp.set("topic",  params.topic);
+  return `https://sardhahab.com/api/social-card?${sp.toString()}`;
+}
+
 const FB_PAGE_ID  = process.env.FB_PAGE_ID  ?? "1115554444982087";
 const IG_USER_ID  = process.env.INSTAGRAM_ACCOUNT_ID ?? "27063991809949500";
 const IG_API_BASE = "https://graph.instagram.com/v25.0";

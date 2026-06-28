@@ -3,16 +3,21 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
-import { postToFacebook, postToInstagram } from "@/lib/social";
+import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
 
 export const dynamic = "force-dynamic";
 
-const SYSTEM_PROMPT = `أنت كبير استراتيجيي وسائل التواصل الاجتماعي ومحرر المحتوى المالي لموقع Sardhahab.com.
-مهمتك إنشاء محتوى عربي احترافي لمنصة X يستهدف الجمهور السعودي والخليجي.
-اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. المحتوى مفيد وموثوق وجذاب.`;
+const SYSTEM_PROMPT = `أنت محرر محتوى مالي عربي احترافي لموقع sardhahab.com.
+اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. مفيد وموثوق وجذاب.`;
 
 function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+
+interface SocialPosts {
+  instagram: string;
+  facebook: string;
+  telegram: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -33,40 +38,58 @@ export async function GET(req: NextRequest) {
       timeZone: "Asia/Riyadh",
     });
 
+    const goldFmt   = formatPrice(gold.price);
+    const silverFmt = formatPrice(silver.price);
+    const btcFmt    = formatPrice(bitcoin.price);
+    const changePct = gold.changePercent.toFixed(2);
+    const dir       = gold.changePercent >= 0 ? "up" : "down";
+
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const msg = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 600,
+      max_tokens: 900,
       system: SYSTEM_PROMPT,
       messages: [{
         role: "user",
         content: `اليوم: ${today}
+الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
+الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
-بيانات السوق الآن:
-- الذهب: $${formatPrice(gold.price)} (${gold.changePercent >= 0 ? "+" : ""}${gold.changePercent.toFixed(2)}%)
-- الفضة: $${formatPrice(silver.price)} (${silver.changePercent >= 0 ? "+" : ""}${silver.changePercent.toFixed(2)}%)
-- بيتكوين: $${formatPrice(bitcoin.price)} (${bitcoin.changePercent >= 0 ? "+" : ""}${bitcoin.changePercent.toFixed(2)}%)
-
-اكتب منشور X صباحي جاهز للنشر (80–180 كلمة).
-المطلوب: هوك قوي + تحليل مختصر للسوق اليوم + دعوة للتفاعل + رابط sardhahab.com + هاشتاقات.
-لا تضف عنوان أو تسمية. أخرج النص مباشرة جاهزاً للنسخ.`,
+اكتب محتوى الصباح لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+{
+  "instagram": "كابشن إنستغرام 50-80 كلمة: هوك واحد يوقف التمرير + أسعار لحظية + هاشتاقات عربية ودولية مختلطة. لا رابط. لا URL.",
+  "facebook": "منشور فيسبوك 150-220 كلمة: هوك + تحليل السوق اليوم + سبب الحركة + رابط sardhahab.com + هاشتاقات",
+  "telegram": "منشور تيليجرام 80-130 كلمة: موجز السوق الصباحي، استخدم <b>للأرقام المهمة</b>"
+}`,
       }],
     });
 
-    const post = (msg.content[0] as { text: string }).text.trim();
-    const imageUrl = "https://sardhahab.com/api/og?asset=gold";
+    const raw = (msg.content[0] as { text: string }).text.trim();
+    let posts: SocialPosts;
+    try {
+      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
+      posts = JSON.parse(jsonStr) as SocialPosts;
+    } catch {
+      posts = { instagram: raw, facebook: raw, telegram: raw };
+    }
 
-    const [, fbId, igId] = await Promise.allSettled([
-      sendTelegramMessage(`📅 <b>منشور الصباح — ${today}</b>\n\n` + post),
-      postToFacebook(post, imageUrl),
-      postToInstagram(post, imageUrl),
+    const cardUrl = buildSocialCardUrl({
+      type: "morning", gold: goldFmt, change: changePct, dir,
+      date: today, silver: silverFmt, btc: btcFmt,
+    });
+
+    const [, fbRes, igRes] = await Promise.allSettled([
+      sendTelegramMessage(`📅 <b>منشور الصباح — ${today}</b>\n\n` + posts.telegram),
+      postToFacebook(posts.facebook, cardUrl),
+      postToInstagram(posts.instagram, cardUrl),
     ]);
 
     return NextResponse.json({
       ok: true,
-      fb: fbId.status === "fulfilled" ? fbId.value : String((fbId as PromiseRejectedResult).reason),
-      ig: igId.status === "fulfilled" ? igId.value : String((igId as PromiseRejectedResult).reason),
+      cardUrl,
+      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
+      ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/morning error:", err);

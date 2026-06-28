@@ -3,16 +3,21 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
-import { postToFacebook, postToInstagram } from "@/lib/social";
+import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
 
 export const dynamic = "force-dynamic";
 
-const SYSTEM_PROMPT = `أنت كبير استراتيجيي وسائل التواصل الاجتماعي ومحرر المحتوى المالي لموقع Sardhahab.com.
-مهمتك إنشاء محتوى عربي احترافي لمنصة X يستهدف الجمهور السعودي والخليجي.
-اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. المحتوى مفيد وموثوق وجذاب.`;
+const SYSTEM_PROMPT = `أنت محرر محتوى مالي عربي احترافي لموقع sardhahab.com.
+اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. مفيد وموثوق وجذاب.`;
 
 function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+
+interface SocialPosts {
+  instagram: string;
+  facebook: string;
+  telegram: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -33,67 +38,85 @@ export async function GET(req: NextRequest) {
       timeZone: "Asia/Riyadh",
     });
 
+    const goldFmt   = formatPrice(gold.price);
+    const silverFmt = formatPrice(silver.price);
+    const btcFmt    = formatPrice(bitcoin.price);
+    const changePct = gold.changePercent.toFixed(2);
+    const dir       = gold.changePercent >= 0 ? "up" : "down";
+
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    // Engagement post
-    const engMsg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 400,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today}
-الذهب: $${formatPrice(gold.price)} | الفضة: $${formatPrice(silver.price)} | بيتكوين: $${formatPrice(bitcoin.price)}
+    // Detect if there's a notable move (> 1% change) for a "breaking" post
+    const isBreaking = Math.abs(gold.changePercent) >= 1;
 
-اكتب منشور X تفاعلي (20–80 كلمة): إما استفتاء أو سؤال أو تنبؤ بالسوق.
-الهدف: أكبر عدد من التعليقات وإعادة النشر.
-لا تضف عنوان أو تسمية. أخرج النص مباشرة جاهزاً للنسخ.`,
-      }],
-    });
+    const [engMsg, trendMsg] = await Promise.all([
+      anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 900,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: "user",
+          content: `اليوم: ${today}
+الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
+الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
-    const engPost = (engMsg.content[0] as { text: string }).text.trim();
+اكتب محتوى تفاعلي مسائي لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+{
+  "instagram": "كابشن إنستغرام 50-80 كلمة: سؤال تفاعلي أو استطلاع أو تحدٍّ مرتبط بالأسعار + هاشتاقات عربية. لا رابط.",
+  "facebook": "منشور فيسبوك تفاعلي 120-200 كلمة: سؤال يُشجع على التعليق + سياق السوق + رابط sardhahab.com + هاشتاقات",
+  "telegram": "منشور تيليجرام 70-120 كلمة: استفتاء أو سؤال تفاعلي، استخدم <b>للأرقام</b>"
+}`,
+        }],
+      }),
+      // Generate breaking post only when there's a notable move
+      isBreaking
+        ? anthropic.messages.create({
+            model: "claude-sonnet-4-6",
+            max_tokens: 500,
+            system: SYSTEM_PROMPT,
+            messages: [{
+              role: "user",
+              content: `اليوم: ${today}
+الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
+الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
-    // Trending post — generate only if there's something notable in the market
-    const trendMsg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 500,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today}
-الذهب: $${formatPrice(gold.price)} (${gold.changePercent >= 0 ? "+" : ""}${gold.changePercent.toFixed(2)}%)
-الفضة: $${formatPrice(silver.price)} (${silver.changePercent >= 0 ? "+" : ""}${silver.changePercent.toFixed(2)}%)
-بيتكوين: $${formatPrice(bitcoin.price)} (${bitcoin.changePercent >= 0 ? "+" : ""}${bitcoin.changePercent.toFixed(2)}%)
+اكتب منشور عاجل 50-120 كلمة يشرح الحركة القوية في الذهب وتأثيرها. ابدأ بـ 🚨`,
+            }],
+          })
+        : Promise.resolve(null),
+    ]);
 
-هل توجد حركة سعرية لافتة أو خبر مهم يستحق منشور عاجل اليوم بناءً على هذه البيانات؟
-- إذا نعم: اكتب منشور عاجل (50–150 كلمة) يشرح الحدث وتأثيره على الذهب. أبدأ بـ 🚨
-- إذا لا: اكتب فقط الكلمة: SKIP
-لا تضف عنوان أو تسمية إضافية.`,
-      }],
-    });
-
-    const trendPost = (trendMsg.content[0] as { text: string }).text.trim();
-
-    const header = `📊 <b>منشور المساء — ${today}</b>\n\n`;
-    let message = header + engPost;
-
-    if (trendPost !== "SKIP" && !trendPost.startsWith("SKIP")) {
-      message += `\n\n─────────────────\n🚨 <b>منشور عاجل</b>\n\n${trendPost}`;
+    const raw = (engMsg.content[0] as { text: string }).text.trim();
+    let posts: SocialPosts;
+    try {
+      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
+      posts = JSON.parse(jsonStr) as SocialPosts;
+    } catch {
+      posts = { instagram: raw, facebook: raw, telegram: raw };
     }
 
-    const imageUrl = "https://sardhahab.com/api/og?asset=gold";
+    const breakingText = trendMsg
+      ? (trendMsg.content[0] as { text: string }).text.trim()
+      : null;
 
-    const [, fbId, igId] = await Promise.allSettled([
-      sendTelegramMessage(message),
-      postToFacebook(engPost, imageUrl),
-      postToInstagram(engPost, imageUrl),
+    const cardType  = isBreaking ? "breaking" : "morning";
+    const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir });
+
+    let telegramMsg = `📊 <b>منشور المساء — ${today}</b>\n\n` + posts.telegram;
+    if (breakingText) {
+      telegramMsg += `\n\n─────────────────\n🚨 <b>منشور عاجل</b>\n\n${breakingText}`;
+    }
+
+    const [, fbRes, igRes] = await Promise.allSettled([
+      sendTelegramMessage(telegramMsg),
+      postToFacebook(posts.facebook, cardUrl),
+      postToInstagram(posts.instagram, cardUrl),
     ]);
 
     return NextResponse.json({
-      ok: true,
-      trending: trendPost !== "SKIP",
-      fb: fbId.status === "fulfilled" ? fbId.value : String((fbId as PromiseRejectedResult).reason),
-      ig: igId.status === "fulfilled" ? igId.value : String((igId as PromiseRejectedResult).reason),
+      ok: true, breaking: isBreaking, cardUrl,
+      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
+      ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/engagement error:", err);

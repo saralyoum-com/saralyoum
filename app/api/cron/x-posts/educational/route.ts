@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice } from "@/lib/goldapi";
-import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
-import { postToFacebook, postToInstagram } from "@/lib/social";
+import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
 
 export const dynamic = "force-dynamic";
 
-const SYSTEM_PROMPT = `أنت كبير استراتيجيي وسائل التواصل الاجتماعي ومحرر المحتوى المالي لموقع Sardhahab.com.
-مهمتك إنشاء محتوى عربي احترافي لمنصة X يستهدف الجمهور السعودي والخليجي.
-اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. المحتوى مفيد وموثوق وجذاب.`;
+const SYSTEM_PROMPT = `أنت محرر محتوى مالي عربي احترافي لموقع sardhahab.com.
+اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. لا كليشيهات. مفيد وموثوق وجذاب.`;
 
 const TOPICS = [
   "لماذا يرتفع الذهب وينخفض — العوامل الأساسية",
@@ -33,6 +31,12 @@ function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
+interface SocialPosts {
+  instagram: string;
+  facebook: string;
+  telegram: string;
+}
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -40,50 +44,60 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [gold, bitcoin] = await Promise.all([
-      getGoldPrice(),
-      getCryptoPrice("bitcoin"),
-    ]);
+    const gold = await getGoldPrice();
+    const goldFmt  = formatPrice(gold.price);
+    const changePct = gold.changePercent.toFixed(2);
+    const dir       = gold.changePercent >= 0 ? "up" : "down";
+    const topic     = getTodayTopic();
 
     const today = new Date().toLocaleDateString("ar-SA", {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
       timeZone: "Asia/Riyadh",
     });
 
-    const topic = getTodayTopic();
-
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const msg = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 800,
+      max_tokens: 1000,
       system: SYSTEM_PROMPT,
       messages: [{
         role: "user",
-        content: `اليوم: ${today}
-الذهب حالياً: $${formatPrice(gold.price)} | بيتكوين: $${formatPrice(bitcoin.price)}
+        content: `اليوم: ${today} | الذهب حالياً: $${goldFmt}
+الموضوع التعليمي: "${topic}"
 
-موضوع اليوم التعليمي: "${topic}"
-
-اكتب منشور X تعليمي جاهز للنشر (120–250 كلمة).
-المطلوب: هوك مثير + شرح مبسط + نقطة عملية يأخذها القارئ + دعوة للتفاعل + رابط sardhahab.com + هاشتاقات.
-لا تضف عنوان أو تسمية. أخرج النص مباشرة جاهزاً للنسخ.`,
+اكتب محتوى تعليمياً لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+{
+  "instagram": "كابشن إنستغرام 60-90 كلمة: سؤال يوقف التمرير + 3 نقاط مختصرة + أسعار لحظية + هاشتاقات. لا رابط.",
+  "facebook": "منشور فيسبوك تعليمي 200-280 كلمة: هوك + شرح مبسط للموضوع + نقطة عملية + رابط sardhahab.com + هاشتاقات",
+  "telegram": "منشور تيليجرام تعليمي 100-150 كلمة: استخدم <b>للمصطلحات المهمة</b>"
+}`,
       }],
     });
 
-    const post = (msg.content[0] as { text: string }).text.trim();
-    const imageUrl = "https://sardhahab.com/api/og?asset=gold";
+    const raw = (msg.content[0] as { text: string }).text.trim();
+    let posts: SocialPosts;
+    try {
+      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
+      posts = JSON.parse(jsonStr) as SocialPosts;
+    } catch {
+      posts = { instagram: raw, facebook: raw, telegram: raw };
+    }
 
-    const [, fbId, igId] = await Promise.allSettled([
-      sendTelegramMessage(`💡 <b>منشور تعليمي — ${today}</b>\n\n` + post),
-      postToFacebook(post, imageUrl),
-      postToInstagram(post, imageUrl),
+    const cardUrl = buildSocialCardUrl({
+      type: "educational", gold: goldFmt, change: changePct, dir, topic,
+    });
+
+    const [, fbRes, igRes] = await Promise.allSettled([
+      sendTelegramMessage(`💡 <b>منشور تعليمي — ${today}</b>\n\n` + posts.telegram),
+      postToFacebook(posts.facebook, cardUrl),
+      postToInstagram(posts.instagram, cardUrl),
     ]);
 
     return NextResponse.json({
-      ok: true,
-      fb: fbId.status === "fulfilled" ? fbId.value : String((fbId as PromiseRejectedResult).reason),
-      ig: igId.status === "fulfilled" ? igId.value : String((igId as PromiseRejectedResult).reason),
+      ok: true, topic, cardUrl,
+      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
+      ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/educational error:", err);
