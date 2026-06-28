@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { isAuthed, unauthorized } from "@/lib/connectAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,9 @@ const TOKEN_VARS: Record<string, string> = {
   twitter:   "TWITTER_TOKEN",
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (!isAuthed(req)) return unauthorized();
+
   const out: Record<string, { connected: boolean }> = {};
   for (const [platform, envVar] of Object.entries(TOKEN_VARS)) {
     const val = process.env[envVar] ?? "";

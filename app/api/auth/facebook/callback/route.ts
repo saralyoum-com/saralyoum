@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAuthed, unauthorized, verifyState, clearState } from "@/lib/connectAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -42,12 +43,25 @@ async function upsertVercelEnv(key: string, value: string, apiToken: string) {
 }
 
 export async function GET(req: NextRequest) {
+  // Only an authed operator who started the flow from /connect can land here.
+  if (!isAuthed(req)) return unauthorized();
+
   const code  = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state");
   const error = req.nextUrl.searchParams.get("error_description");
+
+  // CSRF: the state param must match the single-use state cookie.
+  if (!verifyState(req, state)) {
+    const res = NextResponse.redirect("https://sardhahab.com/connect?error=invalid_state");
+    clearState(res);
+    return res;
+  }
 
   if (!code) {
     const msg = error ?? "cancelled";
-    return NextResponse.redirect(`https://sardhahab.com/connect?error=${encodeURIComponent(msg)}`);
+    const res = NextResponse.redirect(`https://sardhahab.com/connect?error=${encodeURIComponent(msg)}`);
+    clearState(res);
+    return res;
   }
 
   const APP_SECRET  = process.env.FB_APP_SECRET ?? "";
@@ -89,12 +103,16 @@ export async function GET(req: NextRequest) {
     if (igId) await upsertVercelEnv("INSTAGRAM_ACCOUNT_ID", igId, API_TOKEN);
 
     const success = igId ? "facebook&success=instagram" : "facebook";
-    return NextResponse.redirect(`https://sardhahab.com/connect?success=${success}`);
+    const res = NextResponse.redirect(`https://sardhahab.com/connect?success=${success}`);
+    clearState(res);
+    return res;
 
   } catch (e) {
     console.error("fb-callback error", e);
-    return NextResponse.redirect(
+    const res = NextResponse.redirect(
       `https://sardhahab.com/connect?error=${encodeURIComponent(String(e))}`
     );
+    clearState(res);
+    return res;
   }
 }

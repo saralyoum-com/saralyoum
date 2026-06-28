@@ -63,9 +63,17 @@ export default function ConnectPage() {
   const loadStatuses = useCallback(async () => {
     try {
       const res = await fetch("/api/auth/status");
-      if (res.ok) setStatuses(await res.json());
+      if (res.ok) {
+        setStatuses(await res.json());
+        setUnlocked(true); // valid session cookie already present
+      }
     } catch { /* silent */ }
   }, []);
+
+  useEffect(() => {
+    // Auto-unlock if a valid session cookie is still active.
+    loadStatuses();
+  }, [loadStatuses]);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -84,11 +92,17 @@ export default function ConnectPage() {
     if (!pin) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/auth/pin?pin=${encodeURIComponent(pin)}`);
+      const res = await fetch("/api/auth/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      });
       if (res.ok) {
         setUnlocked(true);
         setPinError("");
         loadStatuses();
+      } else if (res.status === 429) {
+        setPinError("محاولات كثيرة — انتظر قليلاً");
       } else {
         setPinError("PIN غير صحيح");
       }
@@ -189,7 +203,7 @@ export default function ConnectPage() {
         </div>
 
         <div style={{ textAlign:"center",marginTop:36,color:"#2a2a2a",fontSize:12 }}>
-          sardhahab.com · التوكنات محفوظة في Supabase · تتجدد تلقائياً
+          sardhahab.com · التوكنات محفوظة في Vercel · تتجدد تلقائياً
         </div>
       </div>
     </div>
