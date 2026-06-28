@@ -9,8 +9,6 @@ const SCOPE        = [
   "pages_manage_posts",
   "pages_show_list",
   "pages_read_engagement",
-  "instagram_content_publish",
-  "instagram_manage_comments",
 ].join(",");
 
 export async function GET(req: NextRequest) {
