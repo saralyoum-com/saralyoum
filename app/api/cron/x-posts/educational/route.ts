@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice } from "@/lib/goldapi";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
+import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,8 @@ interface SocialPosts {
   instagram: string;
   facebook: string;
   telegram: string;
+  x: string;
+  linkedin: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -66,11 +69,13 @@ export async function GET(req: NextRequest) {
         content: `اليوم: ${today} | الذهب حالياً: $${goldFmt}
 الموضوع التعليمي: "${topic}"
 
-اكتب محتوى تعليمياً لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+اكتب محتوى تعليمياً لخمس منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
 {
   "instagram": "كابشن إنستغرام 60-90 كلمة: سؤال يوقف التمرير + 3 نقاط مختصرة + أسعار لحظية + هاشتاقات. لا رابط.",
   "facebook": "منشور فيسبوك تعليمي 200-280 كلمة: هوك + شرح مبسط للموضوع + نقطة عملية + رابط sardhahab.com + هاشتاقات",
-  "telegram": "منشور تيليجرام تعليمي 100-150 كلمة: استخدم <b>للمصطلحات المهمة</b>"
+  "telegram": "منشور تيليجرام تعليمي 100-150 كلمة: استخدم <b>للمصطلحات المهمة</b>",
+  "x": "تغريدة X تعليمية بحد أقصى 260 حرفاً: حقيقة مفاجئة أو سؤال ذكي عن الموضوع + هاشتاق واحد فقط.",
+  "linkedin": "منشور LinkedIn تعليمي احترافي 150-200 كلمة: مقدمة تستحق القراءة + شرح الموضوع بعمق + تطبيق عملي + رابط sardhahab.com."
 }`,
       }],
     });
@@ -81,23 +86,33 @@ export async function GET(req: NextRequest) {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
       posts = JSON.parse(jsonStr) as SocialPosts;
     } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw };
+      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
     }
 
     const cardUrl = buildSocialCardUrl({
       type: "educational", gold: goldFmt, change: changePct, dir, topic,
     });
 
-    const [, fbRes, igRes] = await Promise.allSettled([
-      sendTelegramMessage(`💡 <b>منشور تعليمي — ${today}</b>\n\n` + posts.telegram),
+    const telegramMsg =
+      `💡 <b>منشور تعليمي — ${today}</b>\n\n` +
+      posts.telegram +
+      `\n\n─────────────────\n🐦 <b>X / Twitter</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.x +
+      `\n\n─────────────────\n💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.linkedin;
+
+    const [, fbRes, igRes, xRes] = await Promise.allSettled([
+      sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
+      postToX(posts.x),
     ]);
 
     return NextResponse.json({
       ok: true, topic, cardUrl,
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
+      x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/educational error:", err);

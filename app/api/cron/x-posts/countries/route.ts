@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { postToX } from "@/lib/twitter";
 
 const TROY_OZ = 31.1035;
 
@@ -81,6 +82,18 @@ export async function GET(req: Request) {
     const sign  = isUp ? "+" : "";
     const pctStr = `${sign}${changePct.toFixed(2)}%`;
 
+    // Top 3 countries for X post (SA, AE, EG)
+    const top3 = ARAB_COUNTRIES.slice(0, 3).map(c => {
+      const rate = rates[c.currencyCode];
+      if (!rate) return null;
+      const priceLocal = (xauUsd / TROY_OZ) * rate;
+      return `${c.flag} ${c.name} ${formatPrice(priceLocal)} ${c.currency}`;
+    }).filter(Boolean).join(" | ");
+
+    const xPost = `🥇 الذهب اليوم $${formatPrice(xauUsd)} (${pctStr})\n\n${top3}\n\nأسعار لحظية لـ 19 دولة عربية 👇\nsardhahab.com\n\n#سعر_الذهب`;
+
+    const linkedinPost = `أسعار الذهب اليوم — ${dateStr}\n\nسعر الغرام (عيار 24) في الدول العربية:\n\n${lines.slice(0, 8).join("\n")}\n\nسعر الأوقية العالمي: $${formatPrice(xauUsd)} (${pctStr})\n\nلمتابعة الأسعار اللحظية لجميع الدول العربية:\nsardhahab.com\n\n#الذهب #أسعار_الذهب #الاستثمار #الاقتصاد_العربي`;
+
     const message = [
       `🥇 <b>أسعار الذهب اليوم</b> — ${arrow} (${pctStr})`,
       `📅 ${dateStr}`,
@@ -90,11 +103,27 @@ export async function GET(req: Request) {
       ``,
       `🔗 sardhahab.com`,
       `#سعر_الذهب #الوطن_العربي #استثمار`,
+      ``,
+      `─────────────────`,
+      `🐦 <b>X / Twitter</b> (انسخ وانشر يدوياً)`,
+      ``,
+      xPost,
+      ``,
+      `─────────────────`,
+      `💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)`,
+      ``,
+      linkedinPost,
     ].join("\n");
 
-    await sendTelegramMessage(message);
+    const [, xRes] = await Promise.allSettled([
+      sendTelegramMessage(message),
+      postToX(xPost),
+    ]);
 
-    return NextResponse.json({ ok: true, countries: lines.length });
+    return NextResponse.json({
+      ok: true, countries: lines.length,
+      x: xRes.status === "fulfilled" ? xRes.value : String((xRes as PromiseRejectedResult).reason),
+    });
   } catch (err) {
     console.error("countries cron error:", err);
     return NextResponse.json({ error: String(err) }, { status: 500 });

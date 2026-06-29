@@ -4,6 +4,7 @@ import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
+import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ interface SocialPosts {
   instagram: string;
   facebook: string;
   telegram: string;
+  x: string;
+  linkedin: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -56,11 +59,13 @@ export async function GET(req: NextRequest) {
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
-اكتب محتوى الصباح لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+اكتب محتوى الصباح لخمس منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
 {
   "instagram": "كابشن إنستغرام 50-80 كلمة: هوك واحد يوقف التمرير + أسعار لحظية + هاشتاقات عربية ودولية مختلطة. لا رابط. لا URL.",
   "facebook": "منشور فيسبوك 150-220 كلمة: هوك + تحليل السوق اليوم + سبب الحركة + رابط sardhahab.com + هاشتاقات",
-  "telegram": "منشور تيليجرام 80-130 كلمة: موجز السوق الصباحي، استخدم <b>للأرقام المهمة</b>"
+  "telegram": "منشور تيليجرام 80-130 كلمة: موجز السوق الصباحي، استخدم <b>للأرقام المهمة</b>",
+  "x": "تغريدة X بحد أقصى 260 حرفاً: رقم بارز + سبب + هاشتاق واحد فقط. بدون رابط.",
+  "linkedin": "منشور LinkedIn احترافي 120-180 كلمة: افتتاحية قوية + سياق اقتصادي + درس للمستثمر العربي + رابط sardhahab.com. أسلوب هادئ ومحترف."
 }`,
       }],
     });
@@ -71,7 +76,7 @@ export async function GET(req: NextRequest) {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
       posts = JSON.parse(jsonStr) as SocialPosts;
     } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw };
+      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
     }
 
     const cardUrl = buildSocialCardUrl({
@@ -79,10 +84,19 @@ export async function GET(req: NextRequest) {
       date: today, silver: silverFmt, btc: btcFmt,
     });
 
-    const [, fbRes, igRes] = await Promise.allSettled([
-      sendTelegramMessage(`📅 <b>منشور الصباح — ${today}</b>\n\n` + posts.telegram),
+    const telegramMsg =
+      `📅 <b>منشور الصباح — ${today}</b>\n\n` +
+      posts.telegram +
+      `\n\n─────────────────\n🐦 <b>X / Twitter</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.x +
+      `\n\n─────────────────\n💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.linkedin;
+
+    const [, fbRes, igRes, xRes] = await Promise.allSettled([
+      sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
+      postToX(posts.x),
     ]);
 
     return NextResponse.json({
@@ -90,6 +104,7 @@ export async function GET(req: NextRequest) {
       cardUrl,
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
+      x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/morning error:", err);

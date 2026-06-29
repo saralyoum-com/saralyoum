@@ -4,6 +4,7 @@ import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
+import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ interface SocialPosts {
   instagram: string;
   facebook: string;
   telegram: string;
+  x: string;
+  linkedin: string;
 }
 
 export async function GET(req: NextRequest) {
@@ -60,11 +63,13 @@ export async function GET(req: NextRequest) {
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
-اكتب محتوى تفاعلي مسائي لثلاث منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
+اكتب محتوى تفاعلي مسائي لخمس منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
 {
   "instagram": "كابشن إنستغرام 50-80 كلمة: سؤال تفاعلي أو استطلاع أو تحدٍّ مرتبط بالأسعار + هاشتاقات عربية. لا رابط.",
   "facebook": "منشور فيسبوك تفاعلي 120-200 كلمة: سؤال يُشجع على التعليق + سياق السوق + رابط sardhahab.com + هاشتاقات",
-  "telegram": "منشور تيليجرام 70-120 كلمة: استفتاء أو سؤال تفاعلي، استخدم <b>للأرقام</b>"
+  "telegram": "منشور تيليجرام 70-120 كلمة: استفتاء أو سؤال تفاعلي، استخدم <b>للأرقام</b>",
+  "x": "تغريدة X تفاعلية بحد أقصى 260 حرفاً: سؤال مباشر يستفز الرأي + هاشتاق واحد فقط.",
+  "linkedin": "منشور LinkedIn مسائي 120-180 كلمة: ملاحظة ذكية عن حركة السوق اليوم + سؤال للمتابعين المحترفين + رابط sardhahab.com."
 }`,
         }],
       }),
@@ -92,7 +97,7 @@ export async function GET(req: NextRequest) {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
       posts = JSON.parse(jsonStr) as SocialPosts;
     } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw };
+      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
     }
 
     const breakingText = trendMsg
@@ -102,21 +107,29 @@ export async function GET(req: NextRequest) {
     const cardType  = isBreaking ? "breaking" : "morning";
     const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir });
 
-    let telegramMsg = `📊 <b>منشور المساء — ${today}</b>\n\n` + posts.telegram;
+    let telegramMsg =
+      `📊 <b>منشور المساء — ${today}</b>\n\n` +
+      posts.telegram +
+      `\n\n─────────────────\n🐦 <b>X / Twitter</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.x +
+      `\n\n─────────────────\n💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)\n\n` +
+      posts.linkedin;
     if (breakingText) {
       telegramMsg += `\n\n─────────────────\n🚨 <b>منشور عاجل</b>\n\n${breakingText}`;
     }
 
-    const [, fbRes, igRes] = await Promise.allSettled([
+    const [, fbRes, igRes, xRes] = await Promise.allSettled([
       sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
+      postToX(posts.x),
     ]);
 
     return NextResponse.json({
       ok: true, breaking: isBreaking, cardUrl,
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
+      x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/engagement error:", err);
