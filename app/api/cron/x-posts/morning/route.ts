@@ -79,32 +79,52 @@ export async function GET(req: NextRequest) {
       posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
     }
 
+    const isBreaking = Math.abs(gold.changePercent) >= 1.5;
     const cardUrl = buildSocialCardUrl({
-      type: "morning", gold: goldFmt, change: changePct, dir,
+      type: isBreaking ? "breaking" : "morning",
+      gold: goldFmt, change: changePct, dir,
       date: today, silver: silverFmt, btc: btcFmt,
     });
 
-    const telegramMsg =
-      `📅 <b>منشور الصباح — ${today}</b>\n\n` +
-      posts.telegram +
-      `\n\n─────────────────\n🐦 <b>X / Twitter</b> (انسخ وانشر يدوياً)\n\n` +
-      posts.x +
-      `\n\n─────────────────\n💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)\n\n` +
-      posts.linkedin;
+    // If breaking, generate a short urgent tweet to post immediately on X
+    let breakingXPost: string | null = null;
+    if (isBreaking) {
+      const breakMsg = await anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 300,
+        system: SYSTEM_PROMPT,
+        messages: [{
+          role: "user",
+          content: `اليوم: ${today}\nالذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)\n\nاكتب تغريدة عاجلة بحد أقصى 240 حرفاً تُخبر المتابعين بالحركة القوية في الذهب. ابدأ بـ 🚨. هاشتاق واحد فقط. بدون رابط.`,
+        }],
+      });
+      breakingXPost = (breakMsg.content[0] as { text: string }).text.trim();
+    }
 
-    const [, fbRes, igRes, xRes] = await Promise.allSettled([
+    const telegramMsg =
+      `📅 <b>منشور الصباح — ${today}</b>` +
+      (isBreaking ? `\n🚨 <b>تحرك قوي: ${gold.changePercent >= 0 ? "+" : ""}${changePct}%</b>` : "") +
+      `\n\n` + posts.telegram +
+      `\n\n─────────────────\n🐦 <b>X / Twitter</b>\n\n` + posts.x +
+      `\n\n─────────────────\n💼 <b>LinkedIn</b>\n\n` + posts.linkedin;
+
+    const tasks: Promise<unknown>[] = [
       sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
       postToX(posts.x),
-    ]);
+    ];
+    if (breakingXPost) tasks.push(postToX(breakingXPost));
+
+    const [, fbRes, igRes, xRes, breakXRes] = await Promise.allSettled(tasks);
 
     return NextResponse.json({
-      ok: true,
+      ok: true, breaking: isBreaking,
       cardUrl,
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
       x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
+      xBreaking: breakXRes ? (breakXRes.status === "fulfilled" ? breakXRes.value : String((breakXRes as PromiseRejectedResult).reason)) : null,
     });
   } catch (err) {
     console.error("x-posts/morning error:", err);

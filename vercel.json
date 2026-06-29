@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/x-posts/countries",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/x-posts/weekly-thread",
+      "schedule": "0 15 * * 5"
+    },
+    {
+      "path": "/api/cron/linkedin",
+      "schedule": "30 6 * * 1,3,5"
     }
   ]
 }
