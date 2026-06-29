@@ -1,12 +1,12 @@
 import { getGoldPrice } from "@/lib/goldapi";
 import PricesClient from "@/components/PricesClient";
 
-// Render on every request — do NOT prerender at build. This page used to 404
-// intermittently after deploys: its build-time price fetch (no timeout) could
-// hang/fail to prerender, and Vercel then cached a 404 for the route. Serving
-// it dynamically guarantees the route always resolves. The gold price is still
-// fetched server-side (with a short timeout + fallback) so the bullion (سبائك)
-// table is in the initial HTML for SEO; the interactive cards update client-side.
+// ASCII route for the Arabic URL /اسعار (mapped in middleware OTHER_SLUGS).
+// Arabic directories (app/اسعار) route unreliably on Vercel and 404 across
+// deploys, so — per CLAUDE.md — the page lives at an ASCII path and the Arabic
+// URL is rewritten to it at the Edge. Rendered per request (force-dynamic) so
+// the route always resolves; the gold price is fetched server-side with a short
+// timeout + fallback so the bullion (سبائك) table is in the initial HTML (SEO).
 export const dynamic = "force-dynamic";
 
 async function getInitialGoldUSD(): Promise<number> {

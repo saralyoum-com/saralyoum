@@ -11,6 +11,7 @@ const DISALLOW = [
   "/zakat-crypto",
   "/bitcoin-price",
   "/ethereum-price",
+  "/prices",
   "/اخبار?",
   "/_next/static/media/",
 ];

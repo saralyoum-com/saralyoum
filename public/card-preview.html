@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+.social-card {
+  width: 680px;
+  height: 356px;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(ellipse 90% 80% at 50% 50%, #2a1a00 0%, #180e00 38%, #0a0500 72%, #000000 100%);
+  border: 1px solid #3a2808;
+}
+
+.top-bar    { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #C9A84C 0%, #e8d060 30%, #229ED9 65%, #C9A84C 100%); z-index: 10; }
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #C9A84C 0%, #e8d060 30%, #229ED9 65%, #C9A84C 100%); z-index: 10; }
+.azure-tick { position: absolute; bottom: 4px; right: 0; width: 20px; height: 16px; background: #229ED9; clip-path: polygon(0 100%, 100% 0, 100% 100%); z-index: 11; }
+
+.coin-wrap {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 6px 20px rgba(201,168,76,0.6));
+  z-index: 5;
+}
+.coin-wrap img { width: 100%; height: 100%; }
+
+.card-content {
+  position: absolute;
+  top: 136px;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 86%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 5;
+}
+
+.card-price { font-size: 54px; font-weight: 900; color: #C9A84C; letter-spacing: -1px; line-height: 1; }
+.card-change { display: inline-flex; align-items: center; gap: 6px; background: rgba(8,30,8,0.9); border: 1px solid rgba(76,175,80,0.4); border-radius: 20px; padding: 5px 18px; font-size: 14px; font-weight: 700; color: #4CAF50; margin-top: 10px; }
+.card-date { font-size: 12px; color: #5a4a2a; margin-top: 8px; direction: rtl; font-family: Tahoma, Arial; }
+
+.card-footer-bar {
+  position: absolute; bottom: 4px; left: 0; right: 0; height: 30px;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; z-index: 4;
+}
+.footer-site { font-size: 11px; font-weight: 700; color: #C9A84C; }
+.footer-tag  { font-size: 10px; color: #5a9fd4; }
+
+/* EDU card */
+.topic-label { font-size: 13px; color: #229ED9; margin-bottom: 10px; }
+.topic-title  { font-size: 24px; font-weight: 900; color: #fff; direction: rtl; line-height: 1.35; text-shadow: 0 2px 20px rgba(0,0,0,0.6); font-family: Tahoma, Arial; }
+
+/* Engage card */
+.prices-row { display: flex; justify-content: center; gap: 26px; direction: rtl; }
+.price-item { text-align: center; }
+.price-flag { font-size: 24px; }
+.price-country { font-size: 11px; color: #5a4a2a; margin: 3px 0; }
+.price-val { font-size: 18px; font-weight: 800; color: #C9A84C; }
+
+.label { font-size: 11px; color: #666; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<div class="label">📅 Morning Card</div>
+<div class="social-card">
+  <div class="top-bar"></div>
+  <div class="bottom-bar"></div>
+  <div class="azure-tick"></div>
+  <div class="coin-wrap">
+    <img src="/logo-coin.svg" alt="SARD">
+  </div>
+  <div class="card-content">
+    <div class="card-price">$3,342</div>
+    <div><span class="card-change">▲ +0.42% اليوم</span></div>
+    <div class="card-date">سعر الأوقية العالمي · الإثنين 30 يونيو 2026</div>
+  </div>
+  <div class="card-footer-bar">
+    <span class="footer-tag">#سعر_الذهب #الذهب #GoldPrice</span>
+    <span class="footer-site">sardhahab.com</span>
+  </div>
+</div>
+
+<div class="label">💡 Educational Card</div>
+<div class="social-card">
+  <div class="top-bar"></div>
+  <div class="bottom-bar"></div>
+  <div class="azure-tick"></div>
+  <div class="coin-wrap">
+    <img src="/logo-coin.svg" alt="SARD">
+  </div>
+  <div class="card-content">
+    <div class="topic-label">💡 تعليم مالي · يوليو 2026</div>
+    <div class="topic-title">البيتكوين مقابل الذهب<br>أيهما الملاذ الآمن الحقيقي؟</div>
+    <div class="card-date" style="margin-top:10px">الذهب: $3,342 · بيتكوين: $68,200</div>
+  </div>
+  <div class="card-footer-bar">
+    <span class="footer-tag">#تعليم_مالي #البيتكوين #الذهب</span>
+    <span class="footer-site">sardhahab.com</span>
+  </div>
+</div>
+
+<div class="label">💬 Engagement Card</div>
+<div class="social-card">
+  <div class="top-bar"></div>
+  <div class="bottom-bar"></div>
+  <div class="azure-tick"></div>
+  <div class="coin-wrap">
+    <img src="/logo-coin.svg" alt="SARD">
+  </div>
+  <div class="card-content">
+    <div style="font-size:17px;font-weight:900;color:#fff;direction:rtl;margin-bottom:14px;font-family:Tahoma,Arial">سعر غرام الذهب عيار 24 — اليوم</div>
+    <div class="prices-row">
+      <div class="price-item"><div class="price-flag">🇸🇦</div><div class="price-country">السعودية</div><div class="price-val">403 ر.س</div></div>
+      <div class="price-item"><div class="price-flag">🇦🇪</div><div class="price-country">الإمارات</div><div class="price-val">458 د.إ</div></div>
+      <div class="price-item"><div class="price-flag">🇪🇬</div><div class="price-country">مصر</div><div class="price-val">5,220 ج</div></div>
+      <div class="price-item"><div class="price-flag">🇰🇼</div><div class="price-country">الكويت</div><div class="price-val">96 د.ك</div></div>
+    </div>
+  </div>
+  <div class="card-footer-bar">
+    <span class="footer-tag">#سعر_الذهب #الوطن_العربي</span>
+    <span class="footer-site">sardhahab.com</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
   const gold    = sp.get("gold")    || "3,320";
   const change  = sp.get("change")  || "0.42";
   const dir     = sp.get("dir")     || "up";
-  const date    = sp.get("date")    || "";
+  void sp.get("date"); // reserved for future use
   const topic   = sp.get("topic")   || "";
   const rowsRaw = sp.get("rows")    || "";
 
@@ -165,32 +165,97 @@ export async function GET(req: NextRequest) {
 
   // ── MORNING ──────────────────────────────────────────────────────────────────
   if (type === "morning") {
+    // Approximate gram prices from USD spot price
+    const ozNum  = parseFloat(gold.replace(/,/g, "")) || 3320;
+    const gUSD   = ozNum / 31.1035;
+    const saGram = Math.round(gUSD * 3.75).toLocaleString("en");
+    const aeGram = Math.round(gUSD * 3.673).toLocaleString("en");
+    const egGram = Math.round(gUSD * 51.0).toLocaleString("en");
+
+    const COL_L = 248;   // left (coin)
+    const COL_R = 278;   // right (countries)
+    const DIV   = 1;     // divider width
+
+    const countryRows = [
+      { flag: "🇸🇦", name: "السعودية", val: saGram, cur: "ر.س" },
+      { flag: "🇦🇪", name: "الإمارات", val: aeGram, cur: "د.إ" },
+      { flag: "🇪🇬", name: "مصر",      val: egGram, cur: "ج"   },
+    ];
+
     return new ImageResponse((
       <div style={OUTER}>
         <BgSvg />
         <GradBar pos="top" />
-        <CoinLogo src={logo} />
 
-        <div style={{ position: "absolute", top: CONTENT_TOP, left: 0, width: W, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ color: GOLD, fontSize: 96, fontWeight: 900, display: "flex", lineHeight: 1 }}>
-            ${gold}
-          </div>
+        {/* ── 3-column horizontal layout ── */}
+        <div style={{
+          position: "absolute", top: 8, left: 0, right: 0, bottom: 57,
+          display: "flex", flexDirection: "row", alignItems: "center",
+        }}>
+
+          {/* LEFT: coin logo */}
           <div style={{
-            display: "flex", alignItems: "center", gap: 10, marginTop: 16,
-            padding: "10px 38px",
-            background: isUp ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-            border: `2px solid ${isUp ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
-            borderRadius: 40, color: changeColor, fontSize: 28, fontWeight: 700,
+            width: COL_L, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <span style={{ display: "flex" }}>{isUp ? "▲" : "▼"}</span>
-            <span style={{ display: "flex" }}>{isUp ? `+${absChange}%` : `-${absChange}%`}</span>
-            <span style={{ display: "flex" }}>اليوم</span>
+            {logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} width={158} height={158} alt="" style={{ display: "flex" }} />
+            )}
           </div>
-          {date && (
-            <div style={{ color: "#5a4a2a", fontSize: 20, marginTop: 14, display: "flex" }}>
-              {date}
+
+          {/* divider */}
+          <div style={{ width: DIV, height: 290, background: "#3a2808", display: "flex", flexShrink: 0 }} />
+
+          {/* CENTER: price + badge */}
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+          }}>
+            <div style={{ color: GOLD, fontSize: 98, fontWeight: 900, display: "flex", lineHeight: 1 }}>
+              ${gold}
             </div>
-          )}
+            <div style={{ color: "#5a4a2a", fontSize: 20, display: "flex", marginTop: 8 }}>
+              سعر الأوقية العالمي · الذهب عيار 24
+            </div>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 10, marginTop: 18,
+              padding: "10px 36px",
+              background: isUp ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+              border: `2px solid ${isUp ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
+              borderRadius: 40, color: changeColor, fontSize: 28, fontWeight: 700,
+            }}>
+              <span style={{ display: "flex" }}>{isUp ? "▲" : "▼"}</span>
+              <span style={{ display: "flex" }}>{isUp ? `+${absChange}%` : `-${absChange}%`}</span>
+              <span style={{ display: "flex" }}>اليوم</span>
+            </div>
+          </div>
+
+          {/* divider */}
+          <div style={{ width: DIV, height: 290, background: "#3a2808", display: "flex", flexShrink: 0 }} />
+
+          {/* RIGHT: country prices — right-aligned with safe padding */}
+          <div style={{
+            width: COL_R, flexShrink: 0,
+            display: "flex", flexDirection: "column",
+            alignItems: "flex-end", justifyContent: "center",
+            paddingRight: 38,
+          }}>
+            {countryRows.map((c, i) => (
+              <div key={i} style={{
+                display: "flex", flexDirection: "column", alignItems: "flex-end",
+                marginBottom: i < countryRows.length - 1 ? 22 : 0,
+              }}>
+                <div style={{ color: "#5a4a2a", fontSize: 17, display: "flex" }}>
+                  {c.flag} {c.name}
+                </div>
+                <div style={{ color: GOLD, fontSize: 26, fontWeight: 900, display: "flex" }}>
+                  {c.val} {c.cur}
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
 
         <GradBar pos="bottom" />

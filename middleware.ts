@@ -39,6 +39,7 @@ const OTHER_SLUGS: Record<string, string> = {
   "زكاة-الكريبتو":   "/zakat-crypto",
   "سعر-البيتكوين":   "/bitcoin-price",
   "سعر-الاثيريوم":   "/ethereum-price",
+  "اسعار":           "/prices",
 };
 
 // ASCII internal routes → Arabic canonical (301 redirect for SEO)
@@ -46,6 +47,7 @@ const ASCII_REDIRECTS: Record<string, string> = {
   "/zakat-crypto":   "/زكاة-الكريبتو",
   "/bitcoin-price":  "/سعر-البيتكوين",
   "/ethereum-price": "/سعر-الاثيريوم",
+  "/prices":         "/اسعار",
 };
 
 export function middleware(request: NextRequest) {
