@@ -9,7 +9,7 @@ interface Holding {
   id: string;
   karat: 24 | 22 | 21 | 18 | 14;
   grams: number;
-  buyPrice?: number; // price per gram at purchase (optional)
+  buyPrice?: number; // USD per gram at purchase (currency-independent, optional)
 }
 
 interface PortfolioData {
@@ -113,12 +113,16 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   function addHolding() {
     const grams = parseFloat(newGrams);
     if (!grams || grams <= 0) return;
-    const buyP = newBuyPrice ? parseFloat(newBuyPrice) : undefined;
+    const buyPInput = newBuyPrice ? parseFloat(newBuyPrice) : undefined;
+    // Store as USD per gram (the input is in the displayed currency), so the
+    // P/L stays correct even if the user later switches display currency.
+    const buyPriceUSD =
+      buyPInput && buyPInput > 0 ? buyPInput / displayRate : undefined;
     const holding: Holding = {
       id: genId(),
       karat: newKarat,
       grams,
-      buyPrice: buyP && buyP > 0 ? buyP : undefined,
+      buyPrice: buyPriceUSD,
     };
     const updated = [...holdings, holding];
     setHoldings(updated);
@@ -152,28 +156,38 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   const displayRate = isUSD ? 1 : rate;
 
   let totalValueNow = 0;
-  let totalCost = 0;
+  let costedValue = 0; // live value of holdings that have a valid buy price
+  let costedCost = 0;  // their cost basis, in the same currency as value
   let hasCostData = false;
 
   const holdingDetails = holdings.map(h => {
     const purity = KARATS.find(k => k.value === h.karat)?.purity || 1;
-    const pricePerGram = goldPerGramUSD * purity * displayRate;
+    const pricePerGramUSD = goldPerGramUSD * purity;
+    const pricePerGram = pricePerGramUSD * displayRate;
     const value = pricePerGram * h.grams;
     totalValueNow += value;
 
+    // buyPrice is stored as USD per gram. Guard against corrupt / legacy values
+    // (e.g. saved in another currency or an old format) so the portfolio never
+    // shows an impossible profit/loss — those holdings just omit P/L.
     let pnl: number | null = null;
     if (h.buyPrice && h.buyPrice > 0) {
-      const cost = h.buyPrice * h.grams;
-      totalCost += cost;
-      hasCostData = true;
-      pnl = value - cost;
+      const plausibleLow = pricePerGramUSD * 0.2;
+      const plausibleHigh = pricePerGramUSD * 5;
+      if (h.buyPrice >= plausibleLow && h.buyPrice <= plausibleHigh) {
+        const cost = h.buyPrice * h.grams * displayRate; // same currency as value
+        costedValue += value;
+        costedCost += cost;
+        hasCostData = true;
+        pnl = value - cost;
+      }
     }
 
     return { ...h, pricePerGram, value, pnl };
   });
 
-  const totalPnL = hasCostData ? totalValueNow - totalCost : null;
-  const totalPnLPct = hasCostData && totalCost > 0 ? ((totalValueNow - totalCost) / totalCost * 100) : null;
+  const totalPnL = hasCostData ? costedValue - costedCost : null;
+  const totalPnLPct = hasCostData && costedCost > 0 ? ((costedValue - costedCost) / costedCost * 100) : null;
 
   // Daily change
   const dailyChange = totalValueNow * (changePercent / 100);
