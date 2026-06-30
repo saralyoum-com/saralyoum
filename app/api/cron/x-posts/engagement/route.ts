@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
-import { sendTelegramMessage } from "@/lib/telegram";
-import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
+import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
+import { postToFacebook, postToInstagram, buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
+import { getExchangeRates } from "@/lib/exchangerate";
 import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
@@ -30,11 +31,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [gold, silver, bitcoin] = await Promise.all([
+    const [gold, silver, bitcoin, rates] = await Promise.all([
       getGoldPrice(),
       getSilverPrice(),
       getCryptoPrice("bitcoin"),
+      getExchangeRates(),
     ]);
+    const countryRows = buildCardCountryRows(rates, gold.price, gold.changePercent);
 
     const today = new Date().toLocaleDateString("ar-SA", {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
@@ -104,8 +107,8 @@ export async function GET(req: NextRequest) {
       ? (trendMsg.content[0] as { text: string }).text.trim()
       : null;
 
-    const cardType  = isBreaking ? "breaking" : "morning";
-    const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir });
+    const cardType  = isBreaking ? "breaking" : "engagement";
+    const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir, rows: countryRows });
 
     let telegramMsg =
       `📊 <b>منشور المساء — ${today}</b>\n\n` +
@@ -124,6 +127,10 @@ export async function GET(req: NextRequest) {
       postToInstagram(posts.instagram, cardUrl),
       postToX(posts.x),
     ]);
+
+    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), cardType);
+    if (igRes.status === "fulfilled") await notifyPostPublished("Instagram", String(igRes.value), cardType);
+    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, cardType);
 
     return NextResponse.json({
       ok: true, breaking: isBreaking, cardUrl,

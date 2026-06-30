@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
 import { postToX } from "@/lib/twitter";
 
 const TROY_OZ = 31.1035;
@@ -119,6 +119,8 @@ export async function GET(req: Request) {
       sendTelegramMessage(message),
       postToX(xPost),
     ]);
+
+    if (xRes.status === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, "countries");
 
     return NextResponse.json({
       ok: true, countries: lines.length,

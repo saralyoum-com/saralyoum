@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice } from "@/lib/goldapi";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
 import { postToX } from "@/lib/twitter";
 
@@ -107,6 +107,10 @@ export async function GET(req: NextRequest) {
       postToInstagram(posts.instagram, cardUrl),
       postToX(posts.x),
     ]);
+
+    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), "educational");
+    if (igRes.status === "fulfilled") await notifyPostPublished("Instagram", String(igRes.value), "educational");
+    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, "educational");
 
     return NextResponse.json({
       ok: true, topic, cardUrl,

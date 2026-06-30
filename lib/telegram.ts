@@ -25,3 +25,22 @@ export async function sendTelegramToOwner(text: string): Promise<void> {
   const chatId = process.env.OWNER_TELEGRAM_CHAT_ID ?? "1839726381";
   return _send(chatId, text);
 }
+
+// Notify owner after every publish — platform link + card type
+export async function notifyPostPublished(
+  platform: "X" | "Facebook" | "Instagram",
+  postId: string,
+  cardType: string,
+): Promise<void> {
+  const icons: Record<string, string> = { X: "🐦", Facebook: "📘", Instagram: "📸" };
+  const urls: Record<string, string> = {
+    X:         `https://twitter.com/sardhahab/status/${postId}`,
+    Facebook:  `https://www.facebook.com/permalink.php?story_fbid=${postId.split("_")[1] ?? postId}&id=${postId.split("_")[0] ?? postId}`,
+    Instagram: `https://www.instagram.com/p/${postId}/`,
+  };
+  const text =
+    `${icons[platform]} <b>نُشر على ${platform}</b>\n` +
+    `📋 النوع: ${cardType}\n` +
+    `🔗 <a href="${urls[platform]}">رابط المنشور</a>`;
+  await sendTelegramToOwner(text).catch(() => null);
+}

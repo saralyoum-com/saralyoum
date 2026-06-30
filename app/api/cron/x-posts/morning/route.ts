@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
-import { sendTelegramMessage } from "@/lib/telegram";
-import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
+import { getExchangeRates } from "@/lib/exchangerate";
+import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
+import { postToFacebook, postToInstagram, buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
 import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +31,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [gold, silver, bitcoin] = await Promise.all([
+    const [gold, silver, bitcoin, rates] = await Promise.all([
       getGoldPrice(),
       getSilverPrice(),
       getCryptoPrice("bitcoin"),
+      getExchangeRates(),
     ]);
 
     const today = new Date().toLocaleDateString("ar-SA", {
@@ -47,6 +49,9 @@ export async function GET(req: NextRequest) {
     const changePct = gold.changePercent.toFixed(2);
     const dir       = gold.changePercent >= 0 ? "up" : "down";
 
+    // Build country rows for today's rotation group
+    const countryRows = buildCardCountryRows(rates, gold.price, gold.changePercent);
+
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const msg = await anthropic.messages.create({
@@ -58,6 +63,7 @@ export async function GET(req: NextRequest) {
         content: `اليوم: ${today}
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
+الدول المميزة اليوم: ${countryRows.map(r => `${r.name} ${r.price} ${r.currency}`).join(" · ")}
 
 اكتب محتوى الصباح لخمس منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
 {
@@ -83,10 +89,11 @@ export async function GET(req: NextRequest) {
     const cardUrl = buildSocialCardUrl({
       type: isBreaking ? "breaking" : "morning",
       gold: goldFmt, change: changePct, dir,
-      date: today, silver: silverFmt, btc: btcFmt,
+      rows: countryRows,
+      silver: silverFmt, btc: btcFmt,
     });
 
-    // If breaking, generate a short urgent tweet to post immediately on X
+    // Breaking tweet
     let breakingXPost: string | null = null;
     if (isBreaking) {
       const breakMsg = await anthropic.messages.create({
@@ -118,9 +125,21 @@ export async function GET(req: NextRequest) {
 
     const [, fbRes, igRes, xRes, breakXRes] = await Promise.allSettled(tasks);
 
+    // Notify owner with post links
+    if (fbRes.status === "fulfilled") {
+      await notifyPostPublished("Facebook", String(fbRes.value), isBreaking ? "breaking" : "morning");
+    }
+    if (igRes.status === "fulfilled") {
+      await notifyPostPublished("Instagram", String(igRes.value), isBreaking ? "breaking" : "morning");
+    }
+    if (xRes.status === "fulfilled") {
+      await notifyPostPublished("X", (xRes.value as { id: string }).id, isBreaking ? "breaking" : "morning");
+    }
+
     return NextResponse.json({
       ok: true, breaking: isBreaking,
       cardUrl,
+      countryGroup: countryRows.map(r => r.name).join(" · "),
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
       x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),

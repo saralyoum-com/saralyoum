@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +103,10 @@ export async function GET(req: NextRequest) {
       `\n\n✅ نُشر على X بنجاح (${tweetIds.length} تغريدة)`;
 
     await sendTelegramMessage(telegramMsg).catch(() => null);
+
+    if (tweetIds.length > 0) {
+      await notifyPostPublished("X", tweetIds[0], "weekly-thread").catch(() => null);
+    }
 
     return NextResponse.json({ ok: true, threadLength: tweetIds.length, tweetIds });
   } catch (err) {
