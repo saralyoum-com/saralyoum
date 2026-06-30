@@ -13,8 +13,18 @@ function getClient(): TwitterApi {
   return _client;
 }
 
-export async function postToX(text: string): Promise<{ id: string }> {
+export async function postToX(text: string, imageUrl?: string): Promise<{ id: string }> {
   const client = getClient();
+
+  if (imageUrl) {
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) throw new Error(`Card image fetch failed: ${imgRes.status}`);
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
+    const mediaId = await client.v1.uploadMedia(buffer, { mimeType: "image/png" });
+    const res = await client.v2.tweet({ text, media: { media_ids: [mediaId] } });
+    return { id: res.data.id };
+  }
+
   const res = await client.v2.tweet(text);
   return { id: res.data.id };
 }

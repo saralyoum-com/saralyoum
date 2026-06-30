@@ -87,9 +87,9 @@ export async function GET(req: NextRequest) {
       sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
-      postToX(posts.x),
+      postToX(posts.x, cardUrl),
     ];
-    if (breakingXPost) tasks.push(postToX(breakingXPost));
+    if (breakingXPost) tasks.push(postToX(breakingXPost, cardUrl));
 
     const [, fbRes, igRes, xRes, breakXRes] = await Promise.allSettled(tasks);
 

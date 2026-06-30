@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       sendTelegramMessage(telegramMsg),
       postToFacebook(posts.facebook, cardUrl),
       postToInstagram(posts.instagram, cardUrl),
-      postToX(posts.x),
+      postToX(posts.x, cardUrl),
     ]);
 
     if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), cardType);
