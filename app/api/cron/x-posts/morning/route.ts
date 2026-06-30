@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chat } from "@/lib/ai";
+import { chat, parseSocialPosts } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getExchangeRates } from "@/lib/exchangerate";
@@ -16,13 +16,6 @@ function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
-interface SocialPosts {
-  instagram: string;
-  facebook: string;
-  telegram: string;
-  x: string;
-  linkedin: string;
-}
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -64,13 +57,7 @@ export async function GET(req: NextRequest) {
   "linkedin": "منشور LinkedIn احترافي 120-180 كلمة: افتتاحية قوية + سياق اقتصادي + درس للمستثمر العربي + رابط sardhahab.com. أسلوب هادئ ومحترف."
 }`, 900);
 
-    let posts: SocialPosts;
-    try {
-      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
-      posts = JSON.parse(jsonStr) as SocialPosts;
-    } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
-    }
+    const posts = parseSocialPosts(raw, `الذهب $${goldFmt}`);
 
     const isBreaking = Math.abs(gold.changePercent) >= 1.5;
     const cardUrl = buildSocialCardUrl({

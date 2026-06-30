@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chat } from "@/lib/ai";
+import { chat, parseSocialPosts } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
@@ -16,13 +16,6 @@ function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
-interface SocialPosts {
-  instagram: string;
-  facebook: string;
-  telegram: string;
-  x: string;
-  linkedin: string;
-}
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -70,13 +63,7 @@ export async function GET(req: NextRequest) {
         : Promise.resolve(null),
     ]);
 
-    let posts: SocialPosts;
-    try {
-      const jsonStr = engRaw.match(/\{[\s\S]*\}/)?.[0] ?? engRaw;
-      posts = JSON.parse(jsonStr) as SocialPosts;
-    } catch {
-      posts = { instagram: engRaw, facebook: engRaw, telegram: engRaw, x: engRaw, linkedin: engRaw };
-    }
+    const posts = parseSocialPosts(engRaw, `الذهب $${goldFmt}`);
 
     const cardType  = isBreaking ? "breaking" : "engagement";
     const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir, rows: countryRows });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chat } from "@/lib/ai";
+import { chat, parseSocialPosts } from "@/lib/ai";
 import { getGoldPrice } from "@/lib/goldapi";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
@@ -32,13 +32,6 @@ function formatPrice(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
-interface SocialPosts {
-  instagram: string;
-  facebook: string;
-  telegram: string;
-  x: string;
-  linkedin: string;
-}
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -69,13 +62,7 @@ export async function GET(req: NextRequest) {
   "x": "تغريدة X تعليمية بحد أقصى 260 حرفاً: حقيقة مفاجئة أو سؤال ذكي عن الموضوع + هاشتاق واحد فقط.",
   "linkedin": "منشور LinkedIn تعليمي احترافي 150-200 كلمة: مقدمة تستحق القراءة + شرح الموضوع بعمق + تطبيق عملي + رابط sardhahab.com."
 }`, 1000);
-    let posts: SocialPosts;
-    try {
-      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
-      posts = JSON.parse(jsonStr) as SocialPosts;
-    } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
-    }
+    const posts = parseSocialPosts(raw, topic);
 
     const cardUrl = buildSocialCardUrl({
       type: "educational", gold: goldFmt, change: changePct, dir, topic,
