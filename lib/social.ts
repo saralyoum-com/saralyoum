@@ -51,9 +51,11 @@ export function buildCardCountryRows(
     if (!country || !rate) return { name: code, flag: "🏳️", price: "—", currency: cur, chg: "+0.00%", up: true };
 
     const gramPrice = gUSD * rate.rate;
-    const price     = gramPrice >= 1000
-      ? Math.round(gramPrice).toLocaleString("en-US")
-      : gramPrice.toFixed(2);
+    const price     = gramPrice >= 1_000_000
+      ? `${(gramPrice / 1_000_000).toFixed(2)}م`
+      : gramPrice >= 1_000
+        ? Math.round(gramPrice).toLocaleString("en-US")
+        : gramPrice.toFixed(2);
 
     const localChg = goldChangePercent + (rate.changePercent ?? 0);
     const up       = localChg >= 0;

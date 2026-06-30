@@ -4,7 +4,7 @@ import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getExchangeRates } from "@/lib/exchangerate";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
-import { postToFacebook, buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
+import { buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
 import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
@@ -85,20 +85,17 @@ export async function GET(req: NextRequest) {
 
     const tasks: Promise<unknown>[] = [
       sendTelegramMessage(telegramMsg),
-      postToFacebook(posts.facebook, cardUrl),
       postToX(posts.x, cardUrl),
     ];
     if (breakingXPost) tasks.push(postToX(breakingXPost, cardUrl));
 
-    const [, fbRes, xRes, breakXRes] = await Promise.allSettled(tasks);
+    const [, xRes, breakXRes] = await Promise.allSettled(tasks);
 
-    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), isBreaking ? "breaking" : "morning");
-    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, isBreaking ? "breaking" : "morning");
+    if (xRes.status === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, isBreaking ? "breaking" : "morning");
 
     return NextResponse.json({
       ok: true, breaking: isBreaking, cardUrl,
       countryGroup: countryRows.map(r => r.name).join(" · "),
-      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
       xBreaking: breakXRes ? (breakXRes.status === "fulfilled" ? breakXRes.value : String((breakXRes as PromiseRejectedResult).reason)) : null,
     });

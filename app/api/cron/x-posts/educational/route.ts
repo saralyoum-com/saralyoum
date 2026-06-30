@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chat, parseSocialPosts } from "@/lib/ai";
 import { getGoldPrice } from "@/lib/goldapi";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
-import { postToFacebook, buildSocialCardUrl } from "@/lib/social";
+import { buildSocialCardUrl } from "@/lib/social";
 import { postToX } from "@/lib/twitter";
 
 export const dynamic = "force-dynamic";
@@ -76,19 +76,16 @@ export async function GET(req: NextRequest) {
       `\n\n─────────────────\n💼 <b>LinkedIn</b> (انسخ وانشر يدوياً)\n\n` +
       posts.linkedin;
 
-    const [, fbRes, xRes] = await Promise.allSettled([
+    const [, xRes] = await Promise.allSettled([
       sendTelegramMessage(telegramMsg),
-      postToFacebook(posts.facebook, cardUrl),
       postToX(posts.x, cardUrl),
     ]);
 
-    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), "educational");
-    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, "educational");
+    if (xRes.status === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, "educational");
 
     return NextResponse.json({
       ok: true, topic, cardUrl,
-      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
-      x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
+      x: xRes.status === "fulfilled" ? xRes.value : String((xRes as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/educational error:", err);

@@ -3,7 +3,7 @@ import { chat, parseSocialPosts } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
-import { postToFacebook, buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
+import { buildSocialCardUrl, buildCardCountryRows } from "@/lib/social";
 import { getExchangeRates } from "@/lib/exchangerate";
 import { postToX } from "@/lib/twitter";
 
@@ -79,19 +79,16 @@ export async function GET(req: NextRequest) {
       telegramMsg += `\n\n─────────────────\n🚨 <b>منشور عاجل</b>\n\n${breakingText}`;
     }
 
-    const [, fbRes, xRes] = await Promise.allSettled([
+    const [, xRes] = await Promise.allSettled([
       sendTelegramMessage(telegramMsg),
-      postToFacebook(posts.facebook, cardUrl),
       postToX(posts.x, cardUrl),
     ]);
 
-    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), cardType);
-    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, cardType);
+    if (xRes.status === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, cardType);
 
     return NextResponse.json({
       ok: true, breaking: isBreaking, cardUrl,
-      fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
-      x:  xRes.status  === "fulfilled" ? xRes.value  : String((xRes  as PromiseRejectedResult).reason),
+      x: xRes.status === "fulfilled" ? xRes.value : String((xRes as PromiseRejectedResult).reason),
     });
   } catch (err) {
     console.error("x-posts/engagement error:", err);
