@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
@@ -34,16 +34,9 @@ export async function GET(req: NextRequest) {
     const changePct = gold.changePercent.toFixed(2);
     const dir       = gold.changePercent >= 0 ? "+" : "";
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1200,
-      system: `أنت محرر محتوى مالي عربي احترافي لموقع sardhahab.com.
-اكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. مفيد وموثوق وجذاب.`,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today} (الجمعة)
+    const raw = await chat(
+      `أنت محرر محتوى مالي عربي احترافي لموقع sardhahab.com.\nاكتب بالعربية الفصحى المعاصرة. لا توصيات استثمارية. لا مبالغة. مفيد وموثوق وجذاب.`,
+      `اليوم: ${today} (الجمعة)
 الذهب: $${goldFmt} (${dir}${changePct}% هذا الأسبوع)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
@@ -56,11 +49,7 @@ export async function GET(req: NextRequest) {
   "tweet4": "درس أسبوعي: سبب مختصر لحركة الذهب (اقتصادي أو جيوسياسي)",
   "tweet5": "نظرة الأسبوع القادم: ما يجب متابعته",
   "tweet6": "🔔 تابع أسعار الذهب لحظة بلحظة → sardhahab.com | #سعر_الذهب"
-}`,
-      }],
-    });
-
-    const raw = (msg.content[0] as { text: string }).text.trim();
+}`, 1200);
     let tweets: Record<string, string>;
     try {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;

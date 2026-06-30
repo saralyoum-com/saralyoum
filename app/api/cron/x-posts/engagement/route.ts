@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
@@ -50,19 +50,10 @@ export async function GET(req: NextRequest) {
     const changePct = gold.changePercent.toFixed(2);
     const dir       = gold.changePercent >= 0 ? "up" : "down";
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    // Detect if there's a notable move (> 1% change) for a "breaking" post
     const isBreaking = Math.abs(gold.changePercent) >= 1;
 
-    const [engMsg, trendMsg] = await Promise.all([
-      anthropic.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 900,
-        system: SYSTEM_PROMPT,
-        messages: [{
-          role: "user",
-          content: `اليوم: ${today}
+    const [engRaw, breakingText] = await Promise.all([
+      chat(SYSTEM_PROMPT, `اليوم: ${today}
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 
@@ -73,39 +64,19 @@ export async function GET(req: NextRequest) {
   "telegram": "منشور تيليجرام 70-120 كلمة: استفتاء أو سؤال تفاعلي، استخدم <b>للأرقام</b>",
   "x": "تغريدة X تفاعلية بحد أقصى 260 حرفاً: سؤال مباشر يستفز الرأي + هاشتاق واحد فقط.",
   "linkedin": "منشور LinkedIn مسائي 120-180 كلمة: ملاحظة ذكية عن حركة السوق اليوم + سؤال للمتابعين المحترفين + رابط sardhahab.com."
-}`,
-        }],
-      }),
-      // Generate breaking post only when there's a notable move
+}`, 900),
       isBreaking
-        ? anthropic.messages.create({
-            model: "claude-sonnet-4-6",
-            max_tokens: 500,
-            system: SYSTEM_PROMPT,
-            messages: [{
-              role: "user",
-              content: `اليوم: ${today}
-الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
-الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
-
-اكتب منشور عاجل 50-120 كلمة يشرح الحركة القوية في الذهب وتأثيرها. ابدأ بـ 🚨`,
-            }],
-          })
+        ? chat(SYSTEM_PROMPT, `اليوم: ${today}\nالذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)\nالفضة: $${silverFmt} | بيتكوين: $${btcFmt}\n\nاكتب منشور عاجل 50-120 كلمة يشرح الحركة القوية في الذهب وتأثيرها. ابدأ بـ 🚨`, 500)
         : Promise.resolve(null),
     ]);
 
-    const raw = (engMsg.content[0] as { text: string }).text.trim();
     let posts: SocialPosts;
     try {
-      const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
+      const jsonStr = engRaw.match(/\{[\s\S]*\}/)?.[0] ?? engRaw;
       posts = JSON.parse(jsonStr) as SocialPosts;
     } catch {
-      posts = { instagram: raw, facebook: raw, telegram: raw, x: raw, linkedin: raw };
+      posts = { instagram: engRaw, facebook: engRaw, telegram: engRaw, x: engRaw, linkedin: engRaw };
     }
-
-    const breakingText = trendMsg
-      ? (trendMsg.content[0] as { text: string }).text.trim()
-      : null;
 
     const cardType  = isBreaking ? "breaking" : "engagement";
     const cardUrl   = buildSocialCardUrl({ type: cardType, gold: goldFmt, change: changePct, dir, rows: countryRows });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { notifyPostPublished, sendTelegramToOwner } from "@/lib/telegram";
@@ -56,14 +56,9 @@ export async function GET(req: NextRequest) {
       topic,
     });
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 500,
-      system: "أنت محرر محتوى مالي تعليمي عربي. اكتب بأسلوب بسيط وواضح. لا توصيات استثمارية.",
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today} | الذهب: $${goldFmt} | بيتكوين: $${btcFmt}
+    const caption = await chat(
+      "أنت محرر محتوى مالي تعليمي عربي. اكتب بأسلوب بسيط وواضح. لا توصيات استثمارية.",
+      `اليوم: ${today} | الذهب: $${goldFmt} | بيتكوين: $${btcFmt}
 موضوع اليوم: ${topic}
 
 اكتب كابشن إنستغرام تعليمي من 80-120 كلمة:
@@ -72,11 +67,7 @@ export async function GET(req: NextRequest) {
 - اربطه بالسوق الحالي
 - CTA: رابط sardhahab.com في البايو
 - 8-12 هاشتاقاً تعليمياً ومالياً
-بدون ترقيم. بدون عناوين.`,
-      }],
-    });
-
-    const caption = (msg.content[0] as { text: string }).text.trim();
+بدون ترقيم. بدون عناوين.`, 500);
     const igId = await postToInstagram(caption, cardUrl);
     await notifyPostPublished("Instagram", igId, `educational: ${topic}`);
 

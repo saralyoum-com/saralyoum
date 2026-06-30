@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice } from "@/lib/goldapi";
 import { sendTelegramMessage, notifyPostPublished } from "@/lib/telegram";
 import { postToFacebook, postToInstagram, buildSocialCardUrl } from "@/lib/social";
@@ -58,15 +58,7 @@ export async function GET(req: NextRequest) {
       timeZone: "Asia/Riyadh",
     });
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today} | الذهب حالياً: $${goldFmt}
+    const raw = await chat(SYSTEM_PROMPT, `اليوم: ${today} | الذهب حالياً: $${goldFmt}
 الموضوع التعليمي: "${topic}"
 
 اكتب محتوى تعليمياً لخمس منصات بصيغة JSON صارمة — لا نص خارج الـ JSON:
@@ -76,11 +68,7 @@ export async function GET(req: NextRequest) {
   "telegram": "منشور تيليجرام تعليمي 100-150 كلمة: استخدم <b>للمصطلحات المهمة</b>",
   "x": "تغريدة X تعليمية بحد أقصى 260 حرفاً: حقيقة مفاجئة أو سؤال ذكي عن الموضوع + هاشتاق واحد فقط.",
   "linkedin": "منشور LinkedIn تعليمي احترافي 150-200 كلمة: مقدمة تستحق القراءة + شرح الموضوع بعمق + تطبيق عملي + رابط sardhahab.com."
-}`,
-      }],
-    });
-
-    const raw = (msg.content[0] as { text: string }).text.trim();
+}`, 1000);
     let posts: SocialPosts;
     try {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;

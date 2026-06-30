@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { sendTelegramToOwner } from "@/lib/telegram";
@@ -51,16 +51,9 @@ export async function GET(req: NextRequest) {
     const weekNum = Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000));
     const topic = TOPICS[weekNum % TOPICS.length];
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 700,
-      system: `أنت محرر محتوى مالي احترافي لصفحة LinkedIn باللغة العربية لموقع sardhahab.com.
-أسلوبك: هادئ، موثوق، تحليلي. لا توصيات استثمارية. لا مبالغة. موجه للمهنيين والمستثمرين العرب.`,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today}
+    const post = await chat(
+      `أنت محرر محتوى مالي احترافي لصفحة LinkedIn باللغة العربية لموقع sardhahab.com.\nأسلوبك: هادئ، موثوق، تحليلي. لا توصيات استثمارية. لا مبالغة. موجه للمهنيين والمستثمرين العرب.`,
+      `اليوم: ${today}
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 موضوع اليوم: ${topic}
@@ -73,11 +66,7 @@ export async function GET(req: NextRequest) {
 - رابط: sardhahab.com
 - 3-4 هاشتاقات مناسبة
 
-اكتب المنشور مباشرة بدون مقدمات.`,
-      }],
-    });
-
-    const post = (msg.content[0] as { text: string }).text.trim();
+اكتب المنشور مباشرة بدون مقدمات.`, 700);
 
     const telegramMsg =
       `💼 <b>منشور LinkedIn — ${today}</b>\n` +

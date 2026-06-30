@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice } from "@/lib/goldapi";
 import { getExchangeRates } from "@/lib/exchangerate";
 import { notifyPostPublished } from "@/lib/telegram";
@@ -40,14 +40,9 @@ export async function GET(req: NextRequest) {
       rows: countryRows,
     });
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 350,
-      system: "أنت محرر محتوى مالي عربي احترافي. اكتب بالعربية الفصحى. لا توصيات استثمارية.",
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today} | الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
+    const caption = await chat(
+      "أنت محرر محتوى مالي عربي احترافي. اكتب بالعربية الفصحى. لا توصيات استثمارية.",
+      `اليوم: ${today} | الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الدول: ${countryRows.map(r => `${r.name} ${r.price} ${r.currency}`).join(" · ")}
 
 اكتب كابشن إنستغرام صباحي من 60-90 كلمة:
@@ -55,11 +50,7 @@ export async function GET(req: NextRequest) {
 - أسعار اليوم المميزة
 - CTA: تابع sardhahab.com
 - هاشتاقات عربية ودولية (7-10 هاشتاقات)
-بدون ترقيم. بدون عناوين.`,
-      }],
-    });
-
-    const caption = (msg.content[0] as { text: string }).text.trim();
+بدون ترقيم. بدون عناوين.`, 350);
     const igId = await postToInstagram(caption, cardUrl);
     await notifyPostPublished("Instagram", igId, "morning-portrait");
 

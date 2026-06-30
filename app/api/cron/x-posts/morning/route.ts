@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { chat } from "@/lib/ai";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
 import { getExchangeRates } from "@/lib/exchangerate";
@@ -48,19 +48,9 @@ export async function GET(req: NextRequest) {
     const btcFmt    = formatPrice(bitcoin.price);
     const changePct = gold.changePercent.toFixed(2);
     const dir       = gold.changePercent >= 0 ? "up" : "down";
-
-    // Build country rows for today's rotation group
     const countryRows = buildCardCountryRows(rates, gold.price, gold.changePercent);
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const msg = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 900,
-      system: SYSTEM_PROMPT,
-      messages: [{
-        role: "user",
-        content: `اليوم: ${today}
+    const raw = await chat(SYSTEM_PROMPT, `اليوم: ${today}
 الذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)
 الفضة: $${silverFmt} | بيتكوين: $${btcFmt}
 الدول المميزة اليوم: ${countryRows.map(r => `${r.name} ${r.price} ${r.currency}`).join(" · ")}
@@ -72,11 +62,8 @@ export async function GET(req: NextRequest) {
   "telegram": "منشور تيليجرام 80-130 كلمة: موجز السوق الصباحي، استخدم <b>للأرقام المهمة</b>",
   "x": "تغريدة X بحد أقصى 260 حرفاً: رقم بارز + سبب + هاشتاق واحد فقط. بدون رابط.",
   "linkedin": "منشور LinkedIn احترافي 120-180 كلمة: افتتاحية قوية + سياق اقتصادي + درس للمستثمر العربي + رابط sardhahab.com. أسلوب هادئ ومحترف."
-}`,
-      }],
-    });
+}`, 900);
 
-    const raw = (msg.content[0] as { text: string }).text.trim();
     let posts: SocialPosts;
     try {
       const jsonStr = raw.match(/\{[\s\S]*\}/)?.[0] ?? raw;
@@ -93,19 +80,13 @@ export async function GET(req: NextRequest) {
       silver: silverFmt, btc: btcFmt,
     });
 
-    // Breaking tweet
     let breakingXPost: string | null = null;
     if (isBreaking) {
-      const breakMsg = await anthropic.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 300,
-        system: SYSTEM_PROMPT,
-        messages: [{
-          role: "user",
-          content: `اليوم: ${today}\nالذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)\n\nاكتب تغريدة عاجلة بحد أقصى 240 حرفاً تُخبر المتابعين بالحركة القوية في الذهب. ابدأ بـ 🚨. هاشتاق واحد فقط. بدون رابط.`,
-        }],
-      });
-      breakingXPost = (breakMsg.content[0] as { text: string }).text.trim();
+      breakingXPost = await chat(
+        SYSTEM_PROMPT,
+        `اليوم: ${today}\nالذهب: $${goldFmt} (${gold.changePercent >= 0 ? "+" : ""}${changePct}%)\n\nاكتب تغريدة عاجلة بحد أقصى 240 حرفاً تُخبر المتابعين بالحركة القوية في الذهب. ابدأ بـ 🚨. هاشتاق واحد فقط. بدون رابط.`,
+        300,
+      );
     }
 
     const telegramMsg =
@@ -125,20 +106,12 @@ export async function GET(req: NextRequest) {
 
     const [, fbRes, igRes, xRes, breakXRes] = await Promise.allSettled(tasks);
 
-    // Notify owner with post links
-    if (fbRes.status === "fulfilled") {
-      await notifyPostPublished("Facebook", String(fbRes.value), isBreaking ? "breaking" : "morning");
-    }
-    if (igRes.status === "fulfilled") {
-      await notifyPostPublished("Instagram", String(igRes.value), isBreaking ? "breaking" : "morning");
-    }
-    if (xRes.status === "fulfilled") {
-      await notifyPostPublished("X", (xRes.value as { id: string }).id, isBreaking ? "breaking" : "morning");
-    }
+    if (fbRes.status === "fulfilled") await notifyPostPublished("Facebook", String(fbRes.value), isBreaking ? "breaking" : "morning");
+    if (igRes.status === "fulfilled") await notifyPostPublished("Instagram", String(igRes.value), isBreaking ? "breaking" : "morning");
+    if (xRes.status  === "fulfilled") await notifyPostPublished("X", (xRes.value as { id: string }).id, isBreaking ? "breaking" : "morning");
 
     return NextResponse.json({
-      ok: true, breaking: isBreaking,
-      cardUrl,
+      ok: true, breaking: isBreaking, cardUrl,
       countryGroup: countryRows.map(r => r.name).join(" · "),
       fb: fbRes.status === "fulfilled" ? fbRes.value : String((fbRes as PromiseRejectedResult).reason),
       ig: igRes.status === "fulfilled" ? igRes.value : String((igRes as PromiseRejectedResult).reason),
