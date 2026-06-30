@@ -136,7 +136,6 @@ function MorningCard({ gold, change, dir, rows }: {
           border: `1px solid ${isUp ? "rgba(34,197,94,0.28)" : "rgba(239,68,68,0.28)"}`,
           borderRadius: 30, color: changeColor, fontSize: 22, fontWeight: 700,
         }}>
-          <span style={{ display: "flex" }}>{isUp ? "▲" : "▼"}</span>
           <span style={{ display: "flex" }}>{isUp ? `+${absChange}%` : `-${absChange}%`}</span>
           <span style={{ display: "flex" }}>اليوم</span>
         </div>
@@ -201,7 +200,6 @@ function MorningCard({ gold, change, dir, rows }: {
               color: r.up ? "#4ade80" : "#f87171",
               fontSize: 16, fontWeight: 700,
             }}>
-              <span style={{ display: "flex" }}>{r.up ? "▲" : "▼"}</span>
               <span style={{ display: "flex" }}>{r.chg}</span>
             </div>
           </div>
@@ -287,7 +285,7 @@ export async function GET(req: NextRequest) {
             color: "#f87171", fontSize: 26, fontWeight: 700, display: "flex",
           }}>🚨 خبر عاجل</div>
           <div style={{ color: changeColor, fontSize: 120, fontWeight: 900, lineHeight: 1, marginTop: 14, display: "flex" }}>
-            {isUp ? "▲" : "▼"} {absChange}%
+            {isUp ? "+" : "-"}{absChange}%
           </div>
           <div style={{ color: GOLD, fontSize: 82, fontWeight: 900, marginTop: 6, display: "flex" }}>
             ${gold}
