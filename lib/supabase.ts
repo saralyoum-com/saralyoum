@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS content_plan (
   x_tweet TEXT,
   card_image_url TEXT,
   card_image_url_fb TEXT,
+  market_up BOOLEAN,
   notes TEXT,
   design_notes TEXT,
   edited BOOLEAN DEFAULT false,
