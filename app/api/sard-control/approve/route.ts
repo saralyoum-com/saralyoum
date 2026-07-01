@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
     update.status = body.status as ApproveUpdate["status"];
   }
-  for (const field of ["notes", "ig_caption", "fb_post", "x_tweet"] as const) {
+  for (const field of ["notes", "design_notes", "ig_caption", "fb_post", "x_tweet"] as const) {
     if (body[field] !== undefined) {
       if (typeof body[field] !== "string") {
         return NextResponse.json({ error: `invalid ${field}` }, { status: 400 });

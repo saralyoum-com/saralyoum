@@ -10,9 +10,16 @@ interface ContentPlanRow {
   id: string; post_date: string; slot: Slot; status: PlanStatus;
   template_ig: string | null; template_fb: string | null; topic: string | null;
   countries: CountryRow[] | null; ig_caption: string | null; fb_post: string | null; x_tweet: string | null;
-  card_image_url: string | null; notes: string | null; edited: boolean;
+  card_image_url: string | null; card_image_url_fb: string | null;
+  notes: string | null; design_notes: string | null; edited: boolean;
   approved_at: string | null; published_at: string | null; post_ids: Record<string, string> | null; created_at: string;
 }
+
+const PLATFORMS = [
+  { field: "ig_caption" as const, label: "إنستغرام", icon: "📸", image: "ig" as const, rows: 3 },
+  { field: "fb_post" as const, label: "فيسبوك", icon: "📘", image: "fb" as const, rows: 4 },
+  { field: "x_tweet" as const, label: "X", icon: "✕", image: "fb" as const, rows: 2 },
+];
 
 const SLOT_ORDER: Slot[] = ["morning", "educational", "engagement"];
 const SLOT_META: Record<Slot, { label: string; time: string; icon: string; color: string; aspect: string }> = {
@@ -43,8 +50,11 @@ export default function SardControlPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [flash, setFlash] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
-  const [drafts, setDrafts] = useState<Record<string, Partial<Record<"ig_caption" | "fb_post" | "x_tweet" | "notes", string>>>>({});
+  const [drafts, setDrafts] = useState<Record<string, Partial<Record<"ig_caption" | "fb_post" | "x_tweet" | "notes" | "design_notes", string>>>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [dayNote, setDayNote] = useState("");
+  const [applyingDayNote, setApplyingDayNote] = useState(false);
 
   const checkAuth = useCallback(async () => {
     const res = await fetch(`/api/sard-control/plan?month=${fmtMonth(year, month)}`);
@@ -62,6 +72,7 @@ export default function SardControlPage() {
   }, [year, month]);
 
   useEffect(() => { loadPlan(); }, [loadPlan]);
+  useEffect(() => { setDayNote(""); }, [selected]);
 
   const byDate = useMemo(() => {
     const m = new Map<string, ContentPlanRow[]>();
@@ -89,7 +100,7 @@ export default function SardControlPage() {
   };
 
   const draftOf = (id: string) => drafts[id] ?? {};
-  const setField = (id: string, key: "ig_caption" | "fb_post" | "x_tweet" | "notes", value: string) =>
+  const setField = (id: string, key: "ig_caption" | "fb_post" | "x_tweet" | "notes" | "design_notes", value: string) =>
     setDrafts((d) => ({ ...d, [id]: { ...d[id], [key]: value } }));
 
   const save = async (row: ContentPlanRow, status?: PlanStatus) => {
@@ -113,6 +124,32 @@ export default function SardControlPage() {
       }
     } finally {
       setSaving(null);
+      setTimeout(() => setFlash(null), 2500);
+    }
+  };
+
+  const applyDayNoteToAll = async () => {
+    if (!selected || !dayNote.trim()) return;
+    const dayRows = (byDate.get(selected) ?? []).filter((r) => r.status !== "published");
+    if (dayRows.length === 0) return;
+    setApplyingDayNote(true);
+    try {
+      const results = await Promise.all(
+        dayRows.map((r) =>
+          fetch("/api/sard-control/approve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: r.id, notes: dayNote }),
+          }).then((res) => res.json())
+        )
+      );
+      setRows((rs) => rs.map((r) => results.find((res) => res.row?.id === r.id)?.row ?? r));
+      setDayNote("");
+      setFlash({ type: "ok", msg: `تم تطبيق الملاحظة على ${dayRows.length} منشورات ✅` });
+    } catch {
+      setFlash({ type: "err", msg: "فشل تطبيق الملاحظة — حاول مرة أخرى" });
+    } finally {
+      setApplyingDayNote(false);
       setTimeout(() => setFlash(null), 2500);
     }
   };
@@ -194,6 +231,24 @@ export default function SardControlPage() {
                 <div onClick={() => setSelected(null)} style={{ cursor: "pointer", color: "#666", fontSize: 20, lineHeight: 1 }}>×</div>
               </div>
 
+              <div style={{ padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(96,165,250,0.04)" }}>
+                <div style={{ fontSize: 11, color: "#60a5fa", fontWeight: 600, marginBottom: 6 }}>💬 ملاحظة عامة — تُطبَّق على منشورات اليوم الثلاثة دفعة واحدة</div>
+                <textarea
+                  rows={2}
+                  placeholder="مثال: كل منشورات اليوم — اجعل النبرة أكثر حماسة..."
+                  value={dayNote}
+                  onChange={(e) => setDayNote(e.target.value)}
+                  style={{ ...textarea, borderColor: "rgba(96,165,250,0.3)", marginBottom: 6 }}
+                />
+                <button
+                  disabled={applyingDayNote || !dayNote.trim()}
+                  onClick={applyDayNoteToAll}
+                  style={{ ...btn, background: "#60a5fa", color: "#04101f", opacity: applyingDayNote || !dayNote.trim() ? 0.5 : 1 }}
+                >
+                  {applyingDayNote ? "..." : "تطبيق على الثلاثة"}
+                </button>
+              </div>
+
               {SLOT_ORDER.map((slot) => {
                 const row = (byDate.get(selected) ?? []).find((r) => r.slot === slot);
                 const meta = SLOT_META[slot];
@@ -228,61 +283,84 @@ export default function SardControlPage() {
 
                 return (
                   <div key={row.id} style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div style={{ display: "flex", gap: 14 }}>
-                      <div style={{ width: 66, aspectRatio: meta.aspect, background: "#050505", borderRadius: 8, flexShrink: 0, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        {row.card_image_url
-                          ? <img src={row.card_image_url} alt={meta.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, opacity: 0.3 }}>{meta.icon}</div>}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 12, color: meta.color, fontWeight: 600 }}>{meta.icon} {meta.label} — {meta.time}</span>
-                          <span style={{ background: sm.bg, color: sm.fg, borderRadius: 12, padding: "2px 10px", fontSize: 11 }}>{sm.label}</span>
-                          {row.edited && <span style={{ fontSize: 11, color: "#777" }}>· معدَّل يدوياً</span>}
-                        </div>
-                        {row.topic && <div style={{ fontSize: 13, fontWeight: 600, color: "#ddd", marginBottom: 6 }}>{row.topic}</div>}
-                        {countriesLine && (
-                          <div style={{ fontSize: 11.5, color: "#999", marginBottom: 6 }}>{countriesLine}</div>
-                        )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, color: meta.color, fontWeight: 600 }}>{meta.icon} {meta.label} — {meta.time}</span>
+                      <span style={{ background: sm.bg, color: sm.fg, borderRadius: 12, padding: "2px 10px", fontSize: 11 }}>{sm.label}</span>
+                      {row.edited && <span style={{ fontSize: 11, color: "#777" }}>· معدَّل يدوياً</span>}
+                    </div>
+                    {row.topic && <div style={{ fontSize: 13, fontWeight: 600, color: "#ddd", marginBottom: 6 }}>{row.topic}</div>}
+                    {countriesLine && (
+                      <div style={{ fontSize: 11.5, color: "#999", marginBottom: 10 }}>{countriesLine}</div>
+                    )}
 
-                        <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
-                          {([["ig_caption", "IG"], ["fb_post", "FB"], ["x_tweet", "X"]] as const).map(([field, label]) => (
-                            <div key={field}>
-                              <div style={{ fontSize: 10.5, color: "#555", marginBottom: 2 }}>{label}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 10 }}>
+                      {PLATFORMS.map((p) => {
+                        const imgUrl = p.image === "ig" ? row.card_image_url : row.card_image_url_fb;
+                        const imgAspect = p.image === "ig" ? meta.aspect : "1200 / 628";
+                        return (
+                          <div key={p.field} style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, overflow: "hidden" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 11.5, fontWeight: 600, color: "#ccc" }}>
+                              <span>{p.icon}</span><span>{p.label}</span>
+                            </div>
+                            <div style={{ display: "flex", gap: 8, padding: "8px 10px" }}>
+                              <div
+                                onClick={() => imgUrl && setLightboxUrl(imgUrl)}
+                                style={{ width: 46, aspectRatio: imgAspect, background: "#050505", borderRadius: 5, flexShrink: 0, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", cursor: imgUrl ? "zoom-in" : "default" }}
+                              >
+                                {imgUrl
+                                  ? <img src={imgUrl} alt={p.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, opacity: 0.3 }}>{meta.icon}</div>}
+                              </div>
                               <textarea
-                                rows={field === "fb_post" ? 3 : 2}
-                                value={d[field] ?? row[field] ?? ""}
-                                onChange={(e) => setField(row.id, field, e.target.value)}
+                                rows={p.rows}
+                                value={d[p.field] ?? row[p.field] ?? ""}
+                                onChange={(e) => setField(row.id, p.field, e.target.value)}
                                 disabled={row.status === "published"}
-                                style={textarea}
+                                style={{ ...textarea, flex: 1, minWidth: 0, fontSize: 11.5 }}
                               />
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        );
+                      })}
+                    </div>
 
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 10.5, color: "#888", marginBottom: 3 }}>📝 ملاحظة على المحتوى</div>
                         <textarea
-                          rows={1}
-                          placeholder="ملاحظة (اختياري) — مثال: اجعل السؤال أقوى، غيّر الصورة..."
+                          rows={2}
+                          placeholder="مثال: اجعل السؤال أقوى، غيّر الرقم..."
                           value={d.notes ?? row.notes ?? ""}
                           onChange={(e) => setField(row.id, "notes", e.target.value)}
                           disabled={row.status === "published"}
-                          style={{ ...textarea, marginBottom: 8, color: "#aaa" }}
+                          style={{ ...textarea, color: "#aaa" }}
                         />
-
-                        {row.status !== "published" && (
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button disabled={saving === row.id} onClick={() => save(row, "approved")} style={{ ...btn, background: "#22c55e", color: "#04140a", opacity: saving === row.id ? 0.6 : 1 }}>
-                              {saving === row.id ? "..." : "اعتماد"}
-                            </button>
-                            <button disabled={saving === row.id} onClick={() => save(row)} style={{ ...btn, background: "rgba(255,255,255,0.08)", color: "#ddd" }}>حفظ التعديل</button>
-                            <button disabled={saving === row.id} onClick={() => save(row, "skipped")} style={{ ...btn, background: "transparent", color: "#888", border: "1px solid rgba(255,255,255,0.12)" }}>تخطّي</button>
-                          </div>
-                        )}
-                        {row.status === "published" && row.post_ids && (
-                          <div style={{ fontSize: 11, color: "#555" }}>تم النشر على: {Object.keys(row.post_ids).join(" · ")}</div>
-                        )}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10.5, color: "#a78bfa", marginBottom: 3 }}>🎨 ملاحظة على التصميم</div>
+                        <textarea
+                          rows={2}
+                          placeholder="مثال: اللون فاتح جداً، كبّر الخط..."
+                          value={d.design_notes ?? row.design_notes ?? ""}
+                          onChange={(e) => setField(row.id, "design_notes", e.target.value)}
+                          disabled={row.status === "published"}
+                          style={{ ...textarea, borderColor: "rgba(167,139,250,0.3)", color: "#aaa" }}
+                        />
                       </div>
                     </div>
+
+                    {row.status !== "published" && (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button disabled={saving === row.id} onClick={() => save(row, "approved")} style={{ ...btn, background: "#22c55e", color: "#04140a", opacity: saving === row.id ? 0.6 : 1 }}>
+                          {saving === row.id ? "..." : "اعتماد"}
+                        </button>
+                        <button disabled={saving === row.id} onClick={() => save(row)} style={{ ...btn, background: "rgba(255,255,255,0.08)", color: "#ddd" }}>حفظ التعديل</button>
+                        <button disabled={saving === row.id} onClick={() => save(row, "skipped")} style={{ ...btn, background: "transparent", color: "#888", border: "1px solid rgba(255,255,255,0.12)" }}>تخطّي</button>
+                      </div>
+                    )}
+                    {row.status === "published" && row.post_ids && (
+                      <div style={{ fontSize: 11, color: "#555" }}>تم النشر على: {Object.keys(row.post_ids).join(" · ")}</div>
+                    )}
                   </div>
                 );
               })}
@@ -296,6 +374,21 @@ export default function SardControlPage() {
           <div style={{ textAlign: "center", marginTop: 32, color: "#2a2a2a", fontSize: 11 }}>sardhahab.com · SARD Control</div>
         </div>
       </div>
+
+      {lightboxUrl && (
+        <div
+          onClick={() => setLightboxUrl(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, cursor: "zoom-out" }}
+        >
+          <div onClick={() => setLightboxUrl(null)} style={{ position: "absolute", top: 20, left: 20, color: "#ccc", fontSize: 28, cursor: "pointer", lineHeight: 1 }}>×</div>
+          <img
+            src={lightboxUrl}
+            alt=""
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "min(90vw, 700px)", maxHeight: "88vh", borderRadius: 10, boxShadow: "0 20px 60px rgba(0,0,0,0.6)", cursor: "default" }}
+          />
+        </div>
+      )}
     </PinGate>
   );
 }

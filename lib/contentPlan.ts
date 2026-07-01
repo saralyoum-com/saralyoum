@@ -25,7 +25,9 @@ export interface ContentPlanRow {
   fb_post: string | null;
   x_tweet: string | null;
   card_image_url: string | null;
+  card_image_url_fb: string | null;
   notes: string | null;
+  design_notes: string | null;
   edited: boolean;
   approved_at: string | null;
   published_at: string | null;
@@ -55,6 +57,7 @@ export interface ApproveUpdate {
   id: string;
   status?: PlanStatus;
   notes?: string;
+  design_notes?: string;
   ig_caption?: string;
   fb_post?: string;
   x_tweet?: string;
