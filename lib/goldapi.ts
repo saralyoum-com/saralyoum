@@ -7,9 +7,13 @@ const YF_HEADERS = {
 
 async function fetchYahooFinance(symbol: string): Promise<{ price: number; prevClose: number; high: number; low: number } | null> {
   try {
+    // no-store: Next's Data Cache serves the last SUCCESSFUL response when a
+    // revalidation fails ("stale-while-error"), which froze the gold price at
+    // a day-old value on 2 Jul when GoldAPI's quota died. The /api/prices
+    // route's s-maxage=300 still shields these upstreams from real traffic.
     const res = await fetch(
       `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`,
-      { headers: YF_HEADERS, next: { revalidate: 300 } }
+      { headers: YF_HEADERS, cache: "no-store" }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -32,7 +36,7 @@ async function fetchGoldAPI(symbol: string): Promise<{ price: number; ch: number
     if (!key) return null;
     const res = await fetch(`https://www.goldapi.io/api/${symbol}/USD`, {
       headers: { "x-access-token": key },
-      next: { revalidate: 300 },
+      cache: "no-store", // see note in fetchYahooFinance — cached-200 freeze
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -47,6 +51,45 @@ async function fetchGoldAPI(symbol: string): Promise<{ price: number; ch: number
   } catch {
     return null;
   }
+}
+
+// Chainlink XAU/USD on-chain oracle — same feed /api/chainlink proxies. Free,
+// no quota, no datacenter-IP blocking; price only (no 24h change data), so it
+// sits between Yahoo and the mock in the fallback chain.
+const CHAINLINK_XAU = "0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6";
+const CHAINLINK_RPCS = [
+  "https://ethereum.publicnode.com",
+  "https://eth.drpc.org",
+  "https://1rpc.io/eth",
+  "https://cloudflare-eth.com",
+];
+
+async function fetchChainlinkGold(): Promise<number | null> {
+  const body = JSON.stringify({
+    jsonrpc: "2.0",
+    method: "eth_call",
+    params: [{ to: CHAINLINK_XAU, data: "0xfeaf968c" }, "latest"],
+    id: 1,
+  });
+  for (const rpc of CHAINLINK_RPCS) {
+    try {
+      const res = await fetch(rpc, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "User-Agent": "sardhahab.com/1.0" },
+        body,
+        signal: AbortSignal.timeout(7000),
+        cache: "no-store",
+      });
+      if (!res.ok) continue;
+      const json = await res.json();
+      if (!json.result || json.result === "0x") continue;
+      const price = Number(BigInt("0x" + json.result.slice(2).slice(64, 128))) / 1e8;
+      if (price > 0 && price < 100_000) return price;
+    } catch {
+      /* try next RPC */
+    }
+  }
+  return null;
 }
 
 export async function getGoldPrice(): Promise<PriceData> {
@@ -82,6 +125,24 @@ export async function getGoldPrice(): Promise<PriceData> {
       unit: "أوقية",
       high24h: yf.high,
       low24h: yf.low,
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
+  // Fallback 2: Chainlink on-chain oracle (price only — change unknowable here,
+  // report 0 rather than invent one)
+  const chainlink = await fetchChainlinkGold();
+  if (chainlink) {
+    return {
+      symbol: "XAU",
+      nameAr: "الذهب",
+      price: chainlink,
+      change: 0,
+      changePercent: 0,
+      currency: "USD",
+      unit: "أوقية",
+      high24h: chainlink * 1.005,
+      low24h: chainlink * 0.995,
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -132,27 +193,29 @@ export async function getSilverPrice(): Promise<PriceData> {
 
 // ── Mock fallback (realistic — update quarterly) ──────────────────────────────
 function getMockGoldPrice(): PriceData {
+  // Checked against Chainlink $4,079.59 / GC=F $4,089 on 2 Jul 2026
   return {
     symbol: "XAU",
     nameAr: "الذهب",
-    price: 4787.4,
-    change: -30.6,
-    changePercent: -0.63,
+    price: 4080.0,
+    change: 0,
+    changePercent: 0,
     currency: "USD",
     unit: "أوقية",
-    high24h: 4820.0,
-    low24h: 4752.7,
+    high24h: 4100.0,
+    low24h: 4060.0,
     lastUpdated: new Date().toISOString(),
   };
 }
 
 function getMockSilverPrice(): PriceData {
+  // Checked against SI=F $60.69 on 2 Jul 2026
   return {
     symbol: "XAG",
     nameAr: "الفضة",
-    price: 76.48,
-    change: -0.82,
-    changePercent: -1.06,
+    price: 60.7,
+    change: 0,
+    changePercent: 0,
     currency: "USD",
     unit: "أوقية",
     lastUpdated: new Date().toISOString(),
