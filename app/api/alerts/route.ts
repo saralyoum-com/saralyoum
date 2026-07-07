@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { EMAIL_FROM } from "@/lib/email";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
@@ -104,13 +105,13 @@ export async function POST(req: NextRequest) {
         };
 
         const result = await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+          from: EMAIL_FROM,
           to: email,
           subject: `✅ تم تسجيل تنبيهك — سعر الذهب`,
           html: `
             <div dir="rtl" style="font-family:Helvetica,Arial,sans-serif;background:#0D0D0D;color:#F5F5F5;padding:32px;border-radius:16px;max-width:520px;margin:0 auto">
               <div style="text-align:center;margin-bottom:24px">
-                <img src="https://sardhahab.com/logo.png" alt="سعر الذهب — SARD" width="80" height="80" style="border-radius:50%;margin-bottom:8px" />
+                <img src="https://sardhahab.com/logo-coin.png" alt="سعر الذهب — SARD" width="80" height="80" style="border-radius:50%;margin-bottom:8px" />
                 <p style="color:#777;font-size:13px;margin:0"><a href="https://sardhahab.com" style="color:#C9A84C;text-decoration:none">sardhahab.com</a></p>
               </div>
               <div style="background:#1A1A1A;border:1px solid #2A2A2A;border-radius:12px;padding:20px;margin-bottom:20px">

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const { getGoldPrice, getSilverPrice } = await import("@/lib/goldapi");
     const { getCryptoPrice } = await import("@/lib/coingecko");
     const { sendPushToAll } = await import("@/lib/onesignal");
+    const { EMAIL_FROM } = await import("@/lib/email");
     const { Resend } = await import("resend");
 
     const supabase = createServiceClient();
@@ -72,12 +73,12 @@ export async function GET(req: NextRequest) {
 
       try {
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+          from: EMAIL_FROM,
           to: alert.email,
           subject: `تنبيه سعر ${assetNames[alert.asset]} — سعر الذهب`,
           html: `
             <div dir="rtl" style="font-family: Arial; background: #0D0D0D; color: #F5F5F5; padding: 30px; border-radius: 12px; max-width: 500px; margin: 0 auto;">
-              <img src="https://sardhahab.com/logo.png" alt="سعر الذهب — SARD" width="64" height="64" style="border-radius:50%" />
+              <img src="https://sardhahab.com/logo-coin.png" alt="سعر الذهب — SARD" width="64" height="64" style="border-radius:50%" />
               <p style="color: #A0A0A0; font-size: 13px; margin-top: 8px;"><a href="https://sardhahab.com" style="color:#C9A84C;text-decoration:none">sardhahab.com</a></p>
 
               <div style="background: #1A1A1A; border-radius: 12px; padding: 20px; margin: 20px 0;">
@@ -116,11 +117,17 @@ export async function GET(req: NextRequest) {
     }
 
     // إرسال تنبيه push يومي لجميع مشتركي المتصفح
+    // KAST referral line rides along Mon/Thu only — a dedicated ad push would
+    // be too intrusive for a 1-5x/day alert channel (see project scope notes).
     const goldChange = gold.changePercent ?? 0;
     const arrow = goldChange >= 0 ? "▲" : "▼";
+    const dayOfWeek = new Date().getUTCDay(); // 1 = Mon, 4 = Thu
+    const kastLine = [1, 4].includes(dayOfWeek)
+      ? " · 💳 عندك USDT؟ KAST يحوّلها لدولار فوراً"
+      : "";
     const pushResult = await sendPushToAll({
       headingAr: `سعر الذهب اليوم — ${arrow} ${Math.abs(goldChange).toFixed(1)}%`,
-      contentAr: `الذهب $${gold.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} للأوقية — اضغط للتفاصيل`,
+      contentAr: `الذهب $${gold.price.toLocaleString("en-US", { maximumFractionDigits: 0 })} للأوقية — اضغط للتفاصيل${kastLine}`,
       url: "https://sardhahab.com",
     });
 

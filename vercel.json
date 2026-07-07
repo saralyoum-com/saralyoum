@@ -21,8 +21,12 @@
       "schedule": "30 6 * * 1,3,5"
     },
     {
-      "path": "/api/cron/instagram/carousel",
-      "schedule": "30 9 * * 1,4"
+      "path": "/api/cron/reminder-inactive",
+      "schedule": "0 10 * * 0"
+    },
+    {
+      "path": "/api/cron/reminder-zakat",
+      "schedule": "0 7 * * *"
     }
   ]
 }

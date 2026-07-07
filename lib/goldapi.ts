@@ -191,6 +191,32 @@ export async function getSilverPrice(): Promise<PriceData> {
   return getMockSilverPrice();
 }
 
+// Average of the last 30 daily |% moves| for gold — the adaptive baseline
+// price-alert uses to decide what counts as "unusual" (vs. a flat threshold).
+// Cached 1h via Next's fetch cache so the every-30-min cron doesn't hit Yahoo
+// Finance on every run.
+export async function getGoldUsualDailyMovePct(): Promise<number | null> {
+  try {
+    const res = await fetch(
+      "https://query2.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1mo",
+      { headers: YF_HEADERS, next: { revalidate: 3600 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const closes: number[] = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close ?? [];
+    const valid = closes.filter((c) => typeof c === "number" && !isNaN(c));
+    if (valid.length < 5) return null;
+
+    const moves: number[] = [];
+    for (let i = 1; i < valid.length; i++) {
+      moves.push(Math.abs(valid[i] - valid[i - 1]) / valid[i - 1]);
+    }
+    return moves.reduce((a, b) => a + b, 0) / moves.length;
+  } catch {
+    return null;
+  }
+}
+
 // ── Mock fallback (realistic — update quarterly) ──────────────────────────────
 function getMockGoldPrice(): PriceData {
   // Checked against Chainlink $4,079.59 / GC=F $4,089 on 2 Jul 2026
