@@ -1,4 +1,4 @@
-const APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "";
+const APP_ID = (process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "").trim();
 const REST_KEY = (process.env.ONESIGNAL_REST_API_KEY || "").trim();
 const ICON_URL = "https://sardhahab.com/logo.png";
 
