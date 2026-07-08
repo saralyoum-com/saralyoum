@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PriceData, TechnicalSignal } from "@/types";
-import { formatPercent } from "@/lib/format";
 import { track } from "@/lib/analytics";
 import CurrencySymbol from "@/components/CurrencySymbol";
 
@@ -119,7 +118,7 @@ export default function PriceCard({
             isPositive ? "bg-rise/10 text-rise" : "bg-fall/10 text-fall"
           }`}
         >
-          {isPositive ? "▲" : "▼"} {formatPercent(Math.abs(data.changePercent))}
+          {isPositive ? "▲" : "▼"} {Math.abs(data.changePercent).toFixed(2)}%
         </div>
       </div>
 

@@ -1,7 +1,8 @@
 import PriceTicker from "@/components/PriceTicker";
 import Disclaimer from "@/components/Disclaimer";
 import PriceCardsClient from "@/components/PriceCardsClient";
-import { HomeHero, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
+import { HomeHero, HomeJumpChips, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
+import SinceLastVisit from "@/components/SinceLastVisit";
 import EngagementSection from "@/components/EngagementSection";
 import GoldSignalCard from "@/components/GoldSignalCard";
 import KastBanner from "@/components/KastBanner";
@@ -130,7 +131,14 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pt-12 pb-8">
         <HomeHero />
 
+        {/* منذ زيارتك الأخيرة */}
+        <SinceLastVisit goldPriceUSD={goldPriceUSD} />
+
+        {/* روابط تنقل سريعة */}
+        <HomeJumpChips />
+
         {/* بطاقات الأسعار مع كشف العملة */}
+        <div id="price-cards" className="scroll-mt-28" />
         <PriceCardsClient
           gold={gold}
           silver={silver}
@@ -155,6 +163,7 @@ export default async function HomePage() {
       />
 
       {/* محفظتي الذهبية */}
+      <div id="portfolio" className="scroll-mt-28" />
       <PortfolioTracker
         goldPriceUSD={goldPriceUSD}
         changePercent={goldChangePct}
@@ -164,6 +173,7 @@ export default async function HomePage() {
       <KastBanner />
 
       {/* قسم الرسوم البيانية */}
+      <div id="charts" className="scroll-mt-28" />
       <HomePriceChartsSection
         gold={{ price: gold?.price ?? 4787, changePercent: gold?.changePercent ?? 0 }}
         silver={{ price: silver?.price ?? 76.48, changePercent: silver?.changePercent ?? 0 }}
@@ -172,6 +182,7 @@ export default async function HomePage() {
       />
 
       {/* قسم الأخبار */}
+      <div id="news" className="scroll-mt-28" />
       <HomeNewsSection news={news} />
 
       {/* روابط الصفحات */}

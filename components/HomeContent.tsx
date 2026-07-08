@@ -10,6 +10,37 @@ import { track } from "@/lib/analytics";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
 
+// Sticky in-page jump chips — the mobile home page is very long; let users
+// teleport to the section they came for instead of scrolling ~9 screens.
+export function HomeJumpChips() {
+  const { lang } = useLang();
+  const isAr = lang === "ar";
+  const chips = [
+    { href: "#price-cards", ar: "الأسعار", en: "Prices" },
+    { href: "#portfolio", ar: "محفظتي", en: "Portfolio" },
+    { href: "#charts", ar: "الرسوم", en: "Charts" },
+    { href: "#news", ar: "الأخبار", en: "News" },
+  ];
+  return (
+    <div
+      dir={isAr ? "rtl" : "ltr"}
+      className="sticky top-[64px] z-30 -mx-4 px-4 py-2 bg-background/85 backdrop-blur border-b border-border/50 overflow-x-auto"
+    >
+      <div className="flex gap-2 w-max mx-auto">
+        {chips.map((c) => (
+          <a
+            key={c.href}
+            href={c.href}
+            className="whitespace-nowrap text-xs sm:text-sm text-text-secondary hover:text-gold bg-surface border border-border hover:border-gold/40 rounded-full px-3.5 py-1.5 transition-colors"
+          >
+            {isAr ? c.ar : c.en}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function HomeHero() {
   const { lang, t } = useLang();
 
