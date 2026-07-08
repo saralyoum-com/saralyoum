@@ -40,6 +40,7 @@ const OTHER_SLUGS: Record<string, string> = {
   "سعر-البيتكوين":   "/bitcoin-price",
   "سعر-الاثيريوم":   "/ethereum-price",
   "اسعار":           "/prices",
+  "تحليل-تقني-الذهب": "/gold-analysis",
 };
 
 // ASCII internal routes → Arabic canonical (301 redirect for SEO)
@@ -48,6 +49,7 @@ const ASCII_REDIRECTS: Record<string, string> = {
   "/bitcoin-price":  "/سعر-البيتكوين",
   "/ethereum-price": "/سعر-الاثيريوم",
   "/prices":         "/اسعار",
+  "/gold-analysis":  "/تحليل-تقني-الذهب",
 };
 
 export function middleware(request: NextRequest) {
