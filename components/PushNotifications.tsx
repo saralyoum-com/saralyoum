@@ -55,6 +55,47 @@ export function OneSignalInit() {
   return null;
 }
 
+type OneSignalSDK = {
+  Notifications: { requestPermission: () => Promise<void>; permission: boolean };
+  User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } };
+};
+
+// Shared subscribe flow — used by the full alerts-page button and the compact
+// bell on the gold price card. Resolves true/false once the flow settles (or
+// times out); never throws.
+export function subscribeToPush(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(false), 8000);
+
+    const doSubscribe = async (OS: OneSignalSDK) => {
+      try {
+        await OS.Notifications.requestPermission();
+        if (OS.Notifications.permission) {
+          await OS.User.PushSubscription.optIn();
+        }
+        clearTimeout(timeout);
+        resolve(OS.User.PushSubscription.optedIn);
+      } catch {
+        clearTimeout(timeout);
+        resolve(false);
+      }
+    };
+
+    if (window.OneSignal) {
+      doSubscribe(window.OneSignal);
+    } else if (window.OneSignalDeferred) {
+      window.OneSignalDeferred.push(doSubscribe);
+    } else {
+      clearTimeout(timeout);
+      resolve(false);
+    }
+  });
+}
+
+export function isSubscribedToPush(): boolean {
+  return !!window.OneSignal?.User?.PushSubscription?.optedIn;
+}
+
 export function PushSubscribeButton() {
   const { lang } = useLang();
   const [subscribed, setSubscribed] = useState(false);
@@ -64,36 +105,9 @@ export function PushSubscribeButton() {
 
   const handleSubscribe = async () => {
     setLoading(true);
-    const timeout = setTimeout(() => setLoading(false), 8000);
-
-    const doSubscribe = async (OS: {
-      Notifications: { requestPermission: () => Promise<void>; permission: boolean };
-      User: { PushSubscription: { optIn: () => Promise<void>; optedIn: boolean } };
-    }) => {
-      await OS.Notifications.requestPermission();
-      if (OS.Notifications.permission) {
-        await OS.User.PushSubscription.optIn();
-      }
-      setSubscribed(OS.User.PushSubscription.optedIn);
-      clearTimeout(timeout);
-      setLoading(false);
-    };
-
-    try {
-      // If SDK already initialized, window.OneSignal is live — use it directly
-      if (window.OneSignal) {
-        await doSubscribe(window.OneSignal);
-      } else if (window.OneSignalDeferred) {
-        // SDK not yet initialized — queue the callback
-        window.OneSignalDeferred.push(doSubscribe);
-      } else {
-        clearTimeout(timeout);
-        setLoading(false);
-      }
-    } catch {
-      clearTimeout(timeout);
-      setLoading(false);
-    }
+    const ok = await subscribeToPush();
+    setSubscribed(ok);
+    setLoading(false);
   };
 
   if (subscribed) {

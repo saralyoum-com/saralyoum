@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PriceData, TechnicalSignal } from "@/types";
 import { track } from "@/lib/analytics";
 import CurrencySymbol from "@/components/CurrencySymbol";
+import { subscribeToPush } from "@/components/PushNotifications";
 
 interface Props {
   data: PriceData;
@@ -55,8 +56,17 @@ export default function PriceCard({
   lang = "ar",
 }: Props) {
   const [showKarats, setShowKarats] = useState(false);
+  const [pushState, setPushState] = useState<"idle" | "loading" | "subscribed">("idle");
   const isPositive = data.changePercent >= 0;
   const isGold = data.symbol === "XAU";
+
+  async function handleBellClick() {
+    if (pushState !== "idle") return;
+    setPushState("loading");
+    track.quickLinkClick("price-card-bell");
+    const ok = await subscribeToPush();
+    setPushState(ok ? "subscribed" : "idle");
+  }
 
   const isBTC = data.symbol === "BTC";
   const usdPriceNum = isBTC
@@ -113,12 +123,30 @@ export default function PriceCard({
             <span className="text-text-secondary text-xs">{data.symbol}</span>
           </div>
         </div>
-        <div
-          className={`text-xs sm:text-sm font-bold px-2 py-1 rounded-lg ${
-            isPositive ? "bg-rise/10 text-rise" : "bg-fall/10 text-fall"
-          }`}
-        >
-          {isPositive ? "▲" : "▼"} {Math.abs(data.changePercent).toFixed(2)}%
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {isGold && (
+            <button
+              type="button"
+              onClick={handleBellClick}
+              disabled={pushState !== "idle"}
+              aria-label={lang === "ar" ? "نبهني عند تحرك السعر" : "Notify me on price moves"}
+              title={lang === "ar" ? "نبهني عند تحرك السعر" : "Notify me on price moves"}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm transition-colors shrink-0 ${
+                pushState === "subscribed"
+                  ? "bg-rise/10 text-rise"
+                  : "bg-surface-2 text-text-secondary hover:text-gold hover:bg-gold/10"
+              }`}
+            >
+              {pushState === "subscribed" ? "✅" : pushState === "loading" ? "…" : "🔔"}
+            </button>
+          )}
+          <div
+            className={`text-xs sm:text-sm font-bold px-2 py-1 rounded-lg ${
+              isPositive ? "bg-rise/10 text-rise" : "bg-fall/10 text-fall"
+            }`}
+          >
+            {isPositive ? "▲" : "▼"} {Math.abs(data.changePercent).toFixed(2)}%
+          </div>
         </div>
       </div>
 

@@ -9,6 +9,30 @@ import { NewsItem } from "@/types";
 import { formatDate } from "@/lib/format";
 import { track } from "@/lib/analytics";
 
+const PAGE_SIZE = 20;
+
+// "اليوم" / "أمس" / full date — groups the (already newest-first) feed into
+// day sections so the page reads as a timeline instead of ~60 identical cards.
+function dayLabel(iso: string, lang: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return lang === "ar" ? "أخبار" : "News";
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diffDays = Math.round((startOf(new Date()) - startOf(d)) / 86400000);
+  if (diffDays === 0) return lang === "ar" ? "اليوم" : "Today";
+  if (diffDays === 1) return lang === "ar" ? "أمس" : "Yesterday";
+  return d.toLocaleDateString(lang === "ar" ? "ar" : "en-US", { day: "numeric", month: "long" });
+}
+
+function faviconUrl(articleUrl: string): string | null {
+  try {
+    if (!articleUrl || articleUrl === "#") return null;
+    const host = new URL(articleUrl).hostname;
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=32`;
+  } catch {
+    return null;
+  }
+}
+
 export default function NewsPage() {
   const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
@@ -16,6 +40,7 @@ export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const AR_SOURCES = ["الكل", "BBC عربي", "الجزيرة", "أرقام", "مباشر", "رويترز عربي"];
   const EN_SOURCES = ["All", "Reuters", "Kitco", "Yahoo Finance", "MarketWatch"];
@@ -25,6 +50,10 @@ export default function NewsPage() {
   useEffect(() => {
     setFilter("all");
   }, [lang]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filter, lang]);
 
   useEffect(() => {
     async function load() {
@@ -47,10 +76,16 @@ export default function NewsPage() {
       ? news
       : news.filter((n) => n.source === filter);
 
-  // Split news into chunks of 6 for ads
-  const chunks: NewsItem[][] = [];
-  for (let i = 0; i < filtered.length; i += 6) {
-    chunks.push(filtered.slice(i, i + 6));
+  const itemsToShow = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  // Group the visible slice into day sections (feed is already newest-first)
+  const groups: { label: string; items: NewsItem[] }[] = [];
+  for (const item of itemsToShow) {
+    const label = dayLabel(item.publishedAt, lang);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.items.push(item);
+    else groups.push({ label, items: [item] });
   }
 
   return (
@@ -105,53 +140,68 @@ export default function NewsPage() {
           </div>
         ) : filtered.length > 0 ? (
           <>
-            {chunks.map((chunk, chunkIdx) => (
-              <Fragment key={chunkIdx}>
+            {groups.map((group, groupIdx) => (
+              <Fragment key={group.label + groupIdx}>
+                <h2 className="text-text-secondary text-sm font-bold mb-3 mt-2">{group.label}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {chunk.map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target={item.url.startsWith("http") ? "_blank" : undefined}
-                      rel="noopener noreferrer"
-                      onClick={() => track.newsArticleClick(item.source, item.title)}
-                      className="bg-surface border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/30 transition-all group flex flex-col"
-                    >
-                      {item.imageUrl && (
-                        <div className="mb-3 rounded-xl overflow-hidden h-40 bg-surface-2 relative">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
+                  {group.items.map((item) => {
+                    const favicon = faviconUrl(item.url);
+                    return (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target={item.url.startsWith("http") ? "_blank" : undefined}
+                        rel="noopener noreferrer"
+                        onClick={() => track.newsArticleClick(item.source, item.title)}
+                        className="bg-surface border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/30 transition-all group flex flex-col"
+                      >
+                        {item.imageUrl && (
+                          <div className="mb-3 rounded-xl overflow-hidden h-40 bg-surface-2 relative">
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.title}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mb-3">
+                          {favicon && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={favicon}
+                              alt=""
+                              width={14}
+                              height={14}
+                              className="rounded-sm shrink-0"
+                              onError={(e) => { e.currentTarget.style.display = "none"; }}
+                            />
+                          )}
+                          <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full font-medium">
+                            {item.source}
+                          </span>
+                          <span className="text-text-secondary text-xs">
+                            {formatDate(item.publishedAt)}
+                          </span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full font-medium">
-                          {item.source}
-                        </span>
-                        <span className="text-text-secondary text-xs">
-                          {formatDate(item.publishedAt)}
-                        </span>
-                      </div>
-                      <h3 className="text-text-primary font-bold text-sm leading-relaxed group-hover:text-gold transition-colors mb-2 line-clamp-2 flex-1">
-                        {item.title}
-                      </h3>
-                      {item.description && (
-                        <p className="text-text-secondary text-xs leading-relaxed line-clamp-3">
-                          {item.description}
-                        </p>
-                      )}
-                      <div className="mt-3 text-gold text-xs font-medium group-hover:underline">
-                        {lang === "ar" ? "اقرأ المزيد ←" : "Read more →"}
-                      </div>
-                    </a>
-                  ))}
+                        <h3 className="text-text-primary font-bold text-sm leading-relaxed group-hover:text-gold transition-colors mb-2 line-clamp-2 flex-1">
+                          {item.title}
+                        </h3>
+                        {item.description && (
+                          <p className="text-text-secondary text-xs leading-relaxed line-clamp-3">
+                            {item.description}
+                          </p>
+                        )}
+                        <div className="mt-3 text-gold text-xs font-medium group-hover:underline">
+                          {lang === "ar" ? "اقرأ المزيد ←" : "Read more →"}
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
-                {/* Ad between every 6 news items (not after the last chunk) */}
-                {chunkIdx < chunks.length - 1 && (
+                {/* Ad after every 2 day groups */}
+                {groupIdx < groups.length - 1 && groupIdx % 2 === 1 && (
                   <div className="my-8">
                     <AdSlot size="leaderboard" slot="3456789014" />
                     <AdSlot size="mobile-banner" slot="3456789015" />
@@ -159,6 +209,16 @@ export default function NewsPage() {
                 )}
               </Fragment>
             ))}
+            {hasMore && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => { setVisibleCount((c) => c + PAGE_SIZE); track.quickLinkClick("news-load-more"); }}
+                  className="px-6 py-2.5 rounded-xl bg-surface border border-border hover:border-gold/40 text-text-secondary hover:text-gold font-medium text-sm transition-colors"
+                >
+                  {lang === "ar" ? "عرض المزيد" : "Load more"}
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-16 text-text-secondary">

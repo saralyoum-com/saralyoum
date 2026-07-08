@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import GoldTradingTerminal from "@/components/GoldTradingTerminal";
+import GoldPredictionPoll from "@/components/GoldPredictionPoll";
 import { useLang } from "@/components/LanguageContext";
 
 // ASCII route for the Arabic URL /تحليل-تقني-الذهب (mapped in middleware
@@ -66,6 +67,11 @@ export default function TechnicalAnalysisPage() {
 
       {/* Main trading terminal */}
       <GoldTradingTerminal />
+
+      {/* Audience prediction poll */}
+      <section className="mt-8 mb-8">
+        <GoldPredictionPoll />
+      </section>
 
       {/* Other assets */}
       <section className="mt-10 mb-8">

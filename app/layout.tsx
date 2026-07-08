@@ -8,6 +8,7 @@ import { AdSenseScript } from "@/components/AdSense";
 import { LocationProvider } from "@/components/LocalCurrency";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { OneSignalInit } from "@/components/PushNotifications";
+import RscHeaderFix from "@/components/RscHeaderFix";
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
@@ -236,6 +237,7 @@ export default function RootLayout({
           <Footer />
         </LanguageProvider>
       </body>
+      <RscHeaderFix />
       <OneSignalInit />
       <GoogleAnalytics gaId="G-2EFBVGR83R" />
       <AdSenseScript />

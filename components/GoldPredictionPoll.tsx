@@ -90,6 +90,29 @@ function weekKey() {
 function ls(k: string) { try { return localStorage.getItem(k); } catch { return null; } }
 function lsSet(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* noop */ } }
 
+// Best-effort: tag the OneSignal subscriber (if any) with their daily-poll
+// vote + the gold price at vote time. The poll-result cron reads these tags
+// ~24h later to push "your prediction was right/wrong" — see
+// app/api/cron/poll-result/route.ts. Tagging never blocks voting; if OneSignal
+// isn't loaded or the user never granted push permission, this silently no-ops
+// (a tag with no reachable subscriber just never gets picked up by the cron).
+function tagPollVote(direction: "up" | "down", price: number) {
+  try {
+    const tags = {
+      poll_direction: direction,
+      poll_price: String(price),
+      poll_voted_at: String(Math.floor(Date.now() / 1000)),
+    };
+    const apply = (OS: { User: { addTags: (t: Record<string, string>) => void } }) => {
+      OS.User.addTags(tags);
+    };
+    if (window.OneSignal) apply(window.OneSignal);
+    else if (window.OneSignalDeferred) window.OneSignalDeferred.push(apply);
+  } catch {
+    /* noop */
+  }
+}
+
 /* ── animated target ── */
 function AnimatedTarget({ value }: { value: number }) {
   const v = useCountUp(value, 1200);
@@ -137,6 +160,11 @@ export default function GoldPredictionPoll() {
     lsSet(`pred_votes_${weekKey()}`, JSON.stringify(newVotes));
     lsSet("pred_results", JSON.stringify(newResults));
     track.quickLinkClick(`pred-${tab}-${v}`);
+
+    // Only "daily" has a clean ~24h resolution window for a follow-up push.
+    if (tab === "daily" && data?.current) {
+      tagPollVote(v, data.current);
+    }
   }
 
   const tabs: { id: Tab; ar: string; en: string }[] = [
