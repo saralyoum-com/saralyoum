@@ -20,16 +20,30 @@ body {
 
 /* شريط الأسعار المتحرك */
 @keyframes ticker {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .animate-ticker {
   animation: ticker 40s linear infinite;
+  /* translate3d + will-change promotes this to its own GPU compositor layer,
+     so it stays smooth even while other animations (KAST banner glow/pulse,
+     poll shimmer) are running elsewhere on the page — those use box-shadow/
+     background-position, which force full repaints and starve un-promoted
+     transform animations of frame budget on mobile GPUs. */
+  will-change: transform;
 }
 
 .animate-ticker:hover {
   animation-play-state: paused;
+}
+
+/* Same distance, less time on narrow screens — a 40s loop reads as sluggish
+   on a phone-width viewport where much less of the strip is visible at once. */
+@media (max-width: 640px) {
+  .animate-ticker {
+    animation-duration: 18s;
+  }
 }
 
 /* تخصيص scrollbar */
