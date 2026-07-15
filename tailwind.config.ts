@@ -28,6 +28,7 @@ const config: Config = {
         ticker: "ticker 40s linear infinite",
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.4s ease-out",
+        "glow-gold": "glowGold 2.5s ease-in-out infinite",
       },
       keyframes: {
         ticker: {
@@ -41,6 +42,10 @@ const config: Config = {
         slideUp: {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        glowGold: {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(201,168,76,0.45)" },
+          "50%": { boxShadow: "0 0 0 6px rgba(201,168,76,0)" },
         },
       },
     },

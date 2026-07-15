@@ -1,5 +1,9 @@
 /**
- * Google Analytics 4 – typed event tracking
+ * Unified analytics dispatcher (Move 1)
+ * One call → three destinations: GA4, Amplitude, and our own Supabase events
+ * table (via /api/collect). Call sites are unchanged — every existing track.*
+ * method now triple-writes automatically because trackEvent() fans out.
+ *
  * Usage: import { track } from "@/lib/analytics"
  *        track.navClick("Home")
  */
@@ -7,8 +11,13 @@
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
+    amplitude?: { track?: (event: string, props?: Record<string, unknown>) => void };
+    __gaClientId?: string;
+    __sardConsent?: boolean;
   }
 }
+
+const GA_ID = "G-2EFBVGR83R";
 
 type GaParams = {
   event_category?: string;
@@ -17,10 +26,88 @@ type GaParams = {
   [key: string]: unknown;
 };
 
+/**
+ * Consent gate. Defaults to allowed (first-party, PII-free collection). When a
+ * Consent Mode v2 banner is added for EEA/UK visitors, set window.__sardConsent
+ * = false before consent is granted to suppress the owned + Amplitude sinks.
+ * GA4 itself is governed separately by Google Consent Mode.
+ */
+function consentGranted(): boolean {
+  return typeof window === "undefined" ? false : window.__sardConsent !== false;
+}
+
+/** Cache the GA client_id so owned events reconcile with GA4 / Amplitude. */
+function getClientId(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  if (window.__gaClientId) return window.__gaClientId;
+  if (typeof window.gtag === "function") {
+    try {
+      window.gtag("get", GA_ID, "client_id", (id: string) => {
+        if (id) window.__gaClientId = id;
+      });
+    } catch {
+      /* gtag not ready yet — next call picks it up */
+    }
+  }
+  return window.__gaClientId;
+}
+
+/** Stable per-tab session id, used to stitch a visit's events together. */
+function getSessionId(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    let sid = sessionStorage.getItem("sard_sid");
+    if (!sid) {
+      sid = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      sessionStorage.setItem("sard_sid", sid);
+    }
+    return sid;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Sink 3: our own Supabase events table. Fire-and-forget, never throws. */
+function sendToOwned(event: string, params?: GaParams) {
+  if (typeof window === "undefined" || !consentGranted()) return;
+  try {
+    const payload = JSON.stringify({
+      event,
+      props: params ?? {},
+      client_id: getClientId() ?? null,
+      session_id: getSessionId() ?? null,
+      page_path: window.location?.pathname ?? null, // pathname only, no query string
+      lang: document?.documentElement?.lang || null,
+    });
+    // sendBeacon survives page unloads and dodges ad-blockers (first-party URL).
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/collect", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/collect", { method: "POST", body: payload, keepalive: true }).catch(() => {});
+    }
+  } catch {
+    /* analytics must never break UX */
+  }
+}
+
+/** Sink 2: Amplitude. No-op until the SDK is loaded (free-tier, added later). */
+function sendToAmplitude(event: string, params?: GaParams) {
+  if (typeof window === "undefined" || !consentGranted()) return;
+  try {
+    window.amplitude?.track?.(event, params as Record<string, unknown>);
+  } catch {
+    /* no-op */
+  }
+}
+
 export function trackEvent(action: string, params?: GaParams) {
+  // Sink 1: GA4 (unchanged behaviour).
   if (typeof window !== "undefined" && typeof window.gtag === "function") {
     window.gtag("event", action, params);
   }
+  // Sinks 2 + 3: fan out. Guarded + swallowed so they can never break sink 1.
+  sendToAmplitude(action, params);
+  sendToOwned(action, params);
 }
 
 export const track = {
@@ -105,4 +192,55 @@ export const track = {
       event_label: success ? "success" : "error",
       assets_selected: assets.join(","),
     }),
+
+  /* ── Phase-1 taxonomy: the funnel + retention events ───────────────────────
+     Named object_action, snake_case, typed. These are the events the Amplitude
+     funnels and cohorts in the growth plan are built on. All flow to GA4 +
+     Amplitude + Supabase automatically via trackEvent(). */
+
+  // Fire from the OneSignal permission-granted callback, NOT the button click,
+  // so it only counts real subscribers. The single most valuable site event.
+  pushSubscribeCompleted: (p: {
+    prompt_location: "pre_permission_card" | "price_card_bell" | "navbar" | "inline";
+    page_type: string;
+    country_code?: string;
+    sessions_before_subscribe?: number;
+  }) => trackEvent("push_subscribe_completed", { event_category: "Retention", ...p }),
+
+  // Fire when the pre-permission value card (Move 2) is shown / accepted / dismissed.
+  subscribePromptShown: (p: { prompt_location: string; page_type: string }) =>
+    trackEvent("subscribe_prompt_shown", { event_category: "Retention", ...p }),
+  subscribePromptResult: (p: { prompt_location: string; result: "accepted" | "dismissed" | "denied" }) =>
+    trackEvent("subscribe_prompt_result", { event_category: "Retention", ...p }),
+
+  // Debounce ~2s after the last calculator input change before firing.
+  calculatorUsed: (p: {
+    karat: number;
+    weight_grams: number;
+    currency: string;
+    result_value_band?: string;
+  }) => trackEvent("calculator_used", { event_category: "Engagement", ...p }),
+
+  // Fire on the 200 response from /api/alerts (also mirrored server-side).
+  priceAlertCreated: (p: {
+    asset: "gold" | "silver" | "bitcoin" | "ethereum";
+    alert_type: "daily" | "price";
+    target_delta_pct?: number;
+    user_currency?: string;
+  }) => trackEvent("price_alert_created", { event_category: "Activation", ...p }),
+
+  // Portfolio — the deepest retention hook.
+  portfolioAssetAdded: (p: {
+    asset: string;
+    portfolio_size_after: number;
+    is_first_asset: boolean;
+  }) => trackEvent("portfolio_asset_added", { event_category: "Retention", ...p }),
+
+  // Price table entering the viewport ≥5s — funnel step 2.
+  priceTableViewed: (p: { page_type: string; country_code?: string }) =>
+    trackEvent("price_table_viewed", { event_category: "Funnel", ...p }),
+
+  // Fire on the 200 response from /api/contact — the revenue pipeline.
+  partnershipLeadSubmitted: (p: { inquiry_type?: string; referrer_page?: string; lang: string }) =>
+    trackEvent("partnership_lead_submitted", { event_category: "Revenue", ...p }),
 };

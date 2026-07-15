@@ -9,6 +9,7 @@ import { useSetCurrency } from "@/components/LocalCurrency";
 import { track } from "@/lib/analytics";
 import KastBanner from "@/components/KastBanner";
 import GoldPriceTables from "@/components/GoldPriceTables";
+import PrePermissionCard from "@/components/PrePermissionCard";
 import type { GoldDay } from "@/lib/goldHistory";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
@@ -106,6 +107,14 @@ export default function CountryGoldPage({
         </div>
 
       </div>
+
+      {/* Pre-permission push card — shown from the 2nd price-page view */}
+      <PrePermissionCard
+        pageType="country_gold"
+        countryCode={code}
+        countryNameAr={nameAr}
+        countryNameEn={nameEn}
+      />
 
       {/* Comprehensive price tables: spot · buy/sell · مصنعية · سبائك · history */}
       <GoldPriceTables

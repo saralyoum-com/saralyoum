@@ -30,18 +30,22 @@ export function OneSignalInit() {
         appId: ONESIGNAL_APP_ID,
         safari_web_id: "",
         notifyButton: { enable: false },
+        // No auto slidedown: the PrePermissionCard is the only soft prompt.
+        // The old autoPrompt (1 pageview + 5s) fired the native permission
+        // dialog on cold visitors and drove instant denials — a denial is
+        // permanent per browser profile, so every early prompt burns a
+        // potential subscriber forever.
         promptOptions: {
           slidedown: {
             prompts: [
               {
                 type: "push",
-                autoPrompt: true,
+                autoPrompt: false,
                 text: {
                   actionMessage: "اشترك لتلقّي تنبيهات أسعار الذهب فوراً",
                   acceptButton: "اشترك",
                   cancelButton: "لاحقاً",
                 },
-                delay: { pageViews: 1, timeDelay: 5 },
               },
             ],
           },

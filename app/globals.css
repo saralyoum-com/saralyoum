@@ -109,6 +109,42 @@ body {
   }
 }
 
+/* Pre-permission card — traveling gold shimmer border (Move 2, Option B).
+   A bright streak runs around the card edge via a rotating conic gradient in
+   a ::before layer; the inner card sits on top leaving only a 1.5px rim
+   visible. Falls back to a static gold border when reduced motion is set. */
+.pp-shimmer {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.5px;
+  overflow: hidden;
+}
+.pp-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: -75%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 70deg,
+    #c9a84c 100deg,
+    #f5e3a8 115deg,
+    #c9a84c 130deg,
+    transparent 160deg 360deg
+  );
+  animation: ppSpinEdge 3.5s linear infinite;
+}
+.pp-shimmer-inner {
+  position: relative;
+  border-radius: 15px;
+}
+@keyframes ppSpinEdge {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-shimmer::before { animation: none; }
+  .animate-glow-gold { animation: none !important; }
+}
+
 /* RTL tweaks */
 [dir="rtl"] input,
 [dir="rtl"] select,

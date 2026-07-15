@@ -73,4 +73,30 @@ CREATE INDEX IF NOT EXISTS content_plan_status_idx ON content_plan(status);
 -- RLS on: only the service_role key (used server-side by the Next.js API routes
 -- and the Python cron) can read/write. No policies = anon key gets nothing.
 ALTER TABLE content_plan ENABLE ROW LEVEL SECURITY;
+
+-- جدول الأحداث — مصدر الحقيقة الذي نملكه (Move 1: unified analytics dispatcher)
+-- Every track.* call fans out to GA4 + Amplitude + this table via /api/collect.
+-- No PII: emails are SHA-256 hashed server-side before insert; no raw URLs with
+-- query strings. This is the one store that can JOIN user events to agent events.
+CREATE TABLE IF NOT EXISTS events (
+  id BIGSERIAL PRIMARY KEY,
+  event TEXT NOT NULL,
+  props JSONB,
+  client_id TEXT,          -- GA client_id, so rows reconcile with GA4/Amplitude
+  session_id TEXT,
+  page_path TEXT,          -- pathname only, never the query string
+  country_code TEXT,       -- from Vercel edge geo header, server-set
+  device TEXT,             -- 'mobile' | 'desktop', server-derived from UA
+  lang TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS events_event_idx ON events(event);
+CREATE INDEX IF NOT EXISTS events_created_idx ON events(created_at);
+CREATE INDEX IF NOT EXISTS events_client_idx ON events(client_id);
+
+-- RLS on: service_role only, same posture as content_plan. Raw events never
+-- reach the anon/client key. 13-month retention is enforced by a scheduled
+-- DELETE (see /api/cron or a Supabase cron) — keep this table lean.
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 `;
