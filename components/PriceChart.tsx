@@ -65,6 +65,23 @@ function formatPrice(p: number, asset: string): string {
   return `$${p.toFixed(2)}`;
 }
 
+// Pulsing "live" marker on the newest data point — same visual language as
+// trading apps. Pure CSS transform/opacity animation (compositor-friendly;
+// same perf constraint that bit the ticker on mobile).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function LiveEndDot(props: any) {
+  const { cx, cy, index, dataLength, fill } = props;
+  if (index !== dataLength - 1 || cx == null || cy == null) {
+    return <circle key={`d-${index}`} cx={cx} cy={cy} r={0} fill="none" />;
+  }
+  return (
+    <g key={`d-${index}`}>
+      <circle cx={cx} cy={cy} r={7} fill={fill} className="chart-live-ring" />
+      <circle cx={cx} cy={cy} r={3.5} fill={fill} />
+    </g>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload, asset }: any) {
   if (!active || !payload?.length) return null;
@@ -234,10 +251,11 @@ export default function PriceChart({ asset, currentPrice, changePercent }: Price
               stroke={color}
               strokeWidth={2}
               fill={`url(#grad-${asset})`}
-              dot={false}
+              dot={<LiveEndDot dataLength={chartData.length} fill={color} />}
               activeDot={{ r: 4, fill: color, strokeWidth: 0 }}
               isAnimationActive={true}
-              animationDuration={600}
+              animationDuration={1200}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>

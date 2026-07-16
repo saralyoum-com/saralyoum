@@ -46,6 +46,27 @@ body {
   }
 }
 
+/* نقطة "مباشر" النابضة في نهاية خط الرسم البياني */
+@keyframes chartLiveRing {
+  0%   { transform: scale(0.6); opacity: 0.6; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.chart-live-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chartLiveRing 2s ease-out infinite;
+}
+
+/* توهج أيقونات التواصل الاجتماعي في الفوتر */
+@keyframes socialGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+  50%      { box-shadow: 0 0 14px 2px rgba(201, 168, 76, 0.35); }
+}
+.social-glow {
+  animation: socialGlow 3s ease-in-out infinite;
+}
+
 /* تخصيص scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
