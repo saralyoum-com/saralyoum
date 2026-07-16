@@ -1,3 +1,4 @@
+import { getNewsData } from "@/lib/news";
 import PriceTicker from "@/components/PriceTicker";
 import Disclaimer from "@/components/Disclaimer";
 import PriceCardsClient from "@/components/PriceCardsClient";
@@ -41,17 +42,13 @@ export const metadata = {
 };
 
 async function getNews(): Promise<NewsItem[]> {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/news`, { next: { revalidate: 900 } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.news?.slice(0, 6) || [];
-  } catch {
-    return [];
-  }
+  // Direct in-process call — not a self-referential fetch("/api/news") over
+  // HTTP. That round-trip (via process.env.VERCEL_URL) was unreliable and
+  // left the home news section permanently stuck on "جاري تحميل الأخبار..."
+  // whenever it failed, since getNews() would silently return [] and the
+  // page had already finished server-rendering (no client-side retry).
+  const news = await getNewsData("ar");
+  return news.slice(0, 6);
 }
 
 export default async function HomePage() {

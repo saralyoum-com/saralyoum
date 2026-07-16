@@ -222,7 +222,7 @@ export function HomeNewsSection({ news }: { news: NewsItem[] }) {
         ) : (
           <div className="text-center py-12 text-text-secondary">
             <p className="text-4xl mb-3">📡</p>
-            <p>{lang === "ar" ? "جاري تحميل الأخبار..." : "Loading news..."}</p>
+            <p>{lang === "ar" ? "لا توجد أخبار متاحة حالياً" : "No news available right now"}</p>
             <Link href="/اخبار" className="text-gold text-sm mt-2 inline-block">
               {lang === "ar" ? "تصفح الأخبار" : "Browse News"}
             </Link>
