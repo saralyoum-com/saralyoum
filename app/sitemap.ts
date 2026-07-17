@@ -22,6 +22,9 @@ const pages = [
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D9%83%D9%8A%D9%81-%D8%AA%D8%B4%D8%AA%D8%B1%D9%8A-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",                     cf: "monthly" as const, p: 0.8 },
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%B3%D8%B9%D8%B1-%D8%A7%D9%84%D9%81%D8%B6%D8%A9-%D8%A7%D9%84%D9%8A%D9%88%D9%85",              cf: "daily"   as const, p: 0.8 },
   { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%AA%D8%A7%D8%B1%D9%8A%D8%AE-%D8%B3%D8%B9%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",              cf: "monthly" as const, p: 0.8 },
+  { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D9%83%D9%8A%D9%81-%D8%AA%D8%AD%D8%B3%D8%A8-%D8%B3%D8%B9%D8%B1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",  cf: "monthly" as const, p: 0.8 },
+  { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%B3%D8%B9%D8%B1-%D8%A8%D9%8A%D8%B9-%D9%88%D8%B4%D8%B1%D8%A7%D8%A1-%D8%A7%D9%84%D8%B0%D9%87%D8%A8", cf: "monthly" as const, p: 0.8 },
+  { path: "/%D9%85%D9%82%D8%A7%D9%84%D8%A7%D8%AA/%D8%B3%D8%A8%D8%A7%D8%A6%D9%83-%D8%A7%D9%84%D8%B0%D9%87%D8%A8",                                  cf: "monthly" as const, p: 0.8 },
   // Crypto Zakat calculator — canonical Arabic slug (mirrors pattern of all other pages)
   { path: "/%D8%B2%D9%83%D8%A7%D8%A9-%D8%A7%D9%84%D9%83%D8%B1%D9%8A%D8%A8%D8%AA%D9%88",                                                                   cf: "daily"   as const, p: 0.9 },
   // Crypto price pages
