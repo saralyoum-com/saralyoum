@@ -6,26 +6,27 @@ import { NewsItem } from "@/types";
 // left the home news section permanently stuck on "جاري تحميل الأخبار..."
 // whenever that internal HTTP round-trip failed).
 
-// filterEconomy: the Al Jazeera feed is general news (politics/sports leak
-// into the site's news sections) — keyword-gate it to finance/economy items.
-// BBC's feed is already the business section, no filter needed.
 const AR_RSS_SOURCES = [
-  { url: "https://feeds.bbci.co.uk/arabic/business/rss.xml", source: "BBC عربي", filterEconomy: false },
+  { url: "https://feeds.bbci.co.uk/arabic/business/rss.xml", source: "BBC عربي" },
   {
     url: "https://www.aljazeera.net/aljazeerarss/a3c32dff-a375-4b40-a519-59f122abcd38/5413f4a6-fe4e-4e37-bab8-e04e3e38a5f2",
     source: "الجزيرة",
-    filterEconomy: true,
   },
-  // Al Arabiya أسواق (markets) — dedicated finance feed; if it ever breaks,
-  // fetchRSS just contributes nothing
-  { url: "https://www.alarabiya.net/feed/rss2/ar/aswaq.xml", source: "العربية أسواق", filterEconomy: false },
+  // NOTE: Al Arabiya's aswaq feed was tried and rejected — their CDN returns
+  // 403 to non-browser fetchers. Don't re-add without verifying it serves XML
+  // to a plain fetch.
 ];
 
+// Every Arabic feed above leaks general news (BBC's "business" URL included —
+// verified in production: World Cup / politics items came through it), so ALL
+// Arabic items are gated on an economy keyword in the TITLE. Title-only on
+// purpose: descriptions produce false positives (e.g. sports prize money
+// "بملايين الدولارات" matching دولار).
 const ECONOMY_KEYWORDS =
-  /ذهب|اقتصاد|أسعار|سعر|دولار|نفط|بورصة|سهم|أسهم|تضخم|عملة|عملات|بنك|مصرف|استثمار|مالي|تداول|بيتكوين|كريبتو|فائدة|ريال|جنيه|درهم|دينار|سوق|تجارة|صادرات|واردات|نمو|ناتج|ميزانية|ديون|طاقة|غاز|شركة|شركات|أوبك|صندوق النقد/;
+  /ذهب|اقتصاد|أسعار|سعر|دولار|نفط|بورصة|سهم|أسهم|تضخم|عملة|عملات|بنك|مصرف|استثمار|مالي|تداول|بيتكوين|كريبتو|فائدة|ريال|جنيه|درهم|دينار|سوق|أسواق|تجارة|صادرات|واردات|نمو|ناتج|ميزانية|ديون|طاقة|غاز|شركة|شركات|أوبك|صندوق النقد|ضريبة|رسوم جمركية/;
 
 function isEconomyItem(item: NewsItem): boolean {
-  return ECONOMY_KEYWORDS.test(item.title) || ECONOMY_KEYWORDS.test(item.description);
+  return ECONOMY_KEYWORDS.test(item.title);
 }
 
 const EN_RSS_SOURCES = [
@@ -91,13 +92,14 @@ export async function getNewsData(lang: "ar" | "en"): Promise<NewsItem[]> {
 
   const results = await Promise.allSettled(sources.map((s) => fetchRSS(s.url, s.source)));
 
-  const allNews: NewsItem[] = [];
-  results.forEach((result, i) => {
-    if (result.status !== "fulfilled") return;
-    const src = sources[i] as { filterEconomy?: boolean };
-    const items = src.filterEconomy ? result.value.filter(isEconomyItem) : result.value;
-    allNews.push(...items);
-  });
+  let allNews: NewsItem[] = [];
+  for (const result of results) {
+    if (result.status === "fulfilled") allNews.push(...result.value);
+  }
+
+  // Gate ALL Arabic items on the economy filter (see note above the keyword
+  // list). English sources are finance-specific feeds and stay unfiltered.
+  if (lang === "ar") allNews = allNews.filter(isEconomyItem);
 
   const mockFallback = lang === "en" ? getMockNewsEn() : getMockNewsAr();
   const news = allNews.length > 0 ? allNews : mockFallback;
