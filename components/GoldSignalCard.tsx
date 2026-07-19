@@ -103,7 +103,9 @@ export default function GoldSignalCard() {
   const col    = isUp ? "#22c55e" : "#ef4444";
   const colBg  = isUp ? "rgba(34,197,94,0.09)"  : "rgba(239,68,68,0.09)";
   const colBdr = isUp ? "rgba(34,197,94,0.3)"   : "rgba(239,68,68,0.3)";
-  const label  = isAr ? (isUp ? "شراء" : "بيع") : (isUp ? "Buy" : "Sell");
+  // Direction wording only — never شراء/بيع (explicit buy/sell is an
+  // investment recommendation, a legal exposure even with a disclaimer)
+  const label  = isAr ? (isUp ? "اتجاه صاعد" : "اتجاه هابط") : (isUp ? "Bullish" : "Bearish");
   const arrow  = isUp ? "↑" : "↓";
 
   return (

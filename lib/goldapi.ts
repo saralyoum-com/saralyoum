@@ -45,7 +45,11 @@ async function fetchGoldAPI(symbol: string): Promise<{ price: number; ch: number
       price: data.price,
       ch: data.ch,
       chp: data.chp,
-      high: data.price_gram_24k ? data.price_gram_24k * 31.1035 : data.price * 1.005,
+      // GoldAPI's real day-range fields. (Former code derived "high" from
+      // price_gram_24k × 31.1035 — which mathematically equals the CURRENT
+      // price, so the displayed high was never the day's high, and a stale
+      // low_price could sit ABOVE the live price: users saw low > current.)
+      high: data.high_price || data.price * 1.005,
       low: data.low_price || data.price * 0.995,
     };
   } catch {
@@ -92,10 +96,20 @@ async function fetchChainlinkGold(): Promise<number | null> {
   return null;
 }
 
+// The current price must always sit inside [low24h, high24h]. Sources can
+// disagree (the 3-tier fallback may serve price from one source and range
+// from another's cache) and a stale range then contradicts the live price —
+// which is how users saw "low $4,086" under a $4,018 current. Clamp at the
+// edge so the invariant holds no matter which source produced what.
+function clampRange(price: number, high: number, low: number): { high: number; low: number } {
+  return { high: Math.max(high, price), low: Math.min(low, price) };
+}
+
 export async function getGoldPrice(): Promise<PriceData> {
   // Primary: GoldAPI.io (if available and quota not exceeded)
   const goldApi = await fetchGoldAPI("XAU");
   if (goldApi) {
+    const range = clampRange(goldApi.price, goldApi.high, goldApi.low);
     return {
       symbol: "XAU",
       nameAr: "الذهب",
@@ -104,8 +118,8 @@ export async function getGoldPrice(): Promise<PriceData> {
       changePercent: goldApi.chp,
       currency: "USD",
       unit: "أوقية",
-      high24h: goldApi.high,
-      low24h: goldApi.low,
+      high24h: range.high,
+      low24h: range.low,
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -115,6 +129,7 @@ export async function getGoldPrice(): Promise<PriceData> {
   if (yf) {
     const change = yf.price - yf.prevClose;
     const changePercent = (change / yf.prevClose) * 100;
+    const range = clampRange(yf.price, yf.high, yf.low);
     return {
       symbol: "XAU",
       nameAr: "الذهب",
@@ -123,8 +138,8 @@ export async function getGoldPrice(): Promise<PriceData> {
       changePercent: parseFloat(changePercent.toFixed(2)),
       currency: "USD",
       unit: "أوقية",
-      high24h: yf.high,
-      low24h: yf.low,
+      high24h: range.high,
+      low24h: range.low,
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -155,6 +170,7 @@ export async function getSilverPrice(): Promise<PriceData> {
   // Primary: GoldAPI.io
   const goldApi = await fetchGoldAPI("XAG");
   if (goldApi) {
+    const range = clampRange(goldApi.price, goldApi.high, goldApi.low);
     return {
       symbol: "XAG",
       nameAr: "الفضة",
@@ -163,8 +179,8 @@ export async function getSilverPrice(): Promise<PriceData> {
       changePercent: goldApi.chp,
       currency: "USD",
       unit: "أوقية",
-      high24h: goldApi.high,
-      low24h: goldApi.low,
+      high24h: range.high,
+      low24h: range.low,
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -174,6 +190,7 @@ export async function getSilverPrice(): Promise<PriceData> {
   if (yf) {
     const change = yf.price - yf.prevClose;
     const changePercent = (change / yf.prevClose) * 100;
+    const range = clampRange(yf.price, yf.high, yf.low);
     return {
       symbol: "XAG",
       nameAr: "الفضة",
@@ -182,8 +199,8 @@ export async function getSilverPrice(): Promise<PriceData> {
       changePercent: parseFloat(changePercent.toFixed(2)),
       currency: "USD",
       unit: "أوقية",
-      high24h: yf.high,
-      low24h: yf.low,
+      high24h: range.high,
+      low24h: range.low,
       lastUpdated: new Date().toISOString(),
     };
   }

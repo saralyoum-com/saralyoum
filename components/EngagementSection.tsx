@@ -119,15 +119,39 @@ function PriceStreak({ changePercent }: { changePercent: number }) {
    ═══════════════════════════════════════════════════ */
 function WhatIfCalculator({ currentPrice }: { currentPrice: number }) {
   const { lang } = useLang();
-  const yearAgoPrice = 2330;
+  // Real price from ~1 year ago, fetched from the history API. This used to be
+  // a hardcoded constant that went stale, and when the live price failed to
+  // load the widget rendered "$0 (0.0%)" — worse than showing nothing. Now the
+  // widget only renders when both numbers are real.
+  const [yearAgoPrice, setYearAgoPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/history?asset=gold&range=1y")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const first = d?.data?.[0]?.p;
+        if (typeof first === "number" && first > 0) setYearAgoPrice(first);
+      })
+      .catch(() => {});
+  }, []);
+
   const investAmount = 1000;
-  const currentValue = Math.round(investAmount * (currentPrice / yearAgoPrice));
+  const ready =
+    currentPrice > 0 &&
+    yearAgoPrice != null &&
+    // sanity band — a wildly off ratio means bad data, hide rather than mislead
+    currentPrice / yearAgoPrice > 0.3 &&
+    currentPrice / yearAgoPrice < 3;
+
+  const currentValue = ready ? Math.round(investAmount * (currentPrice / yearAgoPrice)) : investAmount;
   const profit = currentValue - investAmount;
-  const gainPct = ((currentPrice - yearAgoPrice) / yearAgoPrice * 100).toFixed(1);
+  const gainPct = ready ? ((currentPrice - yearAgoPrice) / yearAgoPrice * 100).toFixed(1) : "0";
 
   const animatedValue = useCountUp(currentValue, 1400);
   const animatedProfit = useCountUp(profit, 1400);
   const animatedPct = useCountUp(parseFloat(gainPct), 1400, 1);
+
+  if (!ready) return null;
 
   return (
     <div className="rounded-2xl border border-gold/20 bg-gradient-to-br from-gold/5 to-transparent p-4">
@@ -141,11 +165,11 @@ function WhatIfCalculator({ currentPrice }: { currentPrice: number }) {
             : `If you invested $${investAmount.toLocaleString()} in gold 1 year ago...`}
         </p>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-black text-rise tabular-nums">
+          <span className={`text-2xl font-black tabular-nums ${profit >= 0 ? "text-rise" : "text-fall"}`}>
             ${Math.round(animatedValue).toLocaleString()}
           </span>
-          <span className="text-rise text-sm font-bold tabular-nums">
-            +${Math.round(animatedProfit).toLocaleString()} ({animatedPct.toFixed(1)}%)
+          <span className={`text-sm font-bold tabular-nums ${profit >= 0 ? "text-rise" : "text-fall"}`}>
+            {profit >= 0 ? "+" : "−"}${Math.abs(Math.round(animatedProfit)).toLocaleString()} ({animatedPct.toFixed(1)}%)
           </span>
         </div>
         <p className="text-text-secondary text-xs">

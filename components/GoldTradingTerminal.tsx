@@ -67,6 +67,9 @@ export default function GoldTradingTerminal() {
   const [shortPct, setShortPct]   = useState(28);
   const [voters, setVoters]       = useState(1834);
   const [livePrice, setLivePrice] = useState<{price:number;change:number;changePercent:number}|null>(null);
+  // Drives the gauge's grow-from-zero entrance (width transitions from 0 on mount)
+  const [mounted, setMounted]     = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const timer      = useRef<ReturnType<typeof setInterval> | null>(null);
   const priceTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -258,6 +261,7 @@ export default function GoldTradingTerminal() {
               </g>
             ))}
             <polyline points={rsiPts} fill="none" stroke="#C9A84C" strokeWidth={1.8}/>
+            <circle cx={cX(N-1)} cy={rY(d.currentRsi)} r={5} fill="#ef4444" className="chart-live-ring"/>
             <circle cx={cX(N-1)} cy={rY(d.currentRsi)} r={3} fill="#ef4444"/>
             <rect x={W-MR+1} y={rY(d.currentRsi)-8} width={MR-3} height={14} rx={3} fill="#ef4444" opacity={0.9}/>
             <text x={W-MR+MR/2} y={rY(d.currentRsi)+4} fontSize={8.5} fill="white" textAnchor="middle" fontWeight="bold">
@@ -316,7 +320,7 @@ export default function GoldTradingTerminal() {
 
   return (
     <div dir={isAr?"rtl":"ltr"} className="rounded-2xl border border-gold/20 bg-surface overflow-hidden">
-      <style>{`@keyframes gt-spin{to{transform:rotate(360deg);}}.gt-spin{animation:gt-spin 1s linear infinite;transform-origin:center;}@keyframes gt-blink{0%,100%{opacity:1}50%{opacity:0.25}}.gt-blink{animation:gt-blink 1.4s ease-in-out infinite;}`}</style>
+      <style>{`@keyframes gt-spin{to{transform:rotate(360deg);}}.gt-spin{animation:gt-spin 1s linear infinite;transform-origin:center;}@keyframes gt-blink{0%,100%{opacity:1}50%{opacity:0.25}}.gt-blink{animation:gt-blink 1.4s ease-in-out infinite;}@keyframes gt-glow{0%,100%{text-shadow:0 0 0 rgba(201,168,76,0)}50%{text-shadow:0 0 14px rgba(201,168,76,0.45)}}.gt-glow{animation:gt-glow 2.8s ease-in-out infinite;}@keyframes gt-near{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0)}50%{box-shadow:0 0 9px 1px rgba(201,168,76,0.4)}}.gt-near{animation:gt-near 1.6s ease-in-out infinite;}`}</style>
 
       {/* ── Price header ── */}
       <div className="px-4 sm:px-5 pt-4 pb-3 flex flex-col sm:flex-row sm:items-center gap-2 justify-between border-b border-border">
@@ -324,7 +328,7 @@ export default function GoldTradingTerminal() {
           <div>
             <div className="flex items-center gap-2">
               {(data || livePrice)
-                ? <p className="text-xl font-black text-text-primary">${displayPrice.toLocaleString()}</p>
+                ? <p className="text-xl font-black text-text-primary gt-glow">${displayPrice.toLocaleString()}</p>
                 : <div className="h-7 w-28 bg-surface-2 rounded animate-pulse"/>}
               {(data || livePrice) && (
                 <span className="flex items-center gap-1 text-[10px] font-bold text-rise">
@@ -340,7 +344,7 @@ export default function GoldTradingTerminal() {
           </div>
           {data && (
             <div className={`text-[11px] px-2.5 py-1 rounded-lg font-bold border ${sigUp?"bg-rise/10 text-rise border-rise/25":"bg-fall/10 text-fall border-fall/25"}`}>
-              {sigUp?"↑ ":"↓ "}{isAr?(sigUp?"شراء":"بيع"):(sigUp?"Buy":"Sell")}
+              {sigUp?"↑ ":"↓ "}{isAr?(sigUp?"صاعد":"هابط"):(sigUp?"Bullish":"Bearish")}
             </div>
           )}
         </div>
@@ -394,12 +398,12 @@ export default function GoldTradingTerminal() {
       {/* ── Long / Short bar ── */}
       <div className="px-4 sm:px-5 py-3 border-t border-border">
         <div className="flex justify-between text-[11px] font-bold mb-1.5">
-          <span className="text-rise">↑ {isAr?"شراء":"Long"} {longPct}%</span>
+          <span className="text-rise">↑ {isAr?"صاعد":"Bullish"} {longPct}%</span>
           <span className="text-text-secondary text-[10px]">{voters.toLocaleString()} {isAr?"متداول":"traders"}</span>
-          <span className="text-fall">{shortPct}% {isAr?"بيع":"Short"} ↓</span>
+          <span className="text-fall">{shortPct}% {isAr?"هابط":"Bearish"} ↓</span>
         </div>
         <div className="h-2.5 rounded-full overflow-hidden flex">
-          <div className="rounded-s-full transition-all duration-700" style={{width:`${longPct}%`,background:"linear-gradient(90deg,#16a34a,#22c55e)"}}/>
+          <div className="rounded-s-full transition-all duration-1000 ease-out" style={{width: mounted ? `${longPct}%` : "0%", background:"linear-gradient(90deg,#16a34a,#22c55e)"}}/>
           <div className="flex-1 rounded-e-full" style={{background:"linear-gradient(90deg,#ef4444,#b91c1c)"}}/>
         </div>
       </div>
@@ -414,12 +418,18 @@ export default function GoldTradingTerminal() {
               {lbl:isAr?"الحالي":"Now", val:data.signal.entry, cls:"border-gold/40 text-gold bg-gold/5"},
               {lbl:"S1",         val:data.levels.s1,   cls:"border-rise/25   text-rise"},
               {lbl:"S2",         val:data.levels.s2,   cls:"border-rise/20   text-rise/70"},
-            ].map(({lbl,val,cls})=>(
-              <div key={lbl} className={`rounded-xl border ${cls} p-2 text-center`}>
-                <p className="text-[10px] mb-0.5 opacity-70">{lbl}</p>
-                <p className="text-[11px] font-black">{val.toLocaleString()}</p>
-              </div>
-            ))}
+            ].map(({lbl,val,cls})=>{
+              // Shimmer when price is within 0.3% of a support/resistance level
+              // — motion with meaning, not decoration
+              const near = lbl !== (isAr?"الحالي":"Now") && displayPrice > 0 &&
+                Math.abs(displayPrice - val) / displayPrice < 0.003;
+              return (
+                <div key={lbl} className={`rounded-xl border ${cls} p-2 text-center ${near ? "gt-near" : ""}`}>
+                  <p className="text-[10px] mb-0.5 opacity-70">{lbl}</p>
+                  <p className="text-[11px] font-black">{val.toLocaleString()}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -428,8 +438,8 @@ export default function GoldTradingTerminal() {
       {data && (
         <div className="grid grid-cols-3 gap-2 px-4 sm:px-5 pb-4 pt-3 border-t border-border">
           <div className="rounded-xl border border-border bg-surface-2 p-3 text-center">
-            <p className="text-[10px] text-text-secondary mb-1">{isAr?"إشارة الدخول":"Entry"}</p>
-            <p className={`text-sm font-black ${sigUp?"text-rise":"text-fall"}`}>{sigUp?"شراء ↑":"بيع ↓"}</p>
+            <p className="text-[10px] text-text-secondary mb-1">{isAr?"الاتجاه المتوقع":"Outlook"}</p>
+            <p className={`text-sm font-black ${sigUp?"text-rise":"text-fall"}`}>{sigUp?"صاعد ↑":"هابط ↓"}</p>
             <p className="text-[11px] text-text-secondary mt-0.5">${data.signal.entry.toLocaleString()}</p>
           </div>
           <div className="rounded-xl border border-rise/20 bg-rise/5 p-3 text-center">

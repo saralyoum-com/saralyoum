@@ -36,7 +36,9 @@ export interface Alert {
 
 export interface TechnicalSignal {
   asset: string;
-  signal: "شراء" | "بيع" | "محايد";
+  // Direction labels only — never شراء/بيع (explicit buy/sell wording is an
+  // investment recommendation, a legal exposure even with a disclaimer)
+  signal: "صاعد" | "هابط" | "محايد";
   rsi: number;
   ma50: number;
   ma200: number;

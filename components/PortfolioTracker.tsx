@@ -10,6 +10,7 @@ interface Holding {
   karat: 24 | 22 | 21 | 18 | 14;
   grams: number;
   buyPrice?: number; // USD per gram at purchase (currency-independent, optional)
+  buyDate?: string;  // ISO yyyy-mm-dd (optional — enables duration + annualized return)
 }
 
 interface PortfolioData {
@@ -29,6 +30,42 @@ function lsSet(key: string, val: string) {
 }
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// "منذ 4 أشهر" / "4 months ago" style label from an ISO date
+function holdingAge(iso: string, isAr: boolean): { days: number; label: string } | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (days < 0) return null;
+  let label: string;
+  if (days < 30) label = isAr ? `منذ ${days} يوم` : `${days}d ago`;
+  else if (days < 365) {
+    const m = Math.floor(days / 30);
+    label = isAr ? (m === 1 ? "منذ شهر" : m === 2 ? "منذ شهرين" : m <= 10 ? `منذ ${m} أشهر` : `منذ ${m} شهر`) : `${m}mo ago`;
+  } else {
+    const y = +(days / 365).toFixed(1);
+    label = isAr ? `منذ ${y} سنة` : `${y}y ago`;
+  }
+  return { days, label };
+}
+
+/* ─── count-up hook for P&L numbers ─── */
+function useCountUp(target: number, duration = 1200) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      setValue(e * target);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return value;
 }
 
 /* ─── karat options ─── */
@@ -76,6 +113,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   const [newKarat, setNewKarat] = useState<Holding["karat"]>(21);
   const [newGrams, setNewGrams] = useState("");
   const [newBuyPrice, setNewBuyPrice] = useState("");
+  const [newBuyDate, setNewBuyDate] = useState("");
 
   // Load saved data
   useEffect(() => {
@@ -123,12 +161,14 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
       karat: newKarat,
       grams,
       buyPrice: buyPriceUSD,
+      buyDate: newBuyDate || undefined,
     };
     const updated = [...holdings, holding];
     setHoldings(updated);
     save(updated, currency, rate);
     setNewGrams("");
     setNewBuyPrice("");
+    setNewBuyDate("");
     setShowAdd(false);
     track.quickLinkClick("portfolio-add");
   }
@@ -171,11 +211,14 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
     // (e.g. saved in another currency or an old format) so the portfolio never
     // shows an impossible profit/loss — those holdings just omit P/L.
     let pnl: number | null = null;
+    let cost: number | null = null;
+    let buyPerGramDisplay: number | null = null;
     if (h.buyPrice && h.buyPrice > 0) {
       const plausibleLow = pricePerGramUSD * 0.2;
       const plausibleHigh = pricePerGramUSD * 5;
       if (h.buyPrice >= plausibleLow && h.buyPrice <= plausibleHigh) {
-        const cost = h.buyPrice * h.grams * displayRate; // same currency as value
+        cost = h.buyPrice * h.grams * displayRate; // same currency as value
+        buyPerGramDisplay = h.buyPrice * displayRate;
         costedValue += value;
         costedCost += cost;
         hasCostData = true;
@@ -183,7 +226,15 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
       }
     }
 
-    return { ...h, pricePerGram, value, pnl };
+    // Duration + annualized return (needs a valid date AND a valid cost basis;
+    // annualized only after 30 days — earlier extrapolation is pure noise)
+    const age = h.buyDate ? holdingAge(h.buyDate, lang === "ar") : null;
+    let annualizedPct: number | null = null;
+    if (age && age.days >= 30 && cost != null && cost > 0) {
+      annualizedPct = (Math.pow(value / cost, 365 / age.days) - 1) * 100;
+    }
+
+    return { ...h, pricePerGram, value, pnl, cost, buyPerGramDisplay, age, annualizedPct };
   });
 
   const totalPnL = hasCostData ? costedValue - costedCost : null;
@@ -304,38 +355,56 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
         {holdingDetails.length > 0 && (
           <div className="divide-y divide-border">
             {holdingDetails.map(h => (
-              <div key={h.id} className="px-4 sm:px-6 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-xs font-bold text-gold">
-                    {lang === "ar" ? h.karat : KARATS_EN[h.karat]}
-                  </div>
-                  <div>
-                    <p className="text-text-primary text-sm font-medium">
-                      {h.grams}g — {lang === "ar" ? `عيار ${h.karat}` : `${KARATS_EN[h.karat]}`}
-                    </p>
-                    <p className="text-text-secondary text-xs">
-                      {curSymbol} {fmt(h.pricePerGram)} / {lang === "ar" ? "جرام" : "gram"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-end">
-                    <p className="text-text-primary text-sm font-bold">{curSymbol} {fmt(h.value)}</p>
-                    {h.pnl !== null && (
-                      <p className={`text-xs ${h.pnl >= 0 ? "text-rise" : "text-fall"}`}>
-                        {h.pnl >= 0 ? "+" : ""}{curSymbol} {fmt(Math.abs(h.pnl))}
+              h.pnl !== null && h.cost !== null && h.buyPerGramDisplay !== null ? (
+                /* Rich card — purchase vs current + animated P&L */
+                <HoldingCard
+                  key={h.id}
+                  lang={lang}
+                  curSymbol={curSymbol}
+                  fmt={fmt}
+                  karatLabel={lang === "ar" ? `عيار ${h.karat}` : KARATS_EN[h.karat]}
+                  karatChip={lang === "ar" ? String(h.karat) : KARATS_EN[h.karat]}
+                  grams={h.grams}
+                  buyPerGram={h.buyPerGramDisplay}
+                  buyDate={h.buyDate}
+                  ageLabel={h.age?.label ?? null}
+                  cost={h.cost}
+                  pricePerGram={h.pricePerGram}
+                  value={h.value}
+                  pnl={h.pnl}
+                  annualizedPct={h.annualizedPct}
+                  onRemove={() => removeHolding(h.id)}
+                />
+              ) : (
+                /* Compact row — no (valid) cost basis, live value only */
+                <div key={h.id} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-surface-2/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gold/10 rounded-lg flex items-center justify-center text-xs font-bold text-gold">
+                      {lang === "ar" ? h.karat : KARATS_EN[h.karat]}
+                    </div>
+                    <div>
+                      <p className="text-text-primary text-sm font-medium">
+                        {h.grams}g — {lang === "ar" ? `عيار ${h.karat}` : `${KARATS_EN[h.karat]}`}
                       </p>
-                    )}
+                      <p className="text-text-secondary text-xs">
+                        {curSymbol} {fmt(h.pricePerGram)} / {lang === "ar" ? "جرام" : "gram"}
+                      </p>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => removeHolding(h.id)}
-                    className="text-text-secondary hover:text-fall text-xs p-1 transition-colors"
-                    title={lang === "ar" ? "حذف" : "Remove"}
-                  >
-                    ✕
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="text-end">
+                      <p className="text-text-primary text-sm font-bold">{curSymbol} {fmt(h.value)}</p>
+                    </div>
+                    <button
+                      onClick={() => removeHolding(h.id)}
+                      className="text-text-secondary hover:text-fall text-xs p-1 transition-colors"
+                      title={lang === "ar" ? "حذف" : "Remove"}
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )
             ))}
           </div>
         )}
@@ -343,7 +412,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
         {/* Add holding form */}
         {showAdd ? (
           <div className="p-4 sm:p-6 border-t border-border bg-surface-2">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {/* Karat */}
               <div>
                 <label className="text-text-secondary text-xs mb-1 block">
@@ -391,6 +460,19 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
                   className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none placeholder:text-text-secondary/50"
                 />
               </div>
+              {/* Buy date (optional) */}
+              <div>
+                <label className="text-text-secondary text-xs mb-1 block">
+                  {lang === "ar" ? "تاريخ الشراء (اختياري)" : "Buy date (optional)"}
+                </label>
+                <input
+                  type="date"
+                  value={newBuyDate}
+                  onChange={(e) => setNewBuyDate(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none [color-scheme:dark]"
+                />
+              </div>
               {/* Buttons */}
               <div className="flex items-end gap-2">
                 <button
@@ -421,5 +503,115 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
         )}
       </div>
     </section>
+  );
+}
+
+/* ─── Rich per-holding card: purchase vs current + animated P&L ─── */
+interface HoldingCardProps {
+  lang: string;
+  curSymbol: string;
+  fmt: (n: number) => string;
+  karatLabel: string;
+  karatChip: string;
+  grams: number;
+  buyPerGram: number;
+  buyDate?: string;
+  ageLabel: string | null;
+  cost: number;
+  pricePerGram: number;
+  value: number;
+  pnl: number;
+  annualizedPct: number | null;
+  onRemove: () => void;
+}
+
+function HoldingCard({
+  lang, curSymbol, fmt, karatLabel, karatChip, grams, buyPerGram, buyDate,
+  ageLabel, cost, pricePerGram, value, pnl, annualizedPct, onRemove,
+}: HoldingCardProps) {
+  const isAr = lang === "ar";
+  const up = pnl >= 0;
+  const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
+
+  const animPnl = useCountUp(Math.abs(pnl));
+  const animPct = useCountUp(Math.abs(pnlPct));
+  const animValue = useCountUp(value);
+
+  const dateLabel = buyDate
+    ? new Date(buyDate).toLocaleDateString(isAr ? "ar" : "en-US", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  return (
+    <div className="px-4 sm:px-6 py-4 hover:bg-surface-2/40 transition-all hover:-translate-y-0.5 duration-200">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-gold/10 rounded-xl flex items-center justify-center text-xs font-bold text-gold shrink-0">
+            {karatChip}
+          </div>
+          <div>
+            <p className="text-text-primary text-sm font-bold">{grams}g — {karatLabel}</p>
+            {ageLabel && <p className="text-text-secondary text-xs">{ageLabel}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`${up ? "pnl-breathe-up bg-rise/10 border-rise/30 text-rise" : "pnl-breathe-down bg-fall/10 border-fall/30 text-fall"} border rounded-full px-3.5 py-1 text-xs font-bold whitespace-nowrap`}>
+            {up ? "▲ +" : "▼ −"}{animPct.toFixed(2)}%
+          </div>
+          <button
+            onClick={onRemove}
+            className="text-text-secondary hover:text-fall text-xs p-1 transition-colors"
+            title={isAr ? "حذف" : "Remove"}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      {/* Purchase vs current */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+        <div className="bg-surface-2 rounded-xl px-3.5 py-2.5">
+          <p className="text-text-secondary text-[11px] mb-0.5">
+            {isAr ? "سعر الشراء" : "Purchase"}{dateLabel ? ` · ${dateLabel}` : ""}
+          </p>
+          <p className="text-text-primary text-sm font-bold">
+            {fmt(buyPerGram)} {curSymbol}/{isAr ? "جرام" : "g"}
+          </p>
+          <p className="text-text-secondary text-xs mt-0.5">
+            {isAr ? "الإجمالي:" : "Total:"} {curSymbol} {fmt(cost)}
+          </p>
+        </div>
+        <div className="bg-surface-2 rounded-xl px-3.5 py-2.5">
+          <p className="text-text-secondary text-[11px] mb-0.5 flex items-center gap-1.5">
+            {isAr ? "السعر الحالي · مباشر" : "Current · live"}
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-rise pulse-dot" />
+          </p>
+          <p className="text-gold text-sm font-bold">
+            {fmt(pricePerGram)} {curSymbol}/{isAr ? "جرام" : "g"}
+          </p>
+          <p className="text-text-secondary text-xs mt-0.5">
+            {isAr ? "الإجمالي:" : "Total:"} {curSymbol} {fmt(animValue)}
+          </p>
+        </div>
+      </div>
+
+      {/* P&L strip */}
+      <div className={`rounded-xl border px-3.5 py-2.5 flex items-center justify-between ${up ? "border-rise/20 bg-gradient-to-l from-rise/10 to-transparent" : "border-fall/20 bg-gradient-to-l from-fall/10 to-transparent"}`}>
+        <div>
+          <p className="text-text-secondary text-[11px] mb-0.5">{isAr ? "الربح / الخسارة" : "Profit / Loss"}</p>
+          <p className={`text-lg font-black tabular-nums ${up ? "text-rise" : "text-fall"}`}>
+            {up ? "+" : "−"}{curSymbol} {fmt(animPnl)}
+          </p>
+        </div>
+        {annualizedPct !== null && (
+          <div className="text-end">
+            <p className="text-text-secondary text-[11px] mb-0.5">{isAr ? "العائد السنوي التقريبي" : "Annualized"}</p>
+            <p className={`text-sm font-bold ${annualizedPct >= 0 ? "text-rise" : "text-fall"}`}>
+              ~{annualizedPct.toFixed(1)}% {isAr ? "سنويا" : "/yr"}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

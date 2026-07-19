@@ -74,9 +74,9 @@ export default function PriceCard({
     : data.price.toFixed(2);
 
   const signalColor =
-    signal?.signal === "شراء"
+    signal?.signal === "صاعد"
       ? "text-rise border-rise/30 bg-rise/10"
-      : signal?.signal === "بيع"
+      : signal?.signal === "هابط"
       ? "text-fall border-fall/30 bg-fall/10"
       : "text-text-secondary border-border bg-surface-2";
 
@@ -252,11 +252,11 @@ export default function PriceCard({
         <div className={`border rounded-xl px-3 py-2 text-xs ${signalColor}`}>
           <div className="flex items-center justify-between">
             <span className="font-bold">
-              {signal.signal === "شراء" ? "📈" : signal.signal === "بيع" ? "📉" : "➡️"}{" "}
-              {signal.signal === "شراء"
-                ? lang === "ar" ? "ضغط شرائي" : "Buy Pressure"
-                : signal.signal === "بيع"
-                ? lang === "ar" ? "ضغط بيعي" : "Sell Pressure"
+              {signal.signal === "صاعد" ? "📈" : signal.signal === "هابط" ? "📉" : "➡️"}{" "}
+              {signal.signal === "صاعد"
+                ? lang === "ar" ? "زخم صاعد" : "Bullish Momentum"
+                : signal.signal === "هابط"
+                ? lang === "ar" ? "زخم هابط" : "Bearish Momentum"
                 : lang === "ar" ? "محايد" : "Neutral"}
             </span>
             <span>RSI: {signal.rsi.toFixed(1)}</span>

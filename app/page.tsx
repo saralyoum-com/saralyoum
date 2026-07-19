@@ -11,7 +11,7 @@ import KastBanner from "@/components/KastBanner";
 import PortfolioTracker from "@/components/PortfolioTracker";
 import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getCryptoPrice } from "@/lib/coingecko";
-import { getMockTechnicalData } from "@/lib/technical";
+import { getTechnicalData } from "@/lib/technical";
 import { NewsItem } from "@/types";
 
 export const revalidate = 60;
@@ -59,7 +59,7 @@ export default async function HomePage() {
     getCryptoPrice("ethereum"),
   ]);
 
-  const signals = getMockTechnicalData();
+  const signals = await getTechnicalData();
   const news = await getNews();
   const tickerPrices = [gold, silver, bitcoin, ethereum];
 

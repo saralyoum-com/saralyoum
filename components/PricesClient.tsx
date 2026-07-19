@@ -10,9 +10,8 @@ import KastBanner from "@/components/KastBanner";
 import { useLang } from "@/components/LanguageContext";
 import { useLocation } from "@/components/LocalCurrency";
 import BullionTable from "@/components/BullionTable";
-import { getMockTechnicalData } from "@/lib/technical";
 import { track } from "@/lib/analytics";
-import { PriceData } from "@/types";
+import { PriceData, TechnicalSignal } from "@/types";
 
 type Rate = { code: string; nameAr: string; rate: number; flag: string; group?: string };
 
@@ -155,7 +154,16 @@ export default function PricesPage({ initialGoldUSD }: { initialGoldUSD: number 
   const [loading, setLoading] = useState(true);
   const loc = useLocation();
 
-  const signals = getMockTechnicalData();
+  const [signals, setSignals] = useState<Record<string, TechnicalSignal>>({});
+
+  // Real RSI/MA signals — cards render without a badge until they arrive
+  // (never a fake number)
+  useEffect(() => {
+    fetch("/api/technical")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.signals) setSignals(d.signals); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     async function load() {
