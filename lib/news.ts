@@ -6,22 +6,26 @@ import { NewsItem } from "@/types";
 // left the home news section permanently stuck on "جاري تحميل الأخبار..."
 // whenever that internal HTTP round-trip failed).
 
+// Dedicated Arabic finance feeds first (verified live 20 Jul 2026: return real
+// XML to a plain fetch and carry genuinely economic titles). BBC "business"
+// and Al Jazeera are kept as backfill but keyword-gated — both were verified
+// in production to leak general news (World Cup, politics) into the site.
+// Tried and rejected: Al Arabiya aswaq (CDN 403s non-browser fetchers),
+// CNBC Arabia (/rss doesn't serve standard RSS XML).
 const AR_RSS_SOURCES = [
-  { url: "https://feeds.bbci.co.uk/arabic/business/rss.xml", source: "BBC عربي" },
+  { url: "https://aawsat.com/feed/economy", source: "الشرق الأوسط", filterEconomy: false },
+  { url: "https://arabic.rt.com/rss/business/", source: "RT اقتصاد", filterEconomy: false },
+  { url: "https://www.france24.com/ar/%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF/rss", source: "فرانس 24", filterEconomy: false },
+  { url: "https://feeds.bbci.co.uk/arabic/business/rss.xml", source: "BBC عربي", filterEconomy: true },
   {
     url: "https://www.aljazeera.net/aljazeerarss/a3c32dff-a375-4b40-a519-59f122abcd38/5413f4a6-fe4e-4e37-bab8-e04e3e38a5f2",
     source: "الجزيرة",
+    filterEconomy: true,
   },
-  // NOTE: Al Arabiya's aswaq feed was tried and rejected — their CDN returns
-  // 403 to non-browser fetchers. Don't re-add without verifying it serves XML
-  // to a plain fetch.
 ];
 
-// Every Arabic feed above leaks general news (BBC's "business" URL included —
-// verified in production: World Cup / politics items came through it), so ALL
-// Arabic items are gated on an economy keyword in the TITLE. Title-only on
-// purpose: descriptions produce false positives (e.g. sports prize money
-// "بملايين الدولارات" matching دولار).
+// Title-only on purpose: description matching produced false positives (e.g.
+// sports prize money "بملايين الدولارات" matching دولار).
 const ECONOMY_KEYWORDS =
   /ذهب|اقتصاد|أسعار|سعر|دولار|نفط|بورصة|سهم|أسهم|تضخم|عملة|عملات|بنك|مصرف|استثمار|مالي|تداول|بيتكوين|كريبتو|فائدة|ريال|جنيه|درهم|دينار|سوق|أسواق|تجارة|صادرات|واردات|نمو|ناتج|ميزانية|ديون|طاقة|غاز|شركة|شركات|أوبك|صندوق النقد|ضريبة|رسوم جمركية/;
 
@@ -92,14 +96,13 @@ export async function getNewsData(lang: "ar" | "en"): Promise<NewsItem[]> {
 
   const results = await Promise.allSettled(sources.map((s) => fetchRSS(s.url, s.source)));
 
-  let allNews: NewsItem[] = [];
-  for (const result of results) {
-    if (result.status === "fulfilled") allNews.push(...result.value);
-  }
-
-  // Gate ALL Arabic items on the economy filter (see note above the keyword
-  // list). English sources are finance-specific feeds and stay unfiltered.
-  if (lang === "ar") allNews = allNews.filter(isEconomyItem);
+  const allNews: NewsItem[] = [];
+  results.forEach((result, i) => {
+    if (result.status !== "fulfilled") return;
+    const src = sources[i] as { filterEconomy?: boolean };
+    const items = src.filterEconomy ? result.value.filter(isEconomyItem) : result.value;
+    allNews.push(...items);
+  });
 
   const mockFallback = lang === "en" ? getMockNewsEn() : getMockNewsAr();
   const news = allNews.length > 0 ? allNews : mockFallback;
