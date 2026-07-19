@@ -1,26 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLang } from "@/components/LanguageContext";
 
 /* ─── animated counter hook ─── */
+// Re-animates whenever the target changes. The old "start once" ref guard
+// locked in whatever target existed on first render — the what-if widget
+// mounts with placeholder values before the year-ago price arrives, so the
+// big number froze at $1,000 while the profit line showed the real +$199.
 function useCountUp(target: number, duration = 1200, decimals = 0) {
   const [value, setValue] = useState(0);
-  const started = useRef(false);
 
   useEffect(() => {
-    if (target === 0 || started.current) return;
-    started.current = true;
+    if (target === 0) { setValue(0); return; }
+    let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {
       const p = Math.min((now - start) / duration, 1);
       // ease-out cubic
       const eased = 1 - Math.pow(1 - p, 3);
       setValue(parseFloat((eased * target).toFixed(decimals)));
-      if (p < 1) requestAnimationFrame(tick);
+      if (p < 1) raf = requestAnimationFrame(tick);
       else setValue(target);
     };
-    requestAnimationFrame(tick);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [target, duration, decimals]);
 
   return value;
