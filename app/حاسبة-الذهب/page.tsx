@@ -88,6 +88,14 @@ export default function GoldCalculatorPage() {
     pricePerGram: pricePerGram24k * k.purity,
   }));
 
+  // Reverse calculator — "how many grams can I buy with X?"
+  const [revAmount, setRevAmount] = useState("");
+  const [revKarat, setRevKarat] = useState(21);
+  const revKaratData = KARATS.find((k) => k.value === revKarat)!;
+  const revPricePerGramLocal = pricePerGram24k * revKaratData.purity * loc.rate;
+  const revAmountNum = parseFloat(revAmount) || 0;
+  const revGrams = revPricePerGramLocal > 0 ? revAmountNum / revPricePerGramLocal : 0;
+
   // Profit/Loss calculator
   const [plWeight, setPlWeight] = useState("");
   const [plKarat, setPlKarat] = useState(21);
@@ -566,6 +574,84 @@ export default function GoldCalculatorPage() {
                 </p>
               </div>
             </div>
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* ── Reverse Calculator: how many grams with X? ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="mt-6 bg-surface border border-border rounded-2xl p-6"
+      >
+        <h2 className="text-lg font-bold text-text-primary mb-4">
+          💵 {lang === "ar" ? "كم جرام ذهب يمكنني الشراء؟" : "How Many Grams Can I Buy?"}
+        </h2>
+        <p className="text-text-secondary text-sm mb-4">
+          {lang === "ar"
+            ? `أدخل المبلغ المتاح لديك بالـ${loc.currency} واعرف كم جرام تشتري بسعر اليوم`
+            : `Enter your budget in ${loc.currency} and see how many grams it buys at today's price`}
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="text-text-secondary text-xs mb-1.5 block">
+              {lang === "ar" ? `المبلغ (${loc.currencySymbol})` : `Amount (${loc.currencySymbol})`}
+            </label>
+            <input
+              type="number"
+              value={revAmount}
+              onChange={(e) => setRevAmount(e.target.value)}
+              placeholder={lang === "ar" ? "مثال: 5000" : "e.g. 5000"}
+              dir="ltr"
+              className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-gold text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-text-secondary text-xs mb-1.5 block">
+              {lang === "ar" ? "العيار" : "Karat"}
+            </label>
+            <div className="flex gap-1.5 flex-wrap">
+              {KARATS.map((k) => (
+                <button
+                  key={k.value}
+                  onClick={() => setRevKarat(k.value)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex-1 ${
+                    revKarat === k.value ? "bg-gold text-background" : "bg-surface-2 border border-border text-text-secondary"
+                  }`}
+                >
+                  {lang === "ar" ? k.labelAr : k.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {revAmountNum > 0 && revGrams > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="rounded-2xl p-5 border bg-gold/5 border-gold/20 text-center"
+          >
+            <p className="text-text-secondary text-xs mb-1">
+              {lang === "ar"
+                ? `بمبلغ ${revAmountNum.toLocaleString("en-US")} ${loc.currencySymbol} تشتري تقريبا`
+                : `With ${revAmountNum.toLocaleString("en-US")} ${loc.currencySymbol} you can buy about`}
+            </p>
+            <p className="text-3xl font-black text-gold tabular-nums">
+              {revGrams.toLocaleString("en-US", { maximumFractionDigits: 2 })} {lang === "ar" ? "جرام" : "g"}
+            </p>
+            <p className="text-text-secondary text-xs mt-1">
+              {lang === "ar"
+                ? `${revKaratData.labelAr} · بسعر ${revPricePerGramLocal.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${loc.currencySymbol}/جرام`
+                : `${revKaratData.labelEn} · at ${revPricePerGramLocal.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${loc.currencySymbol}/g`}
+            </p>
+            <p className="text-[11px] text-text-secondary mt-2 pt-2 border-t border-gold/10">
+              {lang === "ar"
+                ? "سعر الذهب الخام فقط — أضف المصنعية والضريبة عند الشراء الفعلي"
+                : "Raw gold price only — add making charge and VAT for the real shop total"}
+            </p>
           </motion.div>
         )}
       </motion.div>
