@@ -128,7 +128,12 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               // *.adtrafficquality.google = AdSense ad-verification (sodar); blocking it
               // logged CSP violations on every page and can hurt ad validation
-              "connect-src 'self' https://api.coingecko.com https://www.goldapi.io https://v6.exchangerate-api.com https://open.er-api.com https://ipapi.co https://*.onesignal.com https://*.supabase.co https://www.google-analytics.com https://pagead2.googlesyndication.com https://*.adtrafficquality.google",
+              // GA4 sends its /g/collect beacons to analytics.google.com,
+              // *.google-analytics.com (regional, e.g. region1), and www.google.com
+              // (Google Signals) — NOT just www.google-analytics.com. Whitelisting
+              // only the latter silently blocked every page_view hit → realtime
+              // showed 0 users and reported traffic was badly undercounted.
+              "connect-src 'self' https://api.coingecko.com https://www.goldapi.io https://v6.exchangerate-api.com https://open.er-api.com https://ipapi.co https://*.onesignal.com https://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google",
               "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.adtrafficquality.google https://www.google.com",
               "media-src 'self'",
             ].join("; "),
