@@ -5,6 +5,7 @@ import PriceCardsClient from "@/components/PriceCardsClient";
 import { HomeHero, HomeJumpChips, HomeAdAndCTA, HomeNewsSection, HomePriceChartsSection, HomeQuickLinks } from "@/components/HomeContent";
 import SinceLastVisit from "@/components/SinceLastVisit";
 import PortfolioSummaryChip from "@/components/PortfolioSummaryChip";
+import SharePriceButton from "@/components/SharePriceButton";
 import EngagementSection from "@/components/EngagementSection";
 import GoldSignalCard from "@/components/GoldSignalCard";
 import KastBanner from "@/components/KastBanner";
@@ -137,6 +138,9 @@ export default async function HomePage() {
 
         {/* ملخص المحفظة — يظهر فقط لمن أضاف ذهباً */}
         <PortfolioSummaryChip goldPriceUSD={goldPriceUSD} changePercent={goldChangePct} />
+
+        {/* مشاركة بطاقة سعر اليوم */}
+        <SharePriceButton goldPriceUSD={goldPriceUSD} changePercent={goldChangePct} />
 
         {/* بطاقات الأسعار مع كشف العملة */}
         <div id="price-cards" className="scroll-mt-28" />

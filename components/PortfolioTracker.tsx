@@ -108,6 +108,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   const [rate, setRate] = useState(3.75);
   const [isOpen, setIsOpen] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Add form state
   const [newKarat, setNewKarat] = useState<Holding["karat"]>(21);
@@ -246,6 +247,73 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   const decimals = displayRate > 1000 ? 0 : displayRate > 100 ? 0 : displayRate < 1 ? 3 : 2;
   const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: decimals });
 
+  // Export the portfolio summary as a branded 1080×1080 PNG, drawn on a canvas
+  // (no dependency, no server route). Shares to the native sheet on mobile,
+  // downloads on desktop.
+  async function exportImage() {
+    if (exporting) return;
+    setExporting(true);
+    track.quickLinkClick("portfolio-export-image");
+    try {
+      try { await (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts?.ready; } catch { /* noop */ }
+      const S = 1080;
+      const canvas = document.createElement("canvas");
+      canvas.width = S; canvas.height = S;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("no ctx");
+      const gold = "#C9A84C", green = "#4ade80", red = "#f87171", muted = "#8a8a8a";
+      ctx.fillStyle = "#0D0D0D"; ctx.fillRect(0, 0, S, S);
+      ctx.fillStyle = gold; ctx.fillRect(0, 0, S, 8);
+      ctx.direction = "rtl"; ctx.textAlign = "right";
+      const R = S - 80;
+
+      ctx.fillStyle = gold; ctx.font = "800 46px Tajawal, sans-serif";
+      ctx.fillText("SARD · سعر الذهب", R, 110);
+      ctx.fillStyle = muted; ctx.font = "500 30px Tajawal, sans-serif";
+      ctx.fillText(new Date().toLocaleDateString(lang === "ar" ? "ar" : "en-US", { day: "numeric", month: "long", year: "numeric" }), R, 160);
+
+      ctx.fillStyle = "#F5F5F5"; ctx.font = "800 60px Tajawal, sans-serif";
+      ctx.fillText(lang === "ar" ? "💰 محفظتي الذهبية" : "💰 My Gold Portfolio", R, 300);
+      ctx.fillStyle = muted; ctx.font = "500 34px Tajawal, sans-serif";
+      ctx.fillText(`${holdings.length} ${lang === "ar" ? (holdings.length <= 2 ? "قطعة" : "قطع") : "items"}`, R, 350);
+
+      ctx.fillStyle = muted; ctx.font = "500 38px Tajawal, sans-serif";
+      ctx.fillText(lang === "ar" ? "إجمالي القيمة" : "Total Value", R, 470);
+      ctx.fillStyle = gold; ctx.font = "800 96px Tajawal, sans-serif";
+      ctx.fillText(`${curSymbol} ${fmt(totalValueNow)}`, R, 570);
+
+      const up = changePercent >= 0;
+      ctx.fillStyle = muted; ctx.font = "500 34px Tajawal, sans-serif";
+      ctx.fillText(lang === "ar" ? "تغيير اليوم" : "Today", R, 680);
+      ctx.fillStyle = up ? green : red; ctx.font = "700 52px Tajawal, sans-serif";
+      ctx.fillText(`${up ? "▲ +" : "▼ −"}${curSymbol} ${fmt(Math.abs(dailyChange))}  (${up ? "+" : ""}${changePercent.toFixed(2)}%)`, R, 740);
+
+      if (totalPnL !== null && totalPnLPct !== null) {
+        const pUp = totalPnL >= 0;
+        ctx.fillStyle = muted; ctx.font = "500 34px Tajawal, sans-serif";
+        ctx.fillText(lang === "ar" ? "إجمالي الربح / الخسارة" : "Total Profit / Loss", R, 850);
+        ctx.fillStyle = pUp ? green : red; ctx.font = "700 60px Tajawal, sans-serif";
+        ctx.fillText(`${pUp ? "+" : "−"}${curSymbol} ${fmt(Math.abs(totalPnL))}  (${pUp ? "+" : ""}${totalPnLPct.toFixed(1)}%)`, R, 920);
+      }
+
+      ctx.fillStyle = muted; ctx.font = "500 30px Tajawal, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("sardhahab.com", S / 2, 1020);
+
+      const blob: Blob = await new Promise((res) => canvas.toBlob((b) => res(b as Blob), "image/png"));
+      const file = new File([blob], "sard-portfolio.png", { type: "image/png" });
+      const shareData = { files: [file], title: lang === "ar" ? "محفظتي الذهبية" : "My Gold Portfolio", text: "sardhahab.com" };
+      if (typeof navigator.canShare === "function" && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = "sard-portfolio.png"; a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch { /* user cancelled share / unsupported — silent */ }
+    finally { setExporting(false); }
+  }
+
   // Empty state — show CTA to add first holding
   if (!isOpen && holdings.length === 0) {
     return (
@@ -293,18 +361,31 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
                 </p>
               </div>
             </div>
-            {/* Currency selector */}
-            <select
-              value={currency}
-              onChange={(e) => changeCurrency(e.target.value)}
-              className="bg-surface-2 border border-border text-text-primary text-sm rounded-xl px-3 py-2 focus:border-gold/40 outline-none"
-            >
-              {CURRENCIES.map(c => (
-                <option key={c.code} value={c.code}>
-                  {c.symbol} {lang === "ar" ? c.nameAr : c.nameEn}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              {holdings.length > 0 && (
+                <button
+                  onClick={exportImage}
+                  disabled={exporting}
+                  title={lang === "ar" ? "مشاركة كصورة" : "Share as image"}
+                  aria-label={lang === "ar" ? "مشاركة المحفظة كصورة" : "Share portfolio as image"}
+                  className="bg-surface-2 border border-border hover:border-gold/40 text-text-secondary hover:text-gold rounded-xl px-3 py-2 text-sm transition-colors disabled:opacity-50"
+                >
+                  {exporting ? "⏳" : "📤"}
+                </button>
+              )}
+              {/* Currency selector */}
+              <select
+                value={currency}
+                onChange={(e) => changeCurrency(e.target.value)}
+                className="bg-surface-2 border border-border text-text-primary text-sm rounded-xl px-3 py-2 focus:border-gold/40 outline-none"
+              >
+                {CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.symbol} {lang === "ar" ? c.nameAr : c.nameEn}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Portfolio summary */}

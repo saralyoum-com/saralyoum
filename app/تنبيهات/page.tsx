@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Disclaimer from "@/components/Disclaimer";
 import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { track } from "@/lib/analytics";
-import { PushSubscribeButton, IosInstallNotice } from "@/components/PushNotifications";
+import { PushSubscribeButton, IosInstallNotice, PriceThresholdAlert } from "@/components/PushNotifications";
 
 type Step = "form" | "success";
 
@@ -29,6 +29,14 @@ export default function AlertsPage() {
   const [step, setStep] = useState<Step>("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [goldNowUSD, setGoldNowUSD] = useState<number | undefined>();
+
+  useEffect(() => {
+    fetch("/api/prices?type=metals")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.gold?.price) setGoldNowUSD(d.gold.price); })
+      .catch(() => {});
+  }, []);
 
   const txt = {
     title:         lang === "ar" ? "🔔 التنبيهات الذكية"                       : "🔔 Smart Alerts",
@@ -161,6 +169,11 @@ export default function AlertsPage() {
           </div>
         </div>
         <PushSubscribeButton />
+      </div>
+
+      {/* Per-user price-threshold alert */}
+      <div className="mb-6">
+        <PriceThresholdAlert currentPriceUSD={goldNowUSD} />
       </div>
 
       {/* Ad at top */}

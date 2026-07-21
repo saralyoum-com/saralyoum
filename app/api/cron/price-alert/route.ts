@@ -19,12 +19,53 @@ export async function GET(req: NextRequest) {
 
   try {
     const { getGoldPrice, getGoldUsualDailyMovePct } = await import("@/lib/goldapi");
-    const { sendPushToAll } = await import("@/lib/onesignal");
+    const { sendPushToAll, listPlayers, sendPushToPlayers, setPlayerTags } = await import("@/lib/onesignal");
     const { createServiceClient } = await import("@/lib/supabase");
 
     const [gold, usualMove] = await Promise.all([getGoldPrice(), getGoldUsualDailyMovePct()]);
     const price = gold.price;
     if (!price || price <= 0) return NextResponse.json({ error: "no price" }, { status: 503 });
+
+    // ── Per-user price-threshold alerts ──────────────────────────────────────
+    // Subscribers who set "notify me above/below $X" via PriceThresholdAlert
+    // tag themselves (alert_price / alert_dir). Check every run, push to those
+    // whose target the live price has crossed, then clear their tags (one-shot).
+    // Independent of the broadcast dedup below — runs even when the market is
+    // quiet. Best-effort; failures here never block the broadcast.
+    let thresholdHits = 0;
+    try {
+      const players = await listPlayers();
+      const priceStrLive = Math.round(price).toLocaleString("en-US");
+      const above: string[] = [];
+      const below: string[] = [];
+      const toClear: string[] = [];
+      for (const p of players) {
+        if (p.invalid_identifier) continue;
+        const target = Number(p.tags?.alert_price);
+        const adir = p.tags?.alert_dir;
+        if (!target || target <= 0 || (adir !== "above" && adir !== "below")) continue;
+        if (adir === "above" && price >= target) { above.push(p.id); toClear.push(p.id); }
+        else if (adir === "below" && price <= target) { below.push(p.id); toClear.push(p.id); }
+      }
+      if (above.length) {
+        await sendPushToPlayers(above, {
+          headingAr: "🎯 وصل الذهب لهدفك",
+          contentAr: `الذهب تجاوز سعرك المستهدف — الآن $${priceStrLive} للأوقية`,
+          url: "https://sardhahab.com",
+        });
+      }
+      if (below.length) {
+        await sendPushToPlayers(below, {
+          headingAr: "🎯 وصل الذهب لهدفك",
+          contentAr: `الذهب انخفض إلى سعرك المستهدف — الآن $${priceStrLive} للأوقية`,
+          url: "https://sardhahab.com",
+        });
+      }
+      await Promise.all(toClear.map((id) => setPlayerTags(id, { alert_price: "", alert_dir: "" })));
+      thresholdHits = above.length + below.length;
+    } catch (e) {
+      console.error("price-alert threshold block:", e);
+    }
 
     const threshold = usualMove != null ? Math.max(FLOOR, MULTIPLIER * usualMove) : FALLBACK_THRESHOLD;
 
@@ -55,12 +96,12 @@ export async function GET(req: NextRequest) {
     // First run (or no baseline): record current price, send nothing.
     if (lastPrice == null) {
       await saveState();
-      return NextResponse.json({ ok: true, baseline: price });
+      return NextResponse.json({ ok: true, baseline: price, thresholdHits });
     }
 
     const move = Math.abs(price - lastPrice) / lastPrice;
     if (move < threshold) {
-      return NextResponse.json({ ok: true, sent: false, movePct: +(move * 100).toFixed(2), threshold: +(threshold * 100).toFixed(2) });
+      return NextResponse.json({ ok: true, sent: false, movePct: +(move * 100).toFixed(2), threshold: +(threshold * 100).toFixed(2), thresholdHits });
     }
 
     const up = price >= lastPrice;
@@ -78,7 +119,7 @@ export async function GET(req: NextRequest) {
     });
 
     await saveState();
-    return NextResponse.json({ ok: true, sent: true, movePct: +pct, threshold: +(threshold * 100).toFixed(2), push });
+    return NextResponse.json({ ok: true, sent: true, movePct: +pct, threshold: +(threshold * 100).toFixed(2), thresholdHits, push });
   } catch (err) {
     console.error("price-alert error:", err);
     return NextResponse.json({ error: "failed" }, { status: 500 });
