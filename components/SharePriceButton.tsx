@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useLang } from "@/components/LanguageContext";
+import { useLocation } from "@/components/LocalCurrency";
 import { track } from "@/lib/analytics";
+
+const OZ = 31.1035;
 
 // "Share today's price" — generates a styled PNG from the existing
 // /api/social-card endpoint (the same renderer the posting bot uses) and
@@ -15,6 +18,8 @@ interface Props {
 
 export default function SharePriceButton({ goldPriceUSD, changePercent }: Props) {
   const { lang } = useLang();
+  const loc = useLocation();
+
   const [state, setState] = useState<"idle" | "loading" | "done">("idle");
 
   if (!goldPriceUSD || goldPriceUSD <= 0) return null;
@@ -26,7 +31,22 @@ export default function SharePriceButton({ goldPriceUSD, changePercent }: Props)
     try {
       const gold = Math.round(goldPriceUSD).toLocaleString("en-US");
       const dir = changePercent >= 0 ? "up" : "down";
-      const url = `/api/social-card?type=morning&gold=${encodeURIComponent(gold)}&change=${Math.abs(changePercent).toFixed(2)}&dir=${dir}`;
+
+      // Per-gram prices in the visitor's local currency
+      const rate = loc.currency === "USD" ? 1 : loc.rate;
+      const perGram24 = (goldPriceUSD / OZ) * rate;
+      const dec = rate > 100 ? 0 : 2;
+      const g = (purity: number) =>
+        (perGram24 * purity).toLocaleString("en-US", { maximumFractionDigits: dec });
+      const sym = loc.currency === "USD" ? "$" : loc.currencySymbol;
+      const curName = loc.currency === "USD" ? "بالدولار الأمريكي" : `بـ${loc.currencyName}`;
+      const date = new Date().toLocaleDateString("ar", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+      const url =
+        `/api/social-card?type=price&gold=${encodeURIComponent(gold)}` +
+        `&change=${Math.abs(changePercent).toFixed(2)}&dir=${dir}` +
+        `&g24=${encodeURIComponent(g(1))}&g21=${encodeURIComponent(g(21 / 24))}&g18=${encodeURIComponent(g(18 / 24))}` +
+        `&sym=${encodeURIComponent(sym)}&curName=${encodeURIComponent(curName)}&date=${encodeURIComponent(date)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("card failed");
       const blob = await res.blob();

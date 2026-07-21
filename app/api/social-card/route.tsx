@@ -33,6 +33,17 @@ function loadFonts(): CachedFont[] {
 
 // ── Shared decorative elements ─────────────────────────────────────────────────
 
+// Satori (the ImageResponse renderer) scrambles word order when it auto-wraps
+// long RTL text across lines — it wraps as if laying out LTR boxes, which
+// breaks Arabic reading order at the wrap point. Splitting into explicit,
+// single-line segments ourselves avoids Satori's wrap entirely.
+function splitBalanced(text: string): [string, string] {
+  const words = text.split(" ");
+  if (words.length < 2) return [text, ""];
+  const mid = Math.ceil(words.length / 2);
+  return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
+}
+
 function GradBar({ yPos }: { yPos: number }) {
   return (
     <div style={{ position: "absolute", top: yPos, left: 0, display: "flex" }}>
@@ -250,6 +261,11 @@ export async function GET(req: NextRequest) {
   const g18   = sp.get("g18")  || "";
   const oz    = sp.get("oz")   || "";
 
+  // square "price" share card (user-triggered from the site)
+  const sym     = sp.get("sym")     || "$";        // currency symbol
+  const curName = sp.get("curName") || "";         // e.g. "بالريال السعودي"
+  const dateStr = sp.get("date")    || "";         // localized date from client
+
   const rows: CardCountryRow[] = rowsRaw ? decodeCardRows(rowsRaw) : DEFAULT_ROWS;
 
   const fonts     = loadFonts();
@@ -300,13 +316,15 @@ export async function GET(req: NextRequest) {
   // ── EDUCATIONAL ───────────────────────────────────────────────────────────
   if (type === "educational") {
     const displayTopic = topic || "البيتكوين مقابل الذهب";
+    const [topicLine1, topicLine2] = splitBalanced(displayTopic);
     return new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: "0 80px" }}>
           <div style={{ color: AZURE, fontSize: 22, display: "flex" }}>تعليم مالي</div>
-          <div style={{ color: "#fff", fontSize: 60, fontWeight: 900, textAlign: "center", lineHeight: 1.3, marginTop: 18, display: "flex", direction: "rtl" }}>
-            {displayTopic}
+          <div style={{ color: "#fff", fontSize: 60, fontWeight: 900, marginTop: 18, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{ display: "flex", direction: "rtl" }}>{topicLine1}</div>
+            {topicLine2 && <div style={{ display: "flex", direction: "rtl" }}>{topicLine2}</div>}
           </div>
           <div style={{ color: "rgba(201,168,76,0.28)", fontSize: 20, marginTop: 22, display: "flex" }}>sardhahab.com</div>
         </div>
@@ -369,6 +387,77 @@ export async function GET(req: NextRequest) {
         <GradBar yPos={H - 5} />
       </div>
     ), { width: W, height: H, fonts: fontOpts });
+  }
+
+  // ── PRICE: square 1080×1080 share card with local-currency karat prices ────
+  if (type === "price") {
+    const S = 1080;
+    const rows: [string, string, string, "hi" | "star" | "lo"][] = [
+      ["عيار 24", g24, "24", "hi"],
+      ["عيار 21", g21, "21", "star"],
+      ["عيار 18", g18, "18", "lo"],
+    ];
+    return new ImageResponse((
+      <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
+          <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pbar" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#8B6914" /><stop offset="28%" stopColor="#F2D98A" />
+                <stop offset="62%" stopColor={GOLD} /><stop offset="100%" stopColor="#8B6914" />
+              </linearGradient>
+            </defs>
+            <rect width={S} height={7} fill="url(#pbar)" />
+          </svg>
+        </div>
+
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "44px 46px 0", direction: "rtl" }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ color: GOLD, fontSize: 40, fontWeight: 800 }}>SARD · سعر الذهب</span>
+            {dateStr ? <span style={{ color: "#7a7a7a", fontSize: 24, marginTop: 4 }}>{dateStr}</span> : null}
+          </div>
+          <div style={{ width: 74, height: 74, borderRadius: 40, background: GOLD, display: "flex", alignItems: "center", justifyContent: "center", color: "#2a1f05", fontSize: 20, fontWeight: 900 }}>SARD</div>
+        </div>
+
+        {/* Centered body: hero + karat rows fill the space between header and footer */}
+        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}>
+          {/* Hero price */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ color: "#7a7a7a", fontSize: 26 }}>سعر الأونصة الآن</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 6 }}>
+              <span style={{ color: "#F5F5F5", fontSize: 92, fontWeight: 900 }}>${gold}</span>
+              <span style={{ background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 30, fontWeight: 700, padding: "6px 20px", borderRadius: 30, display: "flex" }}>
+                {isUp ? "+" : "−"}{absChange}%
+              </span>
+            </div>
+            <span style={{ color: "#8a6d1f", fontSize: 24, marginTop: 12 }}>{curName ? `${curName} · للجرام` : "للجرام"}</span>
+          </div>
+
+          {/* Karat rows */}
+          <div style={{ display: "flex", flexDirection: "column", margin: "48px 56px 0", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, overflow: "hidden" }}>
+            {rows.filter(r => r[1]).map(([label, val, chip, kind], i) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "34px 46px", direction: "rtl", background: kind === "hi" ? "rgba(201,168,76,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <span style={{ color: "#F5F5F5", fontSize: 38, fontWeight: 700 }}>{label}</span>
+                  <span style={{ background: kind === "hi" ? GOLD : kind === "star" ? "rgba(201,168,76,0.2)" : "rgba(255,255,255,0.06)", color: kind === "hi" ? "#0a0a0a" : kind === "star" ? GOLD : "#9a9a9a", fontSize: 22, fontWeight: 800, padding: "4px 14px", borderRadius: 8, display: "flex" }}>{chip}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                  <span style={{ color: kind === "hi" ? GOLD : "#F5F5F5", fontSize: 56, fontWeight: 900 }}>{val}</span>
+                  <span style={{ color: "rgba(201,168,76,0.5)", fontSize: 28 }}>{sym}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, width: S, height: 72, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <span style={{ color: GOLD, fontSize: 26, fontWeight: 700 }}>sardhahab.com</span>
+          <span style={{ color: "#555", fontSize: 20 }}>· أسعار لحظية للذهب والعملات</span>
+        </div>
+      </div>
+    ), { width: S, height: S, fonts: fontOpts });
   }
 
   // ── CTA ───────────────────────────────────────────────────────────────────
