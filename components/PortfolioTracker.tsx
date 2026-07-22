@@ -332,7 +332,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
               </h2>
               <p className="text-text-secondary text-sm">
                 {lang === "ar"
-                  ? "أضف ذهبك وتابع قيمته لحظياً — مجاناً وبدون تسجيل"
+                  ? "أضف ذهبك وتابع قيمته لحظيا — مجانا وبدون تسجيل"
                   : "Add your gold and track its live value — free, no signup"}
               </p>
             </div>
@@ -526,20 +526,23 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
                   className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none placeholder:text-text-secondary/50"
                 />
               </div>
-              {/* Buy price (optional) */}
+              {/* Buy price — optional, but it unlocks the profit/loss card */}
               <div>
-                <label className="text-text-secondary text-xs mb-1 block">
+                <label className="text-gold/90 text-xs mb-1 block">
                   {lang === "ar" ? `سعر شراء الجرام (${curSymbol})` : `Buy / gram (${curSymbol})`}
                 </label>
                 <input
                   type="number"
                   value={newBuyPrice}
                   onChange={(e) => setNewBuyPrice(e.target.value)}
-                  placeholder={lang === "ar" ? "للجرام · اختياري" : "per gram · optional"}
+                  placeholder={lang === "ar" ? "مثال 442" : "e.g. 442"}
                   min="0"
                   step="0.01"
-                  className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none placeholder:text-text-secondary/50"
+                  className="w-full bg-surface border border-gold/25 text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/50 outline-none placeholder:text-text-secondary/50"
                 />
+                <p className="text-text-secondary text-[10px] mt-1 leading-tight">
+                  {lang === "ar" ? "أدخله لتظهر أرباحك تلقائيا" : "Add it to see your profit"}
+                </p>
               </div>
               {/* Buy date (optional) */}
               <div>
