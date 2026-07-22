@@ -31,6 +31,54 @@ function loadFonts(): CachedFont[] {
   return _fonts;
 }
 
+// SARD coin logo (carries the "SARD · سعر الذهب" brand), embedded as a data URI
+// so the ImageResponse renderer has no network dependency. Cached per lambda.
+let _logo: string | null | undefined;
+function loadLogo(): string {
+  if (_logo !== undefined) return _logo || "";
+  try {
+    const buf = readFileSync(join(process.cwd(), "public", "share-coin.png"));
+    _logo = `data:image/png;base64,${buf.toString("base64")}`;
+  } catch { _logo = null; }
+  return _logo || "";
+}
+
+// Shared header/footer for the square (1080) share cards. The logo replaces the
+// old "SARD · سعر الذهب" text + badge (mixed Latin+Arabic can't be laid out by
+// Satori). Satori has no bidi algorithm, so: (1) leave plain Arabic text spans
+// alone — they self-order RTL; NEVER put `direction: "rtl"` on the element that
+// holds the text (it breaks inter-word spacing). Use it only on a flex CONTAINER
+// arranging child elements. (2) A number inside an Arabic run gets misplaced, so
+// render such strings (dates) token-by-token in a `row-reverse` flex.
+function SquareHeader({ logo, dateStr }: { logo: string; dateStr: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 46 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- Satori (ImageResponse), not next/image */}
+      {logo ? <img src={logo} width={140} height={140} alt="" /> : null}
+      {/* Date rendered token-by-token in a row-reverse flex — Satori bids the
+          day-number to the wrong side inside a mixed Arabic+number run, which
+          swaps "22 يوليو" → "يوليو 22". Per-token ordering keeps it correct. */}
+      {dateStr ? (
+        <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "baseline", gap: 10, marginTop: 12 }}>
+          {dateStr.trim().split(/\s+/).map((tok, i) => (
+            <span key={i} style={{ color: "#7a7a7a", fontSize: 26 }}>{tok}</span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SquareFooter({ tagline }: { tagline: string }) {
+  return (
+    <div style={{ position: "absolute", bottom: 0, left: 0, width: 1080, height: 72, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+      <span style={{ color: GOLD, fontSize: 26, fontWeight: 700 }}>sardhahab.com</span>
+      <span style={{ color: "#555", fontSize: 20 }}>·</span>
+      <span style={{ color: "#555", fontSize: 20 }}>{tagline}</span>
+    </div>
+  );
+}
+
 // ── Shared decorative elements ─────────────────────────────────────────────────
 
 // Satori (the ImageResponse renderer) scrambles word order when it auto-wraps
@@ -266,10 +314,24 @@ export async function GET(req: NextRequest) {
   const curName = sp.get("curName") || "";         // e.g. "بالريال السعودي"
   const dateStr = sp.get("date")    || "";         // localized date from client
 
+  // square "asset" card (silver / bitcoin / ethereum) + "portfolio" card
+  const assetName = sp.get("assetName") || "";     // e.g. "الفضة" / "بيتكوين"
+  const assetSub  = sp.get("assetSub")  || "";     // small line above the name
+  const price     = sp.get("price")     || "";     // pre-formatted price string
+  const pv        = sp.get("pv")        || "";     // portfolio total value
+  const count     = sp.get("count")     || "";     // holdings count label
+  const daily     = sp.get("daily")     || "";     // today's abs change
+  const dailyPct  = sp.get("dailyPct")  || "0";
+  const dailyDir  = sp.get("dailyDir")  || "up";
+  const pnl       = sp.get("pnl")       || "";     // profit/loss abs (optional)
+  const pnlPct    = sp.get("pnlPct")    || "0";
+  const pnlDir    = sp.get("pnlDir")    || "up";
+
   const rows: CardCountryRow[] = rowsRaw ? decodeCardRows(rowsRaw) : DEFAULT_ROWS;
 
   const fonts     = loadFonts();
   const fontOpts  = fonts.length > 0 ? fonts : undefined;
+  const logo      = loadLogo();
 
   const isUp        = dir !== "down";
   const changeColor = isUp ? "#4ade80" : "#f87171";
@@ -411,14 +473,7 @@ export async function GET(req: NextRequest) {
           </svg>
         </div>
 
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "44px 46px 0", direction: "rtl" }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ color: GOLD, fontSize: 40, fontWeight: 800 }}>SARD · سعر الذهب</span>
-            {dateStr ? <span style={{ color: "#7a7a7a", fontSize: 24, marginTop: 4 }}>{dateStr}</span> : null}
-          </div>
-          <div style={{ width: 74, height: 74, borderRadius: 40, background: GOLD, display: "flex", alignItems: "center", justifyContent: "center", color: "#2a1f05", fontSize: 20, fontWeight: 900 }}>SARD</div>
-        </div>
+        <SquareHeader logo={logo} dateStr={dateStr} />
 
         {/* Centered body: hero + karat rows fill the space between header and footer */}
         <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}>
@@ -451,11 +506,97 @@ export async function GET(req: NextRequest) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, width: S, height: 72, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-          <span style={{ color: GOLD, fontSize: 26, fontWeight: 700 }}>sardhahab.com</span>
-          <span style={{ color: "#555", fontSize: 20 }}>· أسعار لحظية للذهب والعملات</span>
+        <SquareFooter tagline="أسعار لحظية للذهب والعملات" />
+      </div>
+    ), { width: S, height: S, fonts: fontOpts });
+  }
+
+  // ── ASSET: generic square card for silver / bitcoin / ethereum ─────────────
+  if (type === "asset") {
+    const S = 1080;
+    return new ImageResponse((
+      <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
+          <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="abar" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#8B6914" /><stop offset="28%" stopColor="#F2D98A" />
+                <stop offset="62%" stopColor={GOLD} /><stop offset="100%" stopColor="#8B6914" />
+              </linearGradient>
+            </defs>
+            <rect width={S} height={7} fill="url(#abar)" />
+          </svg>
         </div>
+
+        <SquareHeader logo={logo} dateStr={dateStr} />
+
+        {/* Centered body */}
+        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", alignItems: "center", paddingBottom: 60 }}>
+          <span style={{ color: "#7a7a7a", fontSize: 30 }}>{assetSub || "السعر الآن"}</span>
+          <span style={{ color: GOLD, fontSize: 68, fontWeight: 900, marginTop: 8 }}>{assetName}</span>
+          <div style={{ display: "flex", alignItems: "baseline", marginTop: 30 }}>
+            <span style={{ color: "#F5F5F5", fontSize: 108, fontWeight: 900 }}>{sym}{price}</span>
+          </div>
+          <div style={{ marginTop: 30, background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 34, fontWeight: 700, padding: "10px 36px", borderRadius: 40, display: "flex" }}>
+            {isUp ? "+" : "−"}{absChange}% · اليوم
+          </div>
+        </div>
+
+        <SquareFooter tagline="أسعار لحظية للذهب والعملات" />
+      </div>
+    ), { width: S, height: S, fonts: fontOpts });
+  }
+
+  // ── PORTFOLIO: user's holdings summary (value / today / P&L) ────────────────
+  if (type === "portfolio") {
+    const S = 1080;
+    const dUp = dailyDir !== "down";
+    const pUp = pnlDir !== "down";
+    const hasPnl = pnl !== "";
+    const box = (label: string, value: string, color: string, sub?: string) => (
+      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,168,76,0.14)", borderRadius: 20, padding: "28px 34px", alignItems: "flex-end", flexGrow: 1 }}>
+        <span style={{ color: "#7a7a7a", fontSize: 26 }}>{label}</span>
+        <span style={{ color, fontSize: 54, fontWeight: 900, marginTop: 6 }}>{value}</span>
+        {sub ? <span style={{ color, fontSize: 28, fontWeight: 700, marginTop: 2 }}>{sub}</span> : null}
+      </div>
+    );
+    return new ImageResponse((
+      <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
+          <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pfbar" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#8B6914" /><stop offset="28%" stopColor="#F2D98A" />
+                <stop offset="62%" stopColor={GOLD} /><stop offset="100%" stopColor="#8B6914" />
+              </linearGradient>
+            </defs>
+            <rect width={S} height={7} fill="url(#pfbar)" />
+          </svg>
+        </div>
+
+        <SquareHeader logo={logo} dateStr={dateStr} />
+
+        {/* Body */}
+        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", padding: "0 56px 40px", direction: "rtl" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ color: "#F5F5F5", fontSize: 62, fontWeight: 900 }}>محفظتي الذهبية</span>
+            {count ? <span style={{ color: "#7a7a7a", fontSize: 30, marginTop: 4 }}>{count}</span> : null}
+          </div>
+
+          {/* Total value hero */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 44 }}>
+            <span style={{ color: "#7a7a7a", fontSize: 30 }}>إجمالي القيمة</span>
+            <span style={{ color: GOLD, fontSize: 104, fontWeight: 900, marginTop: 4 }}>{sym} {pv}</span>
+          </div>
+
+          {/* Today + P&L */}
+          <div style={{ display: "flex", gap: 24, marginTop: 48 }}>
+            {box("تغيير اليوم", `${dUp ? "+" : "−"}${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : ""}${dailyPct}%`)}
+            {hasPnl ? box("الربح / الخسارة", `${pUp ? "+" : "−"}${sym} ${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : ""}${pnlPct}%`) : null}
+          </div>
+        </div>
+
+        <SquareFooter tagline="تتبّع قيمة ذهبك لحظيا" />
       </div>
     ), { width: S, height: S, fonts: fontOpts });
   }
