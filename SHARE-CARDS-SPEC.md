@@ -50,6 +50,17 @@ whole difficulty of this feature — get them wrong and the Arabic looks scrambl
    on-page HTML components is fine.)
 6. **Never mix Latin + Arabic in one text node** (e.g. "SARD · سعر الذهب") — bidi
    there is unfixable. That's why the header is the **logo image**, not text.
+7. **A single-line Arabic string can still scramble if it's wide** (large
+   font-size/weight pushing 2-3 words close to the container's measured
+   width) — Satori auto-wraps as if laying out LTR boxes, which breaks
+   reading order right at the wrap point, even when it visually still looks
+   like one line. This bit the portfolio card's `محفظتي الذهبية` title
+   (fontSize 62/900) — collapsing it into a single `<span>` was NOT enough;
+   it kept rendering as `الذهبية    محفظتي` (reversed, huge gap). Fix: use
+   the existing `splitBalanced(text)` helper to pre-split into two shorter
+   lines and render each as its own single-line `<div>` (same pattern as the
+   `educational` card's `topicLine1`/`topicLine2`). Do this for any hero-size
+   (≥40px) multi-word Arabic string — don't wait for it to visibly break.
 
 ---
 

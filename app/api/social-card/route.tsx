@@ -553,11 +553,22 @@ export async function GET(req: NextRequest) {
     const dUp = dailyDir !== "down";
     const pUp = pnlDir !== "down";
     const hasPnl = pnl !== "";
-    const box = (label: string, value: string, color: string, sub?: string) => (
-      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(201,168,76,0.14)", borderRadius: 20, padding: "28px 34px", alignItems: "flex-end", flexGrow: 1 }}>
-        <span style={{ color: "#7a7a7a", fontSize: 26 }}>{label}</span>
-        <span style={{ color, fontSize: 54, fontWeight: 900, marginTop: 6 }}>{value}</span>
-        {sub ? <span style={{ color, fontSize: 28, fontWeight: 700, marginTop: 2 }}>{sub}</span> : null}
+    // Triangle indicator — Tajawal has no ▲/▼ glyphs, and Satori draws CSS
+    // border-triangles as plain rectangles (no diagonal clipping), so this
+    // has to be a real inline SVG polygon instead.
+    const triangle = (up: boolean, color: string) => (
+      <svg width={14} height={12} style={{ display: "flex" }}>
+        <polygon points={up ? "7,0 14,12 0,12" : "0,0 14,0 7,12"} fill={color} />
+      </svg>
+    );
+    const box = (label: string, value: string, color: string, sub: string, up: boolean) => (
+      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, padding: "36px 34px", alignItems: "flex-end", flexGrow: 1, flexBasis: 0 }}>
+        <span style={{ color: "#8a8a8a", fontSize: 26 }}>{label}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
+          {triangle(up, color)}
+          <span style={{ color, fontSize: 54, fontWeight: 900 }}>{value}</span>
+        </div>
+        <span style={{ color, fontSize: 29, fontWeight: 700, marginTop: 10 }}>{sub}</span>
       </div>
     );
     return new ImageResponse((
@@ -574,25 +585,42 @@ export async function GET(req: NextRequest) {
           </svg>
         </div>
 
+        {/* Soft gold glow behind the whole hero block — fills the canvas
+            with visual weight instead of leaving it feeling empty. */}
+        <div style={{
+          position: "absolute", top: 160, left: "50%", transform: "translateX(-540px)",
+          width: 1080, height: 620, borderRadius: 9999, display: "flex",
+          background: "radial-gradient(ellipse at center, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0) 68%)",
+        }} />
+
         <SquareHeader logo={logo} dateStr={dateStr} />
 
-        {/* Body */}
-        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", padding: "0 56px 40px", direction: "rtl" }}>
+        {/* Body — deterministic margins that fill the 1080 canvas, instead of
+            flex-centering a short content stack into a sea of empty space. */}
+        <div style={{ display: "flex", flexDirection: "column", padding: "0 60px", marginTop: 28 }}>
+
+          {/* Title — weight-sandwich: thin intro word, massive hero word.
+              "الذهبية" alone has no spaces, so there's nothing for Satori's
+              auto-wrap to scramble (see rule 7 in SHARE-CARDS-SPEC.md). */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "#F5F5F5", fontSize: 62, fontWeight: 900 }}>محفظتي الذهبية</span>
-            {count ? <span style={{ color: "#7a7a7a", fontSize: 30, marginTop: 4 }}>{count}</span> : null}
+            <span style={{ color: "rgba(255,255,255,0.42)", fontSize: 30, fontWeight: 400 }}>محفظتي</span>
+            <span style={{ color: "#F5F5F5", fontSize: 128, fontWeight: 900, marginTop: 2, textShadow: "0 0 60px rgba(201,168,76,0.26)" }}>الذهبية</span>
+            {count ? <span style={{ color: "#8a8a8a", fontSize: 28, marginTop: 16 }}>{count}</span> : null}
           </div>
 
+          {/* Divider */}
+          <div style={{ display: "flex", height: 1, background: "rgba(255,255,255,0.07)", margin: "44px 0 40px" }} />
+
           {/* Total value hero */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 44 }}>
-            <span style={{ color: "#7a7a7a", fontSize: 30 }}>إجمالي القيمة</span>
-            <span style={{ color: GOLD, fontSize: 104, fontWeight: 900, marginTop: 4 }}>{sym} {pv}</span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <span style={{ color: "#8a8a8a", fontSize: 30 }}>إجمالي القيمة</span>
+            <span style={{ color: GOLD, fontSize: 108, fontWeight: 900, marginTop: 10, textShadow: "0 0 54px rgba(201,168,76,0.36)" }}>{sym} {pv}</span>
           </div>
 
           {/* Today + P&L */}
-          <div style={{ display: "flex", gap: 24, marginTop: 48 }}>
-            {box("تغيير اليوم", `${dUp ? "+" : "−"}${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : ""}${dailyPct}%`)}
-            {hasPnl ? box("الربح / الخسارة", `${pUp ? "+" : "−"}${sym} ${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : ""}${pnlPct}%`) : null}
+          <div style={{ display: "flex", gap: 22, marginTop: 64 }}>
+            {box("تغيير اليوم", `${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : "−"}${dailyPct}%`, dUp)}
+            {hasPnl ? box("الربح / الخسارة", `${sym} ${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : "−"}${pnlPct}%`, pUp) : null}
           </div>
         </div>
 
