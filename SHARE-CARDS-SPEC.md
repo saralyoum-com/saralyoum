@@ -34,33 +34,54 @@ The cards are rendered by **Satori** (`next/og`), NOT a browser. Satori has **no
 Unicode bidi algorithm** and only the embedded Tajawal font. These rules are the
 whole difficulty of this feature — get them wrong and the Arabic looks scrambled:
 
-1. **Plain Arabic text spans order themselves RTL correctly. Leave them plain.**
-   Do **NOT** add `direction: "rtl"` to a multi-word Arabic *text* span — it
-   injects large broken gaps between words (reads as word-salad). This was the
-   original bug.
-2. **`direction: "rtl"` is fine on a flex CONTAINER** whose job is to order child
-   *elements* (e.g. a row that holds a label span + a chip). It only breaks on
-   *text*.
+1. **A single-word Arabic span is fine — leave it plain.** But a plain span
+   with **2 or more Arabic words reorders those words** (see rule 7 — this
+   supersedes an earlier, incorrect version of this rule that claimed plain
+   multi-word spans were safe; they are not, verified by calibration render).
+   Use `ArLine` (rule 7) for any 2+-word Arabic string.
+2. **Never add `direction: "rtl"` to a text-holding span** — it injects large
+   broken gaps between words on top of the reorder from rule 7 (double
+   damage). `direction: "rtl"` is fine on a flex CONTAINER whose job is to
+   order child *elements* (e.g. a row holding a label span + a chip) — it
+   only breaks when applied directly to text.
 3. **A number inside an Arabic run gets misplaced** (a date "22 يوليو" renders as
-   "يوليو 22"). Fix: split the string on spaces and render each token as its own
-   `<span>` inside a `flexDirection: "row-reverse"` row. See `SquareHeader`'s date.
+   "يوليو 22"), but a single Arabic word + a digit token is otherwise fine
+   (`عيار 24` is correct as a plain span — verified). For dates specifically,
+   or any string where you want digits pinned in place: split the string on
+   spaces and render each token as its own `<span>` inside a
+   `flexDirection: "row-reverse"` row (this is exactly what `ArLine` does —
+   `SquareHeader`'s date uses the same technique inline).
 4. **No `▲` / `▼`** — not in Tajawal, render as tofu (☐). Use `+` and `−`
    (U+2212). On-page HTML (the share row) can use ▲/▼ freely — that's the browser.
 5. **No emoji inside Satori** — unreliable. Use text or the logo image. (Emoji in
    on-page HTML components is fine.)
 6. **Never mix Latin + Arabic in one text node** (e.g. "SARD · سعر الذهب") — bidi
    there is unfixable. That's why the header is the **logo image**, not text.
-7. **A single-line Arabic string can still scramble if it's wide** (large
-   font-size/weight pushing 2-3 words close to the container's measured
-   width) — Satori auto-wraps as if laying out LTR boxes, which breaks
-   reading order right at the wrap point, even when it visually still looks
-   like one line. This bit the portfolio card's `محفظتي الذهبية` title
-   (fontSize 62/900) — collapsing it into a single `<span>` was NOT enough;
-   it kept rendering as `الذهبية    محفظتي` (reversed, huge gap). Fix: use
-   the existing `splitBalanced(text)` helper to pre-split into two shorter
-   lines and render each as its own single-line `<div>` (same pattern as the
-   `educational` card's `topicLine1`/`topicLine2`). Do this for any hero-size
-   (≥40px) multi-word Arabic string — don't wait for it to visibly break.
+7. **Any plain span with 2+ Arabic-script words reorders those words**,
+   regardless of font size — this is NOT a "wide/hero-text-only" bug (that
+   was an earlier, incorrect theory; disproven by isolated calibration
+   renders at 26–30px). `سعر الأونصة الآن` (26px, fits on one line with room
+   to spare) still renders as `الآن الأونصة سعر` — Satori's Yoga layout lays
+   out same-direction (Arabic) tokens in naive left-to-right box order; it
+   does not implement the Unicode bidi algorithm at the paragraph/line level.
+   **A single Arabic word combined with a digit token is NOT affected**
+   (`عيار 24` renders correctly, confirmed by pixel-crop inspection) — the
+   bug is specifically 2-or-more same-direction tokens.
+   **Fix:** use the `ArLine({ text, style })` helper (near `splitBalanced`) —
+   it splits on whitespace and renders each token as its own `<span>` inside
+   a `flexDirection: "row-reverse"` row (tokens left in natural, un-reversed
+   order — same technique already used for the header's date). Apply it to
+   **every** Arabic string with 2+ words: hero subtitles, stat-box labels,
+   captions — not just large titles. The portfolio title (`محفظتي` /
+   `الذهبية`) uses a different valid fix (two words on two separate stacked
+   lines, one word per line, so there's nothing to reorder) — either
+   approach works; `ArLine` is the general-purpose one.
+   **Verification method that actually catches this:** render the string
+   ALONE, then render two known, visually-distinguishable test words
+   together (e.g. `واحد اثنان`) and crop-zoom the PNG to confirm which glyph
+   shape sits on which side — do not eyeball a real string and assume it's
+   right based on general impression. That mistake was made twice in this
+   file's history before the bug was correctly isolated.
 
 ---
 

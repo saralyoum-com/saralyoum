@@ -92,6 +92,26 @@ function splitBalanced(text: string): [string, string] {
   return [words.slice(0, mid).join(" "), words.slice(mid).join(" ")];
 }
 
+// Verified (calibration render, isolated tokens): a plain span with 2+
+// pure-Arabic-script tokens gets those tokens laid out in naive left-to-right
+// box order — "سعر الأونصة الآن" renders as "الآن الأونصة سعر". A single
+// Arabic word combined with a digit token ("عيار 24") is NOT affected — this
+// only hits 2-or-more same-direction (Arabic) tokens, at any font size (not
+// just large hero text). The fix: split on whitespace and render each token
+// as its own <span> inside a `flexDirection: "row-reverse"` row, tokens left
+// in natural (un-reversed) array order — same technique already proven
+// correct for the header's date. Use this for every Arabic string with 2+
+// words instead of a single plain span.
+function ArLine({ text, style, gap }: { text: string; style: React.CSSProperties; gap?: number }) {
+  const tokens = text.trim().split(/\s+/);
+  const fs = typeof style.fontSize === "number" ? style.fontSize : 24;
+  return (
+    <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "baseline", gap: gap ?? Math.round(fs * 0.28) }}>
+      {tokens.map((tok, i) => <span key={i} style={style}>{tok}</span>)}
+    </div>
+  );
+}
+
 function GradBar({ yPos }: { yPos: number }) {
   return (
     <div style={{ position: "absolute", top: yPos, left: 0, display: "flex" }}>
@@ -479,14 +499,14 @@ export async function GET(req: NextRequest) {
         <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", paddingBottom: 40 }}>
           {/* Hero price */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "#7a7a7a", fontSize: 26 }}>سعر الأونصة الآن</span>
+            <ArLine text="سعر الأونصة الآن" style={{ color: "#7a7a7a", fontSize: 26 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 6 }}>
               <span style={{ color: "#F5F5F5", fontSize: 92, fontWeight: 900 }}>${gold}</span>
               <span style={{ background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 30, fontWeight: 700, padding: "6px 20px", borderRadius: 30, display: "flex" }}>
                 {isUp ? "+" : "−"}{absChange}%
               </span>
             </div>
-            <span style={{ color: "#8a6d1f", fontSize: 24, marginTop: 12 }}>{curName ? `${curName} · للجرام` : "للجرام"}</span>
+            <ArLine text={curName ? `${curName} · للجرام` : "للجرام"} style={{ color: "#8a6d1f", fontSize: 24, marginTop: 12 }} />
           </div>
 
           {/* Karat rows */}
@@ -532,7 +552,7 @@ export async function GET(req: NextRequest) {
 
         {/* Centered body */}
         <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", alignItems: "center", paddingBottom: 60 }}>
-          <span style={{ color: "#7a7a7a", fontSize: 30 }}>{assetSub || "السعر الآن"}</span>
+          <ArLine text={assetSub || "السعر الآن"} style={{ color: "#7a7a7a", fontSize: 30 }} />
           <span style={{ color: GOLD, fontSize: 68, fontWeight: 900, marginTop: 8 }}>{assetName}</span>
           <div style={{ display: "flex", alignItems: "baseline", marginTop: 30 }}>
             <span style={{ color: "#F5F5F5", fontSize: 108, fontWeight: 900 }}>{sym}{price}</span>
@@ -563,7 +583,7 @@ export async function GET(req: NextRequest) {
     );
     const box = (label: string, value: string, color: string, sub: string, up: boolean) => (
       <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, padding: "36px 34px", alignItems: "flex-end", flexGrow: 1, flexBasis: 0 }}>
-        <span style={{ color: "#8a8a8a", fontSize: 26 }}>{label}</span>
+        <ArLine text={label} style={{ color: "#8a8a8a", fontSize: 26 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
           {triangle(up, color)}
           <span style={{ color, fontSize: 54, fontWeight: 900 }}>{value}</span>
@@ -613,7 +633,7 @@ export async function GET(req: NextRequest) {
 
           {/* Total value hero */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "#8a8a8a", fontSize: 30 }}>إجمالي القيمة</span>
+            <ArLine text="إجمالي القيمة" style={{ color: "#8a8a8a", fontSize: 30 }} />
             <span style={{ color: GOLD, fontSize: 108, fontWeight: 900, marginTop: 10, textShadow: "0 0 54px rgba(201,168,76,0.36)" }}>{sym} {pv}</span>
           </div>
 
