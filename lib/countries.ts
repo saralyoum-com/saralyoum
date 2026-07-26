@@ -30,7 +30,12 @@ export const COUNTRIES: Country[] = [
   { code:"ye", slug:"سعر-الذهب-اليمن",    flag:"🇾🇪", nameAr:"اليمن",     nameEn:"Yemen",        city:"صنعاء",    currency:"YER", currencyAr:"ريال يمني",     currencyEn:"Yemeni Rial",       currencySymbol:"ر.ي",  currencyFallback:250,    keywords:["سعر الذهب في اليمن","سعر الذهب بالريال اليمني"] },
   { code:"sd", slug:"سعر-الذهب-السودان",  flag:"🇸🇩", nameAr:"السودان",   nameEn:"Sudan",        city:"الخرطوم",  currency:"SDG", currencyAr:"جنيه سوداني",   currencyEn:"Sudanese Pound",    currencySymbol:"ج.س",  currencyFallback:601,    keywords:["سعر الذهب في السودان","سعر الذهب بالجنيه السوداني"] },
   { code:"lb", slug:"سعر-الذهب-لبنان",    flag:"🇱🇧", nameAr:"لبنان",     nameEn:"Lebanon",      city:"بيروت",    currency:"LBP", currencyAr:"ليرة لبنانية",  currencyEn:"Lebanese Pound",    currencySymbol:"ل.ل",  currencyFallback:89500,  keywords:["سعر الذهب في لبنان","سعر الذهب بالليرة اللبنانية"] },
-  { code:"sy", slug:"سعر-الذهب-سوريا",    flag:"/flags/sy.svg", nameAr:"سوريا",     nameEn:"Syria",        city:"دمشق",     currency:"SYP", currencyAr:"ليرة سورية",    currencyEn:"Syrian Pound",      currencySymbol:"ل.س",  currencyFallback:13000,  keywords:["سعر الذهب في سوريا","سعر الذهب بالليرة السورية","سعر الذهب اليوم في سوريا"] },
+  // SYP: Syria redenominated on 1 Jan 2026, removing two zeros (100 old = 1 new).
+  // The exchange-rate feed does not return SYP at all, so this fallback is what
+  // actually renders. It was 13000 (the OLD pound), which made the Syria page
+  // show a 21K gram at ~1,488,750 SYP against a real market price near 17,600.
+  // 132 new SYP/USD reproduces the market gram price reported by Syrian sources.
+  { code:"sy", slug:"سعر-الذهب-سوريا",    flag:"/flags/sy.svg", nameAr:"سوريا",     nameEn:"Syria",        city:"دمشق",     currency:"SYP", currencyAr:"ليرة سورية",    currencyEn:"Syrian Pound",      currencySymbol:"ل.س",  currencyFallback:132,  keywords:["سعر الذهب في سوريا","سعر الذهب بالليرة السورية","سعر الذهب اليوم في سوريا"] },
   { code:"ps", slug:"سعر-الذهب-فلسطين",   flag:"🇵🇸", nameAr:"فلسطين",    nameEn:"Palestine",    city:"القدس",    currency:"ILS", currencyAr:"شيكل",          currencyEn:"Israeli Shekel",    currencySymbol:"₪",    currencyFallback:3.6,    keywords:["سعر الذهب في فلسطين","سعر الذهب بالشيكل","سعر الذهب اليوم في فلسطين"] },
 ];
 

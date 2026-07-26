@@ -8,6 +8,15 @@ import { libyaContent } from "./libya";
 import { moroccoContent } from "./morocco";
 import { omanContent } from "./oman";
 import { palestineContent } from "./palestine";
+import { qatarContent } from "./qatar";
+import { bahrainContent } from "./bahrain";
+import { jordanContent } from "./jordan";
+import { iraqContent } from "./iraq";
+import { algeriaContent } from "./algeria";
+import { tunisiaContent } from "./tunisia";
+import { syriaContent } from "./syria";
+import { sudanContent } from "./sudan";
+import { yemenContent } from "./yemen";
 
 export interface CountryContentData {
   intro: ContentSection;
@@ -31,6 +40,7 @@ export interface CountryContentData {
  * here is what makes the Arabic canonical URLs actually serve it.
  *
  * Countries without an entry simply render prices only (no empty sections).
+ * All 18 countries in lib/countries.ts are now covered.
  */
 export const COUNTRY_CONTENT: Record<string, CountryContentData> = {
   sa: saudiContent,
@@ -42,6 +52,15 @@ export const COUNTRY_CONTENT: Record<string, CountryContentData> = {
   ma: moroccoContent,
   om: omanContent,
   ps: palestineContent,
+  qa: qatarContent,
+  bh: bahrainContent,
+  jo: jordanContent,
+  iq: iraqContent,
+  dz: algeriaContent,
+  tn: tunisiaContent,
+  sy: syriaContent,
+  sd: sudanContent,
+  ye: yemenContent,
 };
 
 export function getCountryContent(code: string): CountryContentData | undefined {
