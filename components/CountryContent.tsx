@@ -64,24 +64,13 @@ export default function CountryContent({
     );
   };
 
-  /* JSON-LD FAQ schema (helps with rich snippets) */
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((f) => ({
-      "@type": "Question",
-      name: f.q.ar,
-      acceptedAnswer: { "@type": "Answer", text: f.a.ar },
-    })),
-  };
+  /* No FAQPage JSON-LD here on purpose. Google deprecated FAQ rich results on
+     7 May 2026 and the schema was removed sitewide; it only produced duplicate
+     field errors in Search Console. The FAQ below stays as visible on-page
+     content, which is what actually helps these pages rank. */
 
   return (
     <section dir={dir} className="max-w-4xl mx-auto px-3 sm:px-4 pb-10 sm:pb-12">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
-
       <div className="bg-surface border border-border rounded-2xl p-5 sm:p-8">
         {section(intro)}
         {section(market)}

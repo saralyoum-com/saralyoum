@@ -4,6 +4,8 @@ import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
 import { getExchangeRates } from "@/lib/exchangerate";
 import { getGoldHistory7d } from "@/lib/goldHistory";
 import { COUNTRIES, getCountryByCode } from "@/lib/countries";
+import CountryContent from "@/components/CountryContent";
+import { getCountryContent } from "@/lib/country-content";
 
 export const revalidate = 300;
 
@@ -18,6 +20,10 @@ export default async function Page({
 }) {
   const country = getCountryByCode(params.code);
   if (!country) notFound();
+
+  // Long-form country editorial (souks, wedding customs, dealers, buying guide,
+  // FAQ). Undefined for countries that don't have a content file yet.
+  const content = getCountryContent(params.code);
 
   const [gold, silver, rates, history] = await Promise.all([
     getGoldPrice(),
@@ -114,6 +120,13 @@ export default async function Page({
         code={country.code}
         history={history}
       />
+      {content && (
+        <CountryContent
+          countryAr={country.nameAr}
+          countryEn={country.nameEn}
+          {...content}
+        />
+      )}
     </>
   );
 }
