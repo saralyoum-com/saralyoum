@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Defaults to gold; the analysis terminal passes SI=F / BTC-USD / ETH-USD.
+  const symbol = new URL(req.url).searchParams.get("symbol") ?? "GC=F";
   try {
     const res = await fetch(
-      "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d",
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`,
       { headers: { "User-Agent": "Mozilla/5.0" }, next: { revalidate: 3 } }
     );
     if (!res.ok) throw new Error();
