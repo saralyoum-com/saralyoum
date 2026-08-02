@@ -85,6 +85,38 @@ body {
   animation: socialGlow 3s ease-in-out infinite;
 }
 
+/* ظهور متتابع لأيقونات التواصل عند التحميل — الحركة على العنصر الأب
+   حتى لا يلغيها إيقاف توهج الأيقونة عند مرور الماوس */
+@keyframes socialRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.social-rise {
+  opacity: 0;
+  animation: socialRise 0.5s ease-out forwards;
+}
+
+/* تلوين الأيقونة بلون المنصة عند مرور الماوس.
+   الألوان تُمرَّر كمتغيرات CSS من SocialLinks.tsx */
+.social-brand {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.22s, color 0.22s, border-color 0.22s, box-shadow 0.22s;
+}
+.social-brand:hover {
+  animation: none; /* يوقف توهج الذهب حتى يظهر ظل لون المنصة */
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-fg);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 8px 22px var(--brand-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .social-rise { opacity: 1; animation: none; }
+  .social-glow { animation: none; }
+  .social-brand:hover { transform: none; }
+}
+
 /* تخصيص scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

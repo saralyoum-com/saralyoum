@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useLang } from "@/components/LanguageContext";
 import AdSlot from "@/components/AdSlot";
+import SocialIconRow from "@/components/SocialLinks";
 import { formatDate } from "@/lib/format";
 import { NewsItem } from "@/types";
 import { track } from "@/lib/analytics";
@@ -77,43 +78,25 @@ export function HomeAdAndCTA() {
       <AdSlot size="leaderboard" slot="1234567890" className="my-4" />
       <AdSlot size="mobile-banner" slot="1234567891" className="my-4" />
 
-      {/* CTA — تابعنا */}
+      {/* CTA — تابعنا على كل المنصات */}
       <div
         dir={dir}
-        className="bg-gradient-to-l from-[#229ED9]/10 to-[#229ED9]/5 border border-[#229ED9]/30 rounded-2xl p-4 sm:p-6 mb-10 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-4"
+        className="bg-gradient-to-l from-gold/10 to-gold/[0.02] border border-gold/25 rounded-2xl p-4 sm:p-6 mb-10 sm:mb-12 flex flex-col sm:flex-row items-center justify-between gap-5"
       >
         <div className="text-center sm:text-start">
-          <h2 className="text-lg sm:text-xl font-bold text-text-primary mb-1">
-            {lang === "ar" ? "تابع سعر الذهب" : "Follow Gold Prices"}
-          </h2>
+          <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-rise pulse-dot" />
+            <h2 className="text-lg sm:text-xl font-bold text-text-primary">
+              {lang === "ar" ? "تابع سعر الذهب" : "Follow Gold Prices"}
+            </h2>
+          </div>
           <p className="text-text-secondary text-sm">
             {lang === "ar"
-              ? "تنبيهات فورية بأسعار الذهب والعملات على تيليجرام و X — مجاناً"
-              : "Instant gold & currency alerts on Telegram & X — free"}
+              ? "تنبيهات فورية بأسعار الذهب والعملات على كل المنصات — مجانا"
+              : "Instant gold & currency alerts on every platform — free"}
           </p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <a
-            href="https://t.me/sardhahab"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => track.ctaClick()}
-            className="flex items-center gap-2 bg-[#229ED9] text-white font-bold px-5 sm:px-6 py-3 rounded-xl hover:bg-[#1a8bc4] transition-colors whitespace-nowrap flex-1 sm:flex-none justify-center"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.149.666-.546.829-1.107.516l-3.07-2.263-1.482 1.425c-.165.165-.303.303-.618.303l.22-3.12 5.674-5.126c.247-.22-.054-.342-.383-.123L6.91 14.42 3.9 13.473c-.657-.207-.67-.657.138-.973l10.88-4.195c.547-.197 1.026.133.844.943z"/></svg>
-            {lang === "ar" ? "تيليجرام" : "Telegram"}
-          </a>
-          <a
-            href="https://x.com/sardhahab"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => track.ctaClick()}
-            className="flex items-center gap-2 bg-white text-black font-bold px-5 sm:px-6 py-3 rounded-xl hover:bg-gray-200 transition-colors whitespace-nowrap flex-1 sm:flex-none justify-center"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            {lang === "ar" ? "تابع X" : "Follow X"}
-          </a>
-        </div>
+        <SocialIconRow className="flex-wrap justify-center" />
       </div>
     </>
   );
@@ -242,7 +225,8 @@ export function HomeQuickLinks() {
   const { lang } = useLang();
   const dir = lang === "ar" ? "rtl" : "ltr";
 
-  const links: { href: string; icon: string; title: string; desc: string; external?: boolean; brand?: "telegram" | "x" }[] = [
+  // أقسام الموقع فقط — روابط التواصل الاجتماعي مكانها بانر "تابعنا" والفوتر
+  const links: { href: string; icon: string; title: string; desc: string }[] = [
     {
       href: "/اسعار",
       icon: "📊",
@@ -256,58 +240,48 @@ export function HomeQuickLinks() {
       desc: lang === "ar" ? "احسب قيمة ذهبك وزكاتك" : "Calculate your gold value and zakat",
     },
     {
+      href: "/تحليل-تقني-الذهب",
+      icon: "📈",
+      title: lang === "ar" ? "التحليل الفني" : "Technical Analysis",
+      desc: lang === "ar" ? "مؤشرات ومستويات الدعم" : "Indicators & support levels",
+    },
+    {
+      href: "/زكاة-الكريبتو",
+      icon: "🕌",
+      title: lang === "ar" ? "زكاة الكريبتو" : "Crypto Zakat",
+      desc: lang === "ar" ? "احسب زكاة عملاتك الرقمية" : "Calculate your crypto zakat",
+    },
+    {
       href: "/اخبار",
       icon: "📰",
       title: lang === "ar" ? "الأخبار الاقتصادية" : "Economic News",
       desc: lang === "ar" ? "آخر أخبار الأسواق" : "Latest market news",
     },
     {
-      href: "https://t.me/sardhahab",
-      icon: "✈️",
-      title: lang === "ar" ? "قناة تيليجرام" : "Telegram Channel",
-      desc: lang === "ar" ? "تنبيهات فورية مجاناً" : "Instant free alerts",
-      external: true,
-      brand: "telegram",
-    },
-    {
-      href: "https://x.com/sardhahab",
-      icon: "𝕏",
-      title: lang === "ar" ? "تابعنا على X" : "Follow on X",
-      desc: lang === "ar" ? "آخر التحديثات والتحليلات" : "Latest updates & analysis",
-      external: true,
-      brand: "x",
+      href: "/تنبيهات",
+      icon: "🔔",
+      title: lang === "ar" ? "التنبيهات" : "Price Alerts",
+      desc: lang === "ar" ? "نبهني عند وصول السعر" : "Alert me when price hits",
     },
   ];
 
   return (
     <section dir={dir} className="max-w-7xl mx-auto px-3 sm:px-4 pb-10 sm:pb-12">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
-        {links.map((link) => {
-          const cls = `bg-surface border rounded-2xl p-4 sm:p-6 transition-all group text-center ${
-            link.brand === "telegram"
-              ? "border-[#229ED9]/30 hover:border-[#229ED9]/60 hover:bg-[#229ED9]/5"
-              : link.brand === "x"
-              ? "border-white/20 hover:border-white/40 hover:bg-white/5"
-              : "border-border hover:border-gold/30"
-          }`;
-          const titleCls = `font-bold mb-1 sm:mb-2 transition-colors text-sm sm:text-base ${
-            link.brand === "telegram" ? "text-[#229ED9] group-hover:text-[#1a8bc4]"
-            : link.brand === "x" ? "text-text-primary group-hover:text-gold"
-            : "text-text-primary group-hover:text-gold"
-          }`;
-          const inner = (
-            <>
-              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{link.icon}</div>
-              <h3 className={titleCls}>{link.title}</h3>
-              <p className="text-text-secondary text-xs hidden sm:block">{link.desc}</p>
-            </>
-          );
-          return link.external ? (
-            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" onClick={() => track.quickLinkClick(link.title)} className={cls}>{inner}</a>
-          ) : (
-            <Link key={link.href} href={link.href} onClick={() => track.quickLinkClick(link.title)} className={cls}>{inner}</Link>
-          );
-        })}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={() => track.quickLinkClick(link.title)}
+            className="bg-surface border border-border hover:border-gold/30 rounded-2xl p-4 sm:p-6 transition-all group text-center"
+          >
+            <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">{link.icon}</div>
+            <h3 className="font-bold mb-1 sm:mb-2 transition-colors text-sm sm:text-base text-text-primary group-hover:text-gold">
+              {link.title}
+            </h3>
+            <p className="text-text-secondary text-xs hidden sm:block">{link.desc}</p>
+          </Link>
+        ))}
       </div>
     </section>
   );
