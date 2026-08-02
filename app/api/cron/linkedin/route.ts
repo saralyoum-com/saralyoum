@@ -80,7 +80,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ ok: true, topic, charCount: post.length });
   } catch (err) {
+    // Surface the real reason: this route is CRON_SECRET-authenticated, so the
+    // detail is not public, and a bare {"error":"failed"} made a silent
+    // multi-week outage impossible to diagnose from the outside (26 Jul 2026).
+    const detail = err instanceof Error ? err.message : String(err);
     console.error("linkedin cron error:", err);
-    return NextResponse.json({ error: "failed" }, { status: 500 });
+    return NextResponse.json({ error: "failed", detail }, { status: 500 });
   }
 }
