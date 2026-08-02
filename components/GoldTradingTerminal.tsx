@@ -32,10 +32,12 @@ interface ChartData {
   macd: { line: number[]; signal: number[]; hist: number[] };
   levels: { r2: number; r1: number; s1: number; s2: number };
   signal: { direction: "up" | "down"; entry: number; tp: number; sl: number };
+  /** Decimal places suited to this asset's price magnitude (silver needs 2). */
+  decimals?: number;
+  symbol?: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
-function ls(k: string) { try { return localStorage.getItem(k); } catch { return null; } }
 
 function formatTime(ts: number, tfCode: string): string {
   const d = new Date(ts);
@@ -56,68 +58,58 @@ function linReg(vals: number[]): { start: number; end: number } {
 }
 
 // ── Main component ────────────────────────────────────────────────────────
-export default function GoldTradingTerminal() {
+// Assets the terminal can render. Yahoo tickers match lib/technical.ts so the
+// page indicators and the home-page signal badges never disagree.
+export const TERMINAL_ASSETS = {
+  gold:     { symbol: "GC=F",    ar: "الذهب",    en: "Gold"     },
+  silver:   { symbol: "SI=F",    ar: "الفضة",    en: "Silver"   },
+  bitcoin:  { symbol: "BTC-USD", ar: "بيتكوين",  en: "Bitcoin"  },
+  ethereum: { symbol: "ETH-USD", ar: "إيثيريوم", en: "Ethereum" },
+} as const;
+
+export type TerminalAsset = keyof typeof TERMINAL_ASSETS;
+
+export default function GoldTradingTerminal({ asset = "gold" }: { asset?: TerminalAsset }) {
   const { lang } = useLang();
   const isAr = lang === "ar";
+  const symbol = TERMINAL_ASSETS[asset].symbol;
   const [tfIdx, setTfIdx]         = useState(6); // default 1ي
   const [indicator, setIndicator] = useState<IndKey>("RSI");
   const [data, setData]           = useState<ChartData | null>(null);
   const [loading, setLoading]     = useState(true);
-  const [longPct, setLongPct]     = useState(72);
-  const [shortPct, setShortPct]   = useState(28);
-  const [voters, setVoters]       = useState(1834);
   const [livePrice, setLivePrice] = useState<{price:number;change:number;changePercent:number}|null>(null);
-  // Drives the gauge's grow-from-zero entrance (width transitions from 0 on mount)
-  const [mounted, setMounted]     = useState(false);
-  useEffect(() => { setMounted(true); }, []);
   const timer      = useRef<ReturnType<typeof setInterval> | null>(null);
   const priceTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Read community votes
-  useEffect(() => {
-    const raw = ls("pred_results");
-    if (!raw) return;
-    try {
-      const r = JSON.parse(raw).weekly;
-      if (r) { setLongPct(r.up); setShortPct(r.down); setVoters(r.total); }
-    } catch { /* noop */ }
-    // Sync when votes change in another tab
-    const handle = () => {
-      const r2 = ls("pred_results");
-      if (!r2) return;
-      try {
-        const r = JSON.parse(r2).weekly;
-        if (r) { setLongPct(r.up); setShortPct(r.down); setVoters(r.total); }
-      } catch { /* noop */ }
-    };
-    window.addEventListener("storage", handle);
-    return () => window.removeEventListener("storage", handle);
-  }, []);
 
   // Live price ticker — every 5 s
   useEffect(() => {
     const fetchLive = async () => {
       try {
-        const r = await fetch("/api/live-price");
+        const r = await fetch(`/api/live-price?symbol=${encodeURIComponent(symbol)}`);
         if (!r.ok) return;
         const d = await r.json();
         if (!d.error) setLivePrice(d);
       } catch { /* noop */ }
     };
+    setLivePrice(null); // don't show the previous asset's price while switching
     fetchLive();
     if (priceTimer.current) clearInterval(priceTimer.current);
     priceTimer.current = setInterval(fetchLive, 5000);
     return () => { if (priceTimer.current) clearInterval(priceTimer.current); };
-  }, []);
+  }, [symbol]);
 
   // Fetch chart data when timeframe changes
   useEffect(() => {
     const tfCode = TF_CODES[tfIdx];
     const load = async () => {
       try {
-        const r = await fetch(`/api/gold-chart?tf=${tfCode}`);
+        const r = await fetch(`/api/gold-chart?tf=${tfCode}&symbol=${encodeURIComponent(symbol)}`);
         if (!r.ok) throw new Error();
-        setData(await r.json());
+        const d = await r.json();
+        // The route echoes back the ticker it served; a silent mismatch once
+        // put a Bitcoin price on a gold chart, so drop anything unexpected.
+        if (d.symbol && d.symbol !== symbol) return;
+        setData(d);
       } catch { /* keep stale data */ }
       finally { setLoading(false); }
     };
@@ -126,7 +118,7 @@ export default function GoldTradingTerminal() {
     if (timer.current) clearInterval(timer.current);
     timer.current = setInterval(load, 30000);
     return () => { if (timer.current) clearInterval(timer.current); };
-  }, [tfIdx]);
+  }, [tfIdx, symbol]);
 
   const tfCode        = TF_CODES[tfIdx];
   const displayPrice  = livePrice?.price      ?? data?.current      ?? 0;
@@ -304,7 +296,7 @@ export default function GoldTradingTerminal() {
         <rect x={W-MR+1} y={pY(d.current)-7} width={MR-3} height={15} rx={3}
           fill={isUp?"#22c55e":"#ef4444"}/>
         <text x={W-MR+MR/2} y={pY(d.current)+4.5} fontSize={9} fill="white" textAnchor="middle" fontWeight="bold">
-          ${Math.round(d.current).toLocaleString()}
+          ${d.current.toLocaleString("en-US", { maximumFractionDigits: d.decimals ?? 0 })}
         </text>
 
         {/* Time labels */}
@@ -315,8 +307,6 @@ export default function GoldTradingTerminal() {
     );
   }
 
-  const tpDiff = data ? Math.abs(data.signal.tp - data.signal.entry) : 0;
-  const slDiff = data ? Math.abs(data.signal.sl - data.signal.entry) : 0;
 
   return (
     <div dir={isAr?"rtl":"ltr"} className="rounded-2xl border border-gold/20 bg-surface overflow-hidden">
@@ -395,18 +385,10 @@ export default function GoldTradingTerminal() {
         )}
       </div>
 
-      {/* ── Long / Short bar ── */}
-      <div className="px-4 sm:px-5 py-3 border-t border-border">
-        <div className="flex justify-between text-[11px] font-bold mb-1.5">
-          <span className="text-rise">↑ {isAr?"صاعد":"Bullish"} {longPct}%</span>
-          <span className="text-text-secondary text-[10px]">{voters.toLocaleString()} {isAr?"متداول":"traders"}</span>
-          <span className="text-fall">{shortPct}% {isAr?"هابط":"Bearish"} ↓</span>
-        </div>
-        <div className="h-2.5 rounded-full overflow-hidden flex">
-          <div className="rounded-s-full transition-all duration-1000 ease-out" style={{width: mounted ? `${longPct}%` : "0%", background:"linear-gradient(90deg,#16a34a,#22c55e)"}}/>
-          <div className="flex-1 rounded-e-full" style={{background:"linear-gradient(90deg,#ef4444,#b91c1c)"}}/>
-        </div>
-      </div>
+      {/* The bullish/bearish gauge that used to sit here was removed: it seeded
+          from hardcoded 72/28 with "1,834 متداول" and only ever moved from the
+          visitor's own localStorage, so every visitor was shown ~1,834 traders
+          who never existed. Real audience sentiment lives in GoldPredictionPoll. */}
 
       {/* ── S/R grid ── */}
       {data && (
@@ -415,7 +397,7 @@ export default function GoldTradingTerminal() {
             {[
               {lbl:"R2",         val:data.levels.r2,   cls:"border-fall/25   text-fall"},
               {lbl:"R1",         val:data.levels.r1,   cls:"border-orange-500/25 text-orange-400"},
-              {lbl:isAr?"الحالي":"Now", val:data.signal.entry, cls:"border-gold/40 text-gold bg-gold/5"},
+              {lbl:isAr?"الحالي":"Now", val:data.current, cls:"border-gold/40 text-gold bg-gold/5"},
               {lbl:"S1",         val:data.levels.s1,   cls:"border-rise/25   text-rise"},
               {lbl:"S2",         val:data.levels.s2,   cls:"border-rise/20   text-rise/70"},
             ].map(({lbl,val,cls})=>{
@@ -434,24 +416,18 @@ export default function GoldTradingTerminal() {
         </div>
       )}
 
-      {/* ── Entry / TP / SL ── */}
+      {/* Direction only — the Entry / Target (TP) / Stop-Loss grid that used to
+          sit here was removed. Publishing entry, take-profit and stop-loss is
+          trade advice, and stronger than the شراء/بيع wording lib/technical.ts
+          deliberately avoids ("a legal exposure even with a disclaimer"). */}
       {data && (
-        <div className="grid grid-cols-3 gap-2 px-4 sm:px-5 pb-4 pt-3 border-t border-border">
-          <div className="rounded-xl border border-border bg-surface-2 p-3 text-center">
-            <p className="text-[10px] text-text-secondary mb-1">{isAr?"الاتجاه المتوقع":"Outlook"}</p>
-            <p className={`text-sm font-black ${sigUp?"text-rise":"text-fall"}`}>{sigUp?"صاعد ↑":"هابط ↓"}</p>
-            <p className="text-[11px] text-text-secondary mt-0.5">${data.signal.entry.toLocaleString()}</p>
-          </div>
-          <div className="rounded-xl border border-rise/20 bg-rise/5 p-3 text-center">
-            <p className="text-[10px] text-text-secondary mb-1">{isAr?"الهدف (TP)":"Target (TP)"}</p>
-            <p className="text-sm font-black text-text-primary">${data.signal.tp.toLocaleString()}</p>
-            <p className="text-[11px] text-rise mt-0.5">+${tpDiff} ({((tpDiff/data.signal.entry)*100).toFixed(1)}%)</p>
-          </div>
-          <div className="rounded-xl border border-fall/20 bg-fall/5 p-3 text-center">
-            <p className="text-[10px] text-text-secondary mb-1">{isAr?"وقف الخسارة (SL)":"Stop Loss"}</p>
-            <p className="text-sm font-black text-fall">${data.signal.sl.toLocaleString()}</p>
-            <p className="text-[11px] text-fall mt-0.5">-${slDiff} (-{((slDiff/data.signal.entry)*100).toFixed(1)}%)</p>
-          </div>
+        <div className="px-4 sm:px-5 pb-4 pt-3 border-t border-border flex items-center justify-between gap-3">
+          <p className="text-[11px] text-text-secondary">
+            {isAr ? "اتجاه المتوسط المتحرك (7 فترات)" : "7-period moving-average trend"}
+          </p>
+          <span className={`text-sm font-black ${sigUp ? "text-rise" : "text-fall"}`}>
+            {sigUp ? (isAr ? "صاعد ↑" : "Up ↑") : (isAr ? "هابط ↓" : "Down ↓")}
+          </span>
         </div>
       )}
     </div>

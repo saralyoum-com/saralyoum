@@ -41,12 +41,16 @@ const TF_PARAMS: Record<string, { interval: string; range: string; agg?: number 
 };
 
 export async function GET(req: Request) {
-  const tf = new URL(req.url).searchParams.get("tf") ?? "1d";
+  const url = new URL(req.url);
+  const tf = url.searchParams.get("tf") ?? "1d";
+  // Weekend technical posts switch to Bitcoin (gold market is closed, crypto
+  // trades 24/7) — same indicator math, just a different Yahoo ticker.
+  const symbol = url.searchParams.get("symbol") ?? "GC=F";
   const { interval, range, agg } = TF_PARAMS[tf] ?? TF_PARAMS["1d"];
 
   try {
     const res = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=${interval}&range=${range}`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`,
       { headers: { "User-Agent": "Mozilla/5.0" }, cache: "no-store" }
     );
     if (!res.ok) throw new Error("Yahoo unavailable");
@@ -85,13 +89,22 @@ export async function GET(req: Request) {
     const signalLine = emaArr(macdLine, 9);
     const macdHist = macdLine.map((v, i) => v - signalLine[i]);
 
+    // Precision scales with price: rounding to whole dollars is fine for gold
+    // (~$4,100) but collapses silver (~$57) — S1/S2/R1/R2 would land on nearly
+    // the same integer and read as a broken chart.
+    const dp = current < 100 ? 2 : current < 1000 ? 1 : 0;
+    const rnd = (v: number) => {
+      const f = 10 ** dp;
+      return Math.round(v * f) / f;
+    };
+
     // Pivot levels from last candle
     const pp = (last.h + last.l + last.c) / 3;
     const levels = {
-      r2: Math.round(pp + (last.h - last.l)),
-      r1: Math.round(2 * pp - last.l),
-      s1: Math.round(2 * pp - last.h),
-      s2: Math.round(pp - (last.h - last.l)),
+      r2: rnd(pp + (last.h - last.l)),
+      r1: rnd(2 * pp - last.l),
+      s1: rnd(2 * pp - last.h),
+      s2: rnd(pp - (last.h - last.l)),
     };
 
     // Signal
@@ -102,41 +115,35 @@ export async function GET(req: Request) {
     const mult = direction === "up" ? 1 : -1;
 
     return NextResponse.json({
+      // echo back which ticker this data is for — a silent symbol mismatch
+      // once shipped a Bitcoin price on top of a gold chart (26 Jul 2026)
+      symbol,
       candles,
       current: Math.round(current * 100) / 100,
       change: Math.round((current - prev) * 100) / 100,
       changePercent: Math.round(((current - prev) / prev) * 10000) / 100,
-      ohlc: { o: Math.round(last.o), h: Math.round(last.h), l: Math.round(last.l), c: Math.round(last.c) },
+      decimals: dp,
+      ohlc: { o: rnd(last.o), h: rnd(last.h), l: rnd(last.l), c: rnd(last.c) },
       rsiValues,
       currentRsi: Math.round(currentRsi),
       macd: { line: macdLine.slice(-40), signal: signalLine.slice(-40), hist: macdHist.slice(-40) },
       levels,
       signal: {
         direction,
-        entry: Math.round(current),
-        tp: Math.round(current + mult * atr * 0.6),
-        sl: Math.round(current - mult * atr * 0.4),
+        entry: rnd(current),
+        // Kept only to scale the chart's y-axis — the user-facing target /
+        // stop-loss box was removed: publishing entry/TP/SL is trade advice,
+        // which contradicts the neutral direction-label policy in lib/technical.ts.
+        tp: rnd(current + mult * atr * 0.6),
+        sl: rnd(current - mult * atr * 0.4),
       },
     });
 
   } catch {
-    // Fallback mock data
-    const base = 3247;
-    const mock: Candle[] = Array.from({ length: 40 }, (_, i) => {
-      const c = base + Math.sin(i * 0.5) * 12 + Math.cos(i * 0.3) * 6 + i * 0.2;
-      return { t: Date.now() - (40 - i) * 3600000, o: c - 2, h: c + 5, l: c - 6, c, v: 800 + Math.random() * 400 };
-    });
-    return NextResponse.json({
-      candles: mock,
-      current: base + 5.2,
-      change: 12.3,
-      changePercent: 0.38,
-      ohlc: { o: 3247, h: 3254, l: 3245, c: 3252 },
-      rsiValues: mock.map((_, i) => 50 + Math.sin(i * 0.4) * 22),
-      currentRsi: 79,
-      macd: { line: mock.map((_, i) => Math.sin(i * 0.3) * 3), signal: mock.map((_, i) => Math.sin(i * 0.3 - 0.5) * 2.5), hist: mock.map((_, i) => Math.sin(i * 0.3) * 0.5) },
-      levels: { r2: 3340, r1: 3295, s1: 3213, s2: 3168 },
-      signal: { direction: "up", entry: 3247, tp: 3310, sl: 3200 },
-    });
+    // No synthetic fallback. This used to return a hand-made sine wave around
+    // base=3247, which kept rendering as a real chart long after gold passed
+    // $4,100 — a ~21% lie presented as live data. The client keeps its last
+    // good payload on a failed refresh, so 503 degrades gracefully.
+    return NextResponse.json({ error: "unavailable" }, { status: 503 });
   }
 }

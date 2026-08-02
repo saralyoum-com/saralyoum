@@ -41,15 +41,30 @@ const OTHER_SLUGS: Record<string, string> = {
   "سعر-الاثيريوم":   "/ethereum-price",
   "اسعار":           "/prices",
   "تحليل-تقني-الذهب": "/gold-analysis",
+  "تحليل-تقني-الفضة": "/silver-analysis",
+  "تحليل-تقني-البيتكوين": "/bitcoin-analysis",
+  "تحليل-تقني-الايثيريوم": "/ethereum-analysis",
 };
 
 // ASCII internal routes → Arabic canonical (301 redirect for SEO)
+//
+// These also serve a second purpose: social captions MUST use the ASCII form.
+// X's bidi rendering mangles a mixed Arabic-path + Latin-domain URL into
+// scrambled, unclickable text (caught live on a technical-analysis post,
+// 26 Jul 2026), so every feature promoted on social needs an ASCII entry here
+// even when its page lives at an Arabic path.
 const ASCII_REDIRECTS: Record<string, string> = {
   "/zakat-crypto":   "/زكاة-الكريبتو",
   "/bitcoin-price":  "/سعر-البيتكوين",
   "/ethereum-price": "/سعر-الاثيريوم",
   "/prices":         "/اسعار",
   "/gold-analysis":  "/تحليل-تقني-الذهب",
+  "/silver-analysis":   "/تحليل-تقني-الفضة",
+  "/bitcoin-analysis":  "/تحليل-تقني-البيتكوين",
+  "/ethereum-analysis": "/تحليل-تقني-الايثيريوم",
+  "/alerts":         "/تنبيهات",
+  "/calculator":     "/حاسبة-الذهب",
+  "/news":           "/اخبار",
 };
 
 export function middleware(request: NextRequest) {
