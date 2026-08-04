@@ -166,35 +166,59 @@ export default function ShareAssetRow({ gold, silver, bitcoin, ethereum }: Props
     }
   }
 
-  const cards: { key: Key; icon: string; label: string; up: boolean; pct: number; onClick: () => void; featured?: boolean; href?: string }[] = [
+  // Element/ticker badges instead of emoji — 🥇🥈 rendered as full-colour
+  // medals next to the monochrome ₿ and ⟠, which read as three unrelated icon
+  // sets. These match the Au/Ag badges already used on the price cards.
+  const walletIcon = (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+    </svg>
+  );
+
+  const cards: {
+    key: Key; badge: React.ReactNode; badgeCls: string; label: string;
+    up: boolean; pct: number; onClick: () => void; featured?: boolean; href?: string;
+  }[] = [
     {
-      key: "gold", icon: "🥇", label: isAr ? "الذهب" : "Gold", up: gold.changePercent >= 0, pct: gold.changePercent,
+      key: "gold", badge: "Au", badgeCls: "bg-[#C9A84C] text-[#241b03]",
+      label: isAr ? "الذهب" : "Gold", up: gold.changePercent >= 0, pct: gold.changePercent,
       onClick: () => share("gold", buildGoldUrl(), isAr ? "سعر الذهب اليوم" : "Gold price today", "sard-gold.png"),
     },
     {
-      key: "silver", icon: "🥈", label: isAr ? "الفضة" : "Silver", up: silver.changePercent >= 0, pct: silver.changePercent,
+      key: "silver", badge: "Ag", badgeCls: "bg-[#A8AEB8] text-[#1b1e22]",
+      label: isAr ? "الفضة" : "Silver", up: silver.changePercent >= 0, pct: silver.changePercent,
       onClick: () => share("silver", buildAssetUrl("silver", isAr ? "الفضة" : "Silver", "سعر الأونصة الآن", silver, 2), isAr ? "سعر الفضة اليوم" : "Silver price today", "sard-silver.png"),
     },
     {
-      key: "bitcoin", icon: "₿", label: isAr ? "بيتكوين" : "Bitcoin", up: bitcoin.changePercent >= 0, pct: bitcoin.changePercent,
+      key: "bitcoin", badge: "₿", badgeCls: "bg-[#F7931A] text-[#2a1802] text-lg sm:text-xl",
+      label: isAr ? "بيتكوين" : "Bitcoin", up: bitcoin.changePercent >= 0, pct: bitcoin.changePercent,
       onClick: () => share("bitcoin", buildAssetUrl("bitcoin", isAr ? "بيتكوين" : "Bitcoin", "السعر الآن", bitcoin, 0), isAr ? "سعر البيتكوين اليوم" : "Bitcoin price today", "sard-bitcoin.png"),
     },
     {
-      key: "ethereum", icon: "⟠", label: isAr ? "إيثيريوم" : "Ethereum", up: ethereum.changePercent >= 0, pct: ethereum.changePercent,
+      key: "ethereum", badge: "Ξ", badgeCls: "bg-[#627EEA] text-white text-lg sm:text-xl",
+      label: isAr ? "إيثيريوم" : "Ethereum", up: ethereum.changePercent >= 0, pct: ethereum.changePercent,
       onClick: () => share("ethereum", buildAssetUrl("ethereum", isAr ? "إيثيريوم" : "Ethereum", "السعر الآن", ethereum, 0), isAr ? "سعر الإيثيريوم اليوم" : "Ethereum price today", "sard-ethereum.png"),
     },
     {
-      key: "portfolio", icon: "💰", label: isAr ? "محفظتي" : "Portfolio", up: gold.changePercent >= 0, pct: gold.changePercent, featured: true,
+      key: "portfolio", badge: walletIcon, badgeCls: "bg-gold/[0.14] border border-gold/50 text-gold",
+      label: isAr ? "محفظتي" : "Portfolio", up: gold.changePercent >= 0, pct: gold.changePercent, featured: true,
       href: hasPortfolio ? undefined : "#portfolio",
       onClick: () => share("portfolio", buildPortfolioUrl(), isAr ? "محفظتي الذهبية" : "My Gold Portfolio", "sard-portfolio.png"),
     },
   ];
 
+  const shareIcon = (size: number) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
+    </svg>
+  );
+
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="mb-4">
       <div className="flex items-center gap-2 mb-2 px-0.5">
-        <span className="text-gold text-sm font-medium">
-          {isAr ? "📤 شارك السعر كبطاقة جاهزة" : "📤 Share as a ready card"}
+        <span className="text-gold flex items-center gap-1.5 text-sm font-medium">
+          {shareIcon(15)}
+          {isAr ? "شارك السعر كبطاقة جاهزة" : "Share as a ready card"}
         </span>
         <span className="text-text-secondary text-xs hidden sm:inline">
           {isAr ? "— اختر الأصل" : "— pick an asset"}
@@ -202,20 +226,31 @@ export default function ShareAssetRow({ gold, silver, bitcoin, ethereum }: Props
       </div>
       <div className="grid grid-cols-5 gap-2 sm:gap-3">
         {cards.map((c) => {
+          const isBusy = busy === c.key;
+          const isDone = done === c.key;
           const inner = (
             <>
-              <div className="text-xl sm:text-2xl leading-none">{busy === c.key ? "⏳" : done === c.key ? "✅" : c.icon}</div>
-              <div className={`text-[11px] sm:text-sm mt-1 font-medium ${c.featured ? "text-gold" : "text-text-primary"}`}>{c.label}</div>
+              {/* Share affordance — nothing previously signalled these were
+                  share buttons rather than links to a price page. */}
+              <span className="absolute top-1.5 start-1.5 text-gold opacity-0 group-hover:opacity-100 transition-opacity">
+                {shareIcon(11)}
+              </span>
+              <div
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm ${c.badgeCls} ${isBusy ? "animate-pulse" : ""}`}
+              >
+                {isDone ? "✓" : c.badge}
+              </div>
+              <div className={`text-[11px] sm:text-sm mt-1.5 font-bold ${c.featured ? "text-gold" : "text-text-primary"}`}>{c.label}</div>
               {c.key === "portfolio" && c.href ? (
                 <div className="text-[10px] sm:text-xs text-text-secondary">{isAr ? "أضف ذهبك" : "add gold"}</div>
               ) : (
-                <div className={`text-[10px] sm:text-xs ${c.up ? "text-rise" : "text-fall"}`}>
+                <div className={`text-[10px] sm:text-xs font-medium ${c.up ? "text-rise" : "text-fall"}`}>
                   {c.up ? "▲" : "▼"} {Math.abs(c.pct).toFixed(1)}%
                 </div>
               )}
             </>
           );
-          const base = `flex flex-col items-center justify-center text-center rounded-xl px-1.5 py-3 border transition-colors disabled:opacity-60 ${
+          const base = `group relative flex flex-col items-center justify-center text-center rounded-xl px-1.5 py-3 border transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 ${
             c.featured
               ? "bg-gold/[0.06] border-gold/40 hover:border-gold/60"
               : "bg-surface border-border hover:border-gold/40"
