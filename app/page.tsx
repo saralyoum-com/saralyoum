@@ -142,9 +142,9 @@ export default async function HomePage() {
         {/* مشاركة بطاقات الأسعار — بطاقة لكل أصل + المحفظة */}
         <ShareAssetRow
           gold={{ price: goldPriceUSD, changePercent: goldChangePct }}
-          silver={{ price: silverPriceUSD, changePercent: silver?.changePercent ?? 0 }}
-          bitcoin={{ price: btcPrice, changePercent: bitcoin?.changePercent ?? 0 }}
-          ethereum={{ price: ethPrice, changePercent: ethereum?.changePercent ?? 0 }}
+          silver={{ price: silverPriceUSD, changePercent: silver?.changePercent ?? 0, high: silver?.high24h, low: silver?.low24h }}
+          bitcoin={{ price: btcPrice, changePercent: bitcoin?.changePercent ?? 0, high: bitcoin?.high24h, low: bitcoin?.low24h }}
+          ethereum={{ price: ethPrice, changePercent: ethereum?.changePercent ?? 0, high: ethereum?.high24h, low: ethereum?.low24h }}
         />
 
         {/* بطاقات الأسعار مع كشف العملة */}

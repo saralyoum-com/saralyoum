@@ -74,7 +74,9 @@ function SquareFooter({ tagline }: { tagline: string }) {
     <div style={{ position: "absolute", bottom: 0, left: 0, width: 1080, height: 72, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
       <span style={{ color: GOLD, fontSize: 26, fontWeight: 700 }}>sardhahab.com</span>
       <span style={{ color: "#555", fontSize: 20 }}>·</span>
-      <span style={{ color: "#555", fontSize: 20 }}>{tagline}</span>
+      {/* ArLine, not a plain span: the tagline is 4 Arabic words and was
+          shipping reversed ("والعملات للذهب لحظية أسعار") on every card. */}
+      <ArLine text={tagline} style={{ color: "#555", fontSize: 20 }} />
     </div>
   );
 }
@@ -338,6 +340,13 @@ export async function GET(req: NextRequest) {
   const assetName = sp.get("assetName") || "";     // e.g. "الفضة" / "بيتكوين"
   const assetSub  = sp.get("assetSub")  || "";     // small line above the name
   const price     = sp.get("price")     || "";     // pre-formatted price string
+  // Asset badge — Latin ticker (Ag / BTC / ETH) rather than the ₿ and Ξ glyphs,
+  // which Tajawal does not contain and Satori would render as tofu boxes.
+  const badge     = sp.get("badge")     || "";
+  const accent    = sp.get("accent")    || GOLD;   // badge background
+  const accentFg  = sp.get("accentFg")  || "#2a1f05";
+  const high      = sp.get("high")      || "";     // 24h high, pre-formatted
+  const low       = sp.get("low")       || "";     // 24h low, pre-formatted
   const pv        = sp.get("pv")        || "";     // portfolio total value
   const count     = sp.get("count")     || "";     // holdings count label
   const daily     = sp.get("daily")     || "";     // today's abs change
@@ -548,18 +557,53 @@ export async function GET(req: NextRequest) {
           </svg>
         </div>
 
+        {/* Soft accent glow behind the badge, tinted to the asset's brand
+            colour so silver / BTC / ETH cards are distinguishable at a glance. */}
+        <div style={{
+          position: "absolute", top: 250, left: "50%", transform: "translateX(-540px)",
+          width: 1080, height: 520, borderRadius: 9999, display: "flex",
+          background: `radial-gradient(ellipse at center, ${accent}1F 0%, ${accent}00 68%)`,
+        }} />
+
         <SquareHeader logo={logo} dateStr={dateStr} />
 
-        {/* Centered body */}
-        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: "center", alignItems: "center", paddingBottom: 60 }}>
-          <ArLine text={assetSub || "السعر الآن"} style={{ color: "#7a7a7a", fontSize: 30 }} />
-          <span style={{ color: GOLD, fontSize: 68, fontWeight: 900, marginTop: 8 }}>{assetName}</span>
-          <div style={{ display: "flex", alignItems: "baseline", marginTop: 30 }}>
-            <span style={{ color: "#F5F5F5", fontSize: 108, fontWeight: 900 }}>{sym}{price}</span>
-          </div>
-          <div style={{ marginTop: 30, background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 34, fontWeight: 700, padding: "10px 36px", borderRadius: 40, display: "flex" }}>
+        {/* Deterministic margins rather than flexGrow + justifyContent:center,
+            which left ~430px of dead canvas on a card this sparse. */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 26, padding: "0 60px" }}>
+
+          {badge ? (
+            <div style={{
+              width: 132, height: 132, borderRadius: 66, background: accent, color: accentFg,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: badge.length > 2 ? 42 : 54, fontWeight: 900, letterSpacing: 1,
+            }}>{badge}</div>
+          ) : null}
+
+          <ArLine text={assetSub || "السعر الآن"} style={{ color: "#7a7a7a", fontSize: 30, marginTop: badge ? 22 : 0 }} />
+          <span style={{ color: GOLD, fontSize: 68, fontWeight: 900, marginTop: 4 }}>{assetName}</span>
+          <span style={{ color: "#F5F5F5", fontSize: 104, fontWeight: 900, marginTop: 8, textShadow: "0 0 50px rgba(255,255,255,0.14)" }}>{sym}{price}</span>
+
+          <div style={{ marginTop: 20, background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 34, fontWeight: 700, padding: "10px 36px", borderRadius: 40, display: "flex" }}>
             {isUp ? "+" : "−"}{absChange}% · اليوم
           </div>
+
+          {/* 24h range — real data the client already holds, so the card is
+              worth sharing instead of being one number on an empty canvas.
+              row-reverse puts أعلى on the right, where RTL reads it first. */}
+          {high && low ? (
+            <div style={{ display: "flex", flexDirection: "row-reverse", gap: 22, marginTop: 44, width: "100%" }}>
+              {([["أعلى اليوم", high, "#4ade80"], ["أدنى اليوم", low, "#f87171"]] as [string, string, string][]).map(([lbl, val, col]) => (
+                <div key={lbl} style={{
+                  display: "flex", flexDirection: "column", alignItems: "flex-end", flexGrow: 1, flexBasis: 0,
+                  background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)",
+                  borderRadius: 22, padding: "26px 32px",
+                }}>
+                  <ArLine text={lbl} style={{ color: "#8a8a8a", fontSize: 26 }} />
+                  <span style={{ color: col, fontSize: 50, fontWeight: 900, marginTop: 8 }}>{sym}{val}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <SquareFooter tagline="أسعار لحظية للذهب والعملات" />
