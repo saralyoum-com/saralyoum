@@ -12,7 +12,15 @@ const KARAT_PURITY: Record<number, number> = { 24: 1, 22: 22 / 24, 21: 21 / 24, 
 // portfolio. Each card fetches a branded square PNG from /api/social-card and
 // hands it to the native share sheet (WhatsApp/Telegram), falling back to a
 // download on desktop. Replaces the older gold-only SharePriceButton.
-interface AssetIn { price: number; changePercent: number }
+interface AssetIn { price: number; changePercent: number; high?: number; low?: number }
+
+// Badge + brand colour per asset. Latin tickers only — Tajawal has no ₿ or Ξ
+// glyph, so those would render as tofu inside the Satori-generated PNG.
+const BADGES: Record<string, { badge: string; accent: string; accentFg: string }> = {
+  silver:   { badge: "Ag",  accent: "#A8AEB8", accentFg: "#1b1e22" },
+  bitcoin:  { badge: "BTC", accent: "#F7931A", accentFg: "#2a1802" },
+  ethereum: { badge: "ETH", accent: "#627EEA", accentFg: "#ffffff" },
+};
 interface Props {
   gold: AssetIn;
   silver: AssetIn;
@@ -63,12 +71,21 @@ export default function ShareAssetRow({ gold, silver, bitcoin, ethereum }: Props
       `&sym=${encodeURIComponent(sym)}&curName=${encodeURIComponent(curName)}&date=${encodeURIComponent(dateStr)}`;
   }
 
-  function buildAssetUrl(nameAr: string, sub: string, a: AssetIn, decimals: number): string {
-    const p = a.price.toLocaleString("en-US", { maximumFractionDigits: decimals });
+  function buildAssetUrl(key: string, nameAr: string, sub: string, a: AssetIn, decimals: number): string {
+    const fmt = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: decimals });
     const dir = a.changePercent >= 0 ? "up" : "down";
-    return `/api/social-card?type=asset&assetName=${encodeURIComponent(nameAr)}` +
-      `&assetSub=${encodeURIComponent(sub)}&price=${encodeURIComponent(p)}&sym=%24` +
+    const b = BADGES[key];
+    let url = `/api/social-card?type=asset&assetName=${encodeURIComponent(nameAr)}` +
+      `&assetSub=${encodeURIComponent(sub)}&price=${encodeURIComponent(fmt(a.price))}&sym=%24` +
       `&change=${Math.abs(a.changePercent).toFixed(2)}&dir=${dir}&date=${encodeURIComponent(dateStr)}`;
+    if (b) {
+      url += `&badge=${encodeURIComponent(b.badge)}&accent=${encodeURIComponent(b.accent)}` +
+        `&accentFg=${encodeURIComponent(b.accentFg)}`;
+    }
+    if (a.high && a.low) {
+      url += `&high=${encodeURIComponent(fmt(a.high))}&low=${encodeURIComponent(fmt(a.low))}`;
+    }
+    return url;
   }
 
   function buildPortfolioUrl(): string | null {
@@ -156,15 +173,15 @@ export default function ShareAssetRow({ gold, silver, bitcoin, ethereum }: Props
     },
     {
       key: "silver", icon: "🥈", label: isAr ? "الفضة" : "Silver", up: silver.changePercent >= 0, pct: silver.changePercent,
-      onClick: () => share("silver", buildAssetUrl(isAr ? "الفضة" : "Silver", "سعر الأونصة الآن", silver, 2), isAr ? "سعر الفضة اليوم" : "Silver price today", "sard-silver.png"),
+      onClick: () => share("silver", buildAssetUrl("silver", isAr ? "الفضة" : "Silver", "سعر الأونصة الآن", silver, 2), isAr ? "سعر الفضة اليوم" : "Silver price today", "sard-silver.png"),
     },
     {
       key: "bitcoin", icon: "₿", label: isAr ? "بيتكوين" : "Bitcoin", up: bitcoin.changePercent >= 0, pct: bitcoin.changePercent,
-      onClick: () => share("bitcoin", buildAssetUrl(isAr ? "بيتكوين" : "Bitcoin", "السعر الآن", bitcoin, 0), isAr ? "سعر البيتكوين اليوم" : "Bitcoin price today", "sard-bitcoin.png"),
+      onClick: () => share("bitcoin", buildAssetUrl("bitcoin", isAr ? "بيتكوين" : "Bitcoin", "السعر الآن", bitcoin, 0), isAr ? "سعر البيتكوين اليوم" : "Bitcoin price today", "sard-bitcoin.png"),
     },
     {
       key: "ethereum", icon: "⟠", label: isAr ? "إيثيريوم" : "Ethereum", up: ethereum.changePercent >= 0, pct: ethereum.changePercent,
-      onClick: () => share("ethereum", buildAssetUrl(isAr ? "إيثيريوم" : "Ethereum", "السعر الآن", ethereum, 0), isAr ? "سعر الإيثيريوم اليوم" : "Ethereum price today", "sard-ethereum.png"),
+      onClick: () => share("ethereum", buildAssetUrl("ethereum", isAr ? "إيثيريوم" : "Ethereum", "السعر الآن", ethereum, 0), isAr ? "سعر الإيثيريوم اليوم" : "Ethereum price today", "sard-ethereum.png"),
     },
     {
       key: "portfolio", icon: "💰", label: isAr ? "محفظتي" : "Portfolio", up: gold.changePercent >= 0, pct: gold.changePercent, featured: true,
