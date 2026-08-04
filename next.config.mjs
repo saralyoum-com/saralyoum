@@ -122,7 +122,13 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.adtrafficquality.google https://*.onesignal.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/`,
+              // AdSense does not serve only from pagead2: the ad pipeline pulls
+              // scripts from *.googlesyndication.com (pagead2, tpc), the
+              // doubleclick hosts (googleads.g, securepubads.g), adservice, and
+              // fundingchoicesmessages for the Privacy & messaging consent UI.
+              // Whitelisting pagead2 alone renders ads blank once a site is
+              // approved — the same failure mode that silently killed GA4 here.
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://*.googlesyndication.com https://*.doubleclick.net https://adservice.google.com https://fundingchoicesmessages.google.com https://*.adtrafficquality.google https://*.onesignal.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
@@ -133,8 +139,8 @@ const nextConfig = {
               // (Google Signals) — NOT just www.google-analytics.com. Whitelisting
               // only the latter silently blocked every page_view hit → realtime
               // showed 0 users and reported traffic was badly undercounted.
-              "connect-src 'self' https://api.coingecko.com https://www.goldapi.io https://v6.exchangerate-api.com https://open.er-api.com https://ipapi.co https://*.onesignal.com https://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://*.adtrafficquality.google",
-              "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.adtrafficquality.google https://www.google.com",
+              "connect-src 'self' https://api.coingecko.com https://www.goldapi.io https://v6.exchangerate-api.com https://open.er-api.com https://ipapi.co https://*.onesignal.com https://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://*.doubleclick.net https://*.googlesyndication.com https://adservice.google.com https://fundingchoicesmessages.google.com https://*.adtrafficquality.google",
+              "frame-src https://*.doubleclick.net https://*.googlesyndication.com https://fundingchoicesmessages.google.com https://*.adtrafficquality.google https://www.google.com",
               "media-src 'self'",
             ].join("; "),
           },
