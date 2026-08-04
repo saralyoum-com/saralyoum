@@ -625,8 +625,13 @@ export async function GET(req: NextRequest) {
         <polygon points={up ? "7,0 14,12 0,12" : "0,0 14,0 7,12"} fill={color} />
       </svg>
     );
-    const box = (label: string, value: string, color: string, sub: string, up: boolean) => (
-      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, padding: "36px 34px", alignItems: "flex-end", flexGrow: 1, flexBasis: 0 }}>
+    // `solo` = the P&L box is absent (no buy price recorded), so the single
+    // remaining box must not stretch the full width — it left a wide empty
+    // gutter beside right-aligned text and read as a broken layout.
+    const box = (label: string, value: string, color: string, sub: string, up: boolean, solo = false) => (
+      // minWidth is spread in only when solo — passing `minWidth: undefined`
+      // crashes Satori, which calls .trim() on every style value it parses.
+      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, padding: "36px 34px", alignItems: solo ? "center" : "flex-end", flexGrow: solo ? 0 : 1, flexBasis: solo ? "auto" : 0, ...(solo ? { minWidth: 520 } : {}) }}>
         <ArLine text={label} style={{ color: "#8a8a8a", fontSize: 26 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
           {triangle(up, color)}
@@ -682,8 +687,8 @@ export async function GET(req: NextRequest) {
           </div>
 
           {/* Today + P&L */}
-          <div style={{ display: "flex", gap: 22, marginTop: 64 }}>
-            {box("تغيير اليوم", `${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : "−"}${dailyPct}%`, dUp)}
+          <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "center", gap: 22, marginTop: 64, width: "100%" }}>
+            {box("تغيير اليوم", `${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : "−"}${dailyPct}%`, dUp, !hasPnl)}
             {hasPnl ? box("الربح / الخسارة", `${sym} ${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : "−"}${pnlPct}%`, pUp) : null}
           </div>
         </div>
