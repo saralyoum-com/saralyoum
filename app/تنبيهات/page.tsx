@@ -102,6 +102,29 @@ export default function AlertsPage() {
       );
 
       const results = await Promise.all(promises);
+
+      // Phase-1 taxonomy event, one per alert the server actually created.
+      // Fired before the failure check on purpose: if 2 of 3 assets saved,
+      // those 2 alerts exist and should be counted even though the user
+      // sees an error for the third.
+      results.forEach((res, i) => {
+        if (!res.ok) return;
+        const asset = selectedAssets[i] as "gold" | "silver" | "bitcoin" | "ethereum";
+        // Distance from the current price, only where we know it — the page
+        // fetches gold, so this stays undefined for silver/BTC/ETH rather
+        // than being guessed.
+        const target = parseFloat(targetPrice);
+        const deltaPct =
+          alertType === "price" && asset === "gold" && goldNowUSD && isFinite(target)
+            ? Math.round(((target - goldNowUSD) / goldNowUSD) * 1000) / 10
+            : undefined;
+        track.priceAlertCreated({
+          asset,
+          alert_type: alertType,
+          target_delta_pct: deltaPct,
+        });
+      });
+
       const failed = results.filter((r) => !r.ok);
 
       if (failed.length > 0) {
