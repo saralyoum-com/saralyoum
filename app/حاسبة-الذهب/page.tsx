@@ -69,6 +69,30 @@ export default function GoldCalculatorPage() {
   const vatLocal = makingLocal * vatRate;
   const grandTotalLocal = totalLocal + makingLocal + vatLocal;
 
+  // Phase-1 taxonomy event. Debounced 2s after the last input change so a
+  // single calculation produces one event instead of one per keystroke —
+  // track.calcWeightInput() still fires per keystroke for the legacy GA
+  // funnel, but this is the event the engagement/retention analysis uses.
+  useEffect(() => {
+    if (!wNum || wNum <= 0 || !pricePerGramSelected) return;
+    const t = setTimeout(() => {
+      const local = wNum * pricePerGramSelected * loc.rate;
+      // Bucketed, not raw — keeps a user's exact holdings out of the store.
+      const band =
+        local < 1_000 ? "<1k" :
+        local < 5_000 ? "1k-5k" :
+        local < 20_000 ? "5k-20k" :
+        local < 100_000 ? "20k-100k" : "100k+";
+      track.calculatorUsed({
+        karat,
+        weight_grams: Math.round(wNum * 100) / 100,
+        currency: loc.currency,
+        result_value_band: band,
+      });
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [wNum, karat, loc.currency, loc.rate, pricePerGramSelected]);
+
   // Zakat calculation
   const selectedKaratZakat = KARATS.find((k) => k.value === karatZakat)!;
   const goldGramsAs24k = goldWeightZakat
