@@ -10,6 +10,7 @@ import { track } from "@/lib/analytics";
 import KastBanner from "@/components/KastBanner";
 import GoldPriceTables from "@/components/GoldPriceTables";
 import PrePermissionCard from "@/components/PrePermissionCard";
+import RateNotice from "@/components/RateNotice";
 import type { GoldDay } from "@/lib/goldHistory";
 
 const PriceChart = dynamic(() => import("@/components/PriceChart"), { ssr: false });
@@ -107,6 +108,10 @@ export default function CountryGoldPage({
         </div>
 
       </div>
+
+      {/* Exchange-rate transparency notice — only renders for the markets
+          where the official and parallel rates diverge (ye, sd, sy, lb) */}
+      <RateNotice code={code} />
 
       {/* Pre-permission push card — shown from the 2nd price-page view */}
       <PrePermissionCard
