@@ -187,6 +187,63 @@ export default function BitcoinExtraContent({ priceUSD }: Props) {
           </p>
         </section>
 
+        {/* Amount conversions. The table above answers "what is 1 BTC worth" —
+            this answers "what is MY amount worth", which is what searchers
+            actually ask ("واحد بتكوين كم يساوي ريال", "1 بيتكوين كم ريال
+            سعودي", "100 بيتكوين كم ريال سعودي", "تحويل بيتكوين الى ريال"). */}
+        <section className="mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3">
+            {lang === "ar"
+              ? "كم يساوي البيتكوين بالريال السعودي؟"
+              : "How Much Is Bitcoin Worth in Saudi Riyals?"}
+          </h2>
+          <p className="text-text-secondary text-sm sm:text-base leading-relaxed mb-4">
+            {lang === "ar"
+              ? "يتساءل كثيرون عن قيمة كمية معينة من البيتكوين (أو البتكوين) بالريال السعودي. الجدول التالي يوضّح قيمة أشهر الكميات المتداولة بأسعار اليوم:"
+              : "A common question is what a specific amount of Bitcoin is worth in Saudi Riyals. The table below shows the most commonly traded amounts at today's prices:"}
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border border-border rounded-xl overflow-hidden min-w-[360px]">
+              <thead>
+                <tr className="bg-surface-2">
+                  <th className="text-start text-gold font-bold p-2.5 border border-border">
+                    {lang === "ar" ? "الكمية" : "Amount"}
+                  </th>
+                  <th className="text-end text-gold font-bold p-2.5 border border-border">
+                    {lang === "ar" ? "ريال سعودي" : "Saudi Riyal"}
+                  </th>
+                  <th className="text-end text-gold font-bold p-2.5 border border-border">
+                    {lang === "ar" ? "درهم إماراتي" : "UAE Dirham"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[0.001, 0.01, 0.1, 0.5, 1, 10, 100].map((amt) => {
+                  const isOne = amt === 1;
+                  return (
+                    <tr key={amt} className={isOne ? "bg-gold/5" : ""}>
+                      <td className={`p-2.5 border border-border ${isOne ? "text-gold font-bold" : "text-text-primary"}`}>
+                        {amt} {lang === "ar" ? "بيتكوين" : "BTC"}
+                      </td>
+                      <td className={`p-2.5 border border-border text-end tabular-nums ${isOne ? "text-gold font-bold" : "text-text-primary"}`}>
+                        {fmt(priceUSD * RATES_FALLBACK.SAR * amt)}
+                      </td>
+                      <td className={`p-2.5 border border-border text-end tabular-nums ${isOne ? "text-gold font-bold" : "text-text-secondary"}`}>
+                        {fmt(priceUSD * RATES_FALLBACK.AED * amt)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-text-secondary text-xs sm:text-sm leading-relaxed mt-3">
+            {lang === "ar"
+              ? "لتحويل أي كمية أخرى: اضرب عدد البيتكوين في سعر البيتكوين الحالي بالريال. الأسعار تتغيّر لحظيا مع السوق العالمي."
+              : "To convert any other amount, multiply the number of Bitcoin by the current BTC price in your currency. Prices change continuously with the global market."}
+          </p>
+        </section>
+
         {/* How to buy section */}
         <section className="mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-3">
