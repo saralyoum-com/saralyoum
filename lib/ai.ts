@@ -96,6 +96,21 @@ async function callProvider(
  * Telegram). The Python bot already had this retry+Groq pattern and kept
  * posting through the same outage; this brings the website in line.
  */
+/**
+ * Remove tanwin from generated Arabic.
+ *
+ * The owner's standing rule is "ذهب" not "ذهباً". It had only ever been a line
+ * in the prompts, which the models routinely ignore, so it is enforced in code
+ * on both sides of the stack (maxtools/sard_cron.py does the same). The
+ * accusative form drops its carrier alif too, per the owner's own examples:
+ * ذهباً → ذهب, خاتماً → خاتم.
+ */
+export function stripTanwin(text: string): string {
+  return text
+    .replace(/\u0627[\u064B\u064C\u064D]|[\u064B\u064C\u064D]\u0627/g, "")
+    .replace(/[\u064B\u064C\u064D]/g, "");
+}
+
 export async function chat(system: string, user: string, maxTokens = 900): Promise<string> {
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
   const groqKey     = process.env.GROQ_API_KEY;

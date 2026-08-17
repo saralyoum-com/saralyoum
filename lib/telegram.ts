@@ -1,11 +1,19 @@
-async function _send(chatId: string, text: string): Promise<void> {
+async function _send(chatId: string, text: string, plain = false): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN missing");
 
+  // `plain` skips parse_mode entirely. Content meant to be copied and pasted
+  // elsewhere (a LinkedIn post) must arrive exactly as written: HTML mode both
+  // mangles text containing < or & and risks the markup being pasted along
+  // with it.
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      ...(plain ? { disable_web_page_preview: true } : { parse_mode: "HTML" }),
+    }),
   });
 
   if (!res.ok) {
@@ -21,9 +29,12 @@ export async function sendTelegramMessage(text: string): Promise<void> {
 }
 
 // Sends to the owner's personal chat for manual-review posts (LinkedIn, etc.)
-export async function sendTelegramToOwner(text: string): Promise<void> {
+export async function sendTelegramToOwner(
+  text: string,
+  opts: { plain?: boolean } = {},
+): Promise<void> {
   const chatId = process.env.OWNER_TELEGRAM_CHAT_ID ?? "1839726381";
-  return _send(chatId, text);
+  return _send(chatId, text, opts.plain ?? false);
 }
 
 // Notify owner after every publish — platform link + card type
