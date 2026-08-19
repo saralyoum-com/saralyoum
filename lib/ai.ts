@@ -39,7 +39,9 @@ const DEEPSEEK_URL   = "https://api.deepseek.com/v1/chat/completions";
 // cause of the silent LinkedIn-draft outage (found 26 Jul 2026).
 const DEEPSEEK_MODEL = "deepseek-v4-flash";
 const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL     = "llama-3.3-70b-versatile";
+// llama-3.3-70b-versatile was retired by Groq and 404s, which left the site
+// with no working fallback at the moment DeepSeek ran out of credit (19 Aug).
+const GROQ_MODEL     = "openai/gpt-oss-120b";
 
 const TIMEOUT_MS = 45_000;
 
@@ -62,10 +64,12 @@ async function callProvider(
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
       body: JSON.stringify({
         model,
-        // only DeepSeek needs the reasoning headroom; Groq is not a reasoning model
-        max_tokens: model === DEEPSEEK_MODEL
-          ? Math.max(maxTokens + REASONING_HEADROOM, 700)
-          : maxTokens,
+        // Both providers are now reasoning models, and both bill reasoning
+        // against max_tokens before emitting a single character of content —
+        // too small a budget returns HTTP 200 with an empty string.
+        max_tokens: Math.max(maxTokens + REASONING_HEADROOM, 700),
+        // Keeps gpt-oss from spending the budget thinking; DeepSeek ignores it.
+        ...(model === GROQ_MODEL ? { reasoning_effort: "low" } : {}),
         messages: [
           { role: "system", content: system },
           { role: "user",   content: user   },
