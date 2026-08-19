@@ -2,6 +2,16 @@ import { PriceData } from "@/types";
 
 const COINGECKO_BASE = "https://api.coingecko.com/api/v3";
 
+// The live price must always sit inside [low24h, high24h]. CoinGecko serves the
+// current price and the 24h range from separately-cached fields, so a lagging
+// range contradicts a fresher price — ETH shipped as "1,921.79" with a stated
+// 24h high of "1,919.45", which the share card renders literally as
+// "أعلى اليوم" *below* the current price. lib/goldapi.ts already clamps for
+// the same reason (same bug hit gold in July); crypto was never covered.
+function clampRange(price: number, high: number, low: number): { high: number; low: number } {
+  return { high: Math.max(high, price), low: Math.min(low, price) };
+}
+
 export async function getCryptoPrice(
   coinId: "bitcoin" | "ethereum"
 ): Promise<PriceData> {
@@ -14,6 +24,7 @@ export async function getCryptoPrice(
     if (!res.ok) throw new Error("CoinGecko error");
     const data = await res.json();
     const market = data.market_data;
+    const range = clampRange(market.current_price.usd, market.high_24h.usd, market.low_24h.usd);
 
     return {
       symbol: coinId === "bitcoin" ? "BTC" : "ETH",
@@ -22,8 +33,8 @@ export async function getCryptoPrice(
       change: market.price_change_24h,
       changePercent: market.price_change_percentage_24h,
       currency: "USD",
-      high24h: market.high_24h.usd,
-      low24h: market.low_24h.usd,
+      high24h: range.high,
+      low24h: range.low,
       marketCap: market.market_cap.usd,
       volume24h: market.total_volume.usd,
       lastUpdated: new Date().toISOString(),
@@ -51,19 +62,22 @@ export async function getAllCryptoPrices(): Promise<PriceData[]> {
       ripple: "ريبل",
     };
 
-    return data.map((coin: Record<string, unknown>) => ({
-      symbol: (coin.symbol as string).toUpperCase(),
-      nameAr: nameMap[coin.id as string] || (coin.name as string),
-      price: coin.current_price,
-      change: coin.price_change_24h,
-      changePercent: coin.price_change_percentage_24h,
-      currency: "USD",
-      high24h: coin.high_24h,
-      low24h: coin.low_24h,
-      marketCap: coin.market_cap,
-      volume24h: coin.total_volume,
-      lastUpdated: new Date().toISOString(),
-    }));
+    return data.map((coin: Record<string, unknown>) => {
+      const range = clampRange(coin.current_price as number, coin.high_24h as number, coin.low_24h as number);
+      return {
+        symbol: (coin.symbol as string).toUpperCase(),
+        nameAr: nameMap[coin.id as string] || (coin.name as string),
+        price: coin.current_price,
+        change: coin.price_change_24h,
+        changePercent: coin.price_change_percentage_24h,
+        currency: "USD",
+        high24h: range.high,
+        low24h: range.low,
+        marketCap: coin.market_cap,
+        volume24h: coin.total_volume,
+        lastUpdated: new Date().toISOString(),
+      };
+    });
   } catch {
     return [getMockCrypto("bitcoin"), getMockCrypto("ethereum")];
   }
