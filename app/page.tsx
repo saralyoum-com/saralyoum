@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { getNewsData } from "@/lib/news";
 import PriceTicker from "@/components/PriceTicker";
 import Disclaimer from "@/components/Disclaimer";
@@ -52,16 +53,34 @@ async function getNews(): Promise<NewsItem[]> {
   return news.slice(0, 6);
 }
 
-export default async function HomePage() {
-  const [gold, silver, bitcoin, ethereum] = await Promise.all([
-    getGoldPrice(),
-    getSilverPrice(),
-    getCryptoPrice("bitcoin"),
-    getCryptoPrice("ethereum"),
-  ]);
+// `export const revalidate = 60` above was silently dead: lib/goldapi.ts fetches
+// with `cache: "no-store"` (deliberately — Next's Data Cache served a frozen
+// day-old price when GoldAPI's quota died on 2 Jul), and a single no-store fetch
+// in the render path opts the WHOLE route out of static rendering. The page was
+// therefore `ƒ` dynamic and shipped `cache-control: no-store`, so every visitor
+// triggered a full render plus live calls to Yahoo, CoinGecko and the RSS feeds.
+//
+// unstable_cache caches the RESULT for 60s without touching the fetches inside,
+// so the no-store fallback chain still runs (no frozen prices) while the route
+// regains the 60s ISR behaviour the file always claimed to have.
+const getHomeData = unstable_cache(
+  async () => {
+    const [gold, silver, bitcoin, ethereum] = await Promise.all([
+      getGoldPrice(),
+      getSilverPrice(),
+      getCryptoPrice("bitcoin"),
+      getCryptoPrice("ethereum"),
+    ]);
+    const signals = await getTechnicalData();
+    const news = await getNews();
+    return { gold, silver, bitcoin, ethereum, signals, news };
+  },
+  ["home-page-data"],
+  { revalidate: 60 },
+);
 
-  const signals = await getTechnicalData();
-  const news = await getNews();
+export default async function HomePage() {
+  const { gold, silver, bitcoin, ethereum, signals, news } = await getHomeData();
   const tickerPrices = [gold, silver, bitcoin, ethereum];
 
   const goldPriceUSD = gold?.price ?? 0;
