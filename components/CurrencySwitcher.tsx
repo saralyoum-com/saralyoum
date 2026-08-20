@@ -33,7 +33,11 @@ const CURRENCIES: CurrencyOption[] = [
   { code: "LYD", symbol: "د.ل",  nameAr: "دينار ليبي",    nameEn: "Libyan Dinar",    flag: "🇱🇾", country: "LY", fallback: 4.85 },
   { code: "SDG", symbol: "ج.س",  nameAr: "جنيه سوداني",   nameEn: "Sudanese Pound",  flag: "🇸🇩", country: "SD", fallback: 601 },
   { code: "YER", symbol: "ر.ي",  nameAr: "ريال يمني",     nameEn: "Yemeni Rial",     flag: "🇾🇪", country: "YE", fallback: 250 },
-  { code: "SYP", symbol: "ل.س",  nameAr: "ليرة سورية",    nameEn: "Syrian Pound",    flag: "🇸🇾", country: "SY", fallback: 13000 },
+  // 132, not 13000: Syria redenominated on 1 Jan 2026 (100 old = 1 new) and the
+  // rate feed returns no SYP at all, so this fallback is always what users see.
+  // The pre-redenomination value made a 21K gram read ~1,488,750 SYP against a
+  // real market price near 17,600. Keep in sync with lib/countries.ts.
+  { code: "SYP", symbol: "ل.س",  nameAr: "ليرة سورية",    nameEn: "Syrian Pound",    flag: "🇸🇾", country: "SY", fallback: 132 },
   { code: "ILS", symbol: "₪",    nameAr: "شيكل",          nameEn: "Israeli Shekel",  flag: "🇵🇸", country: "PS", fallback: 3.6 },
   { code: "USD", symbol: "$",    nameAr: "دولار أمريكي",  nameEn: "US Dollar",       flag: "💵", country: "US", fallback: 1 },
 ];

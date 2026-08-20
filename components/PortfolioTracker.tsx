@@ -91,7 +91,8 @@ const CURRENCIES = [
   { code: "QAR", symbol: "ر.ق", nameAr: "ريال قطري", nameEn: "QAR", fallback: 3.64 },
   { code: "JOD", symbol: "د.أ", nameAr: "دينار أردني", nameEn: "JOD", fallback: 0.709 },
   { code: "IQD", symbol: "ع.د", nameAr: "دينار عراقي", nameEn: "IQD", fallback: 1310 },
-  { code: "SYP", symbol: "ل.س", nameAr: "ليرة سورية", nameEn: "SYP", fallback: 13000 },
+  // 132, not 13000 — post-redenomination (1 Jan 2026). See lib/countries.ts.
+  { code: "SYP", symbol: "ل.س", nameAr: "ليرة سورية", nameEn: "SYP", fallback: 132 },
 ];
 
 interface Props {

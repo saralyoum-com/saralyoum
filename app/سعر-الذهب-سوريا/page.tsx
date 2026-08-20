@@ -9,8 +9,13 @@ export default async function Page() {
   const [gold, silver, rates, history] = await Promise.all([
     getGoldPrice(), getSilverPrice(), getExchangeRates(), getGoldHistory7d(),
   ]);
-  // SYP rate (Syrian Pound, ~13,000 per USD)
-  const sypRate = rates.find((r) => r.code === "SYP")?.rate ?? 13000;
+  // 132 per USD after Syria's 1 Jan 2026 redenomination (100 old = 1 new); the
+  // rate feed returns no SYP, so this fallback is always the one used. Was 13000
+  // (pre-redenomination), which overstates every price ~100x.
+  // NOTE: this file is currently unreachable — middleware rewrites the Arabic
+  // slug to /gold/sy, which reads currencyFallback from lib/countries.ts. Kept
+  // in sync so reviving it cannot resurrect the old bug.
+  const sypRate = rates.find((r) => r.code === "SYP")?.rate ?? 132;
   return (
     <CountryGoldPage
       flag="/flags/sy.svg" nameAr="سوريا" nameEn="Syria"
