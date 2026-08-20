@@ -100,7 +100,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   const [newKarat, setNewKarat] = useState<Holding["karat"]>(21);
   const [newGrams, setNewGrams] = useState("");
   const [newBuyPrice, setNewBuyPrice] = useState("");
-  const [newBuyDate, setNewBuyDate] = useState("");
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   // Load saved data
   useEffect(() => {
@@ -135,10 +135,29 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
     lsSet("gold_portfolio", JSON.stringify({ holdings: h, currency: cur, rate: r }));
   }
 
+  // Returns an error message when the entered per-gram buy price is outside the
+  // plausible band, so the caller can refuse and explain. Previously the value
+  // was saved but silently skipped by the P/L guard further down, which looked
+  // to the user like the save had simply done nothing.
+  function buyPriceError(input: number, karat: Holding["karat"]): string | null {
+    const purity = KARATS.find(k => k.value === karat)?.purity ?? 1;
+    const nowPerGramUSD = (goldPriceUSD / OZ) * purity;
+    const usd = input / displayRate;
+    if (usd >= nowPerGramUSD * 0.2 && usd <= nowPerGramUSD * 5) return null;
+    const nowPerGram = nowPerGramUSD * displayRate;
+    return lang === "ar"
+      ? `الرقم بعيد جدا عن سعر الجرام اليوم (${fmt(nowPerGram)} ${curSymbol}). اكتب سعر الجرام لا الإجمالي.`
+      : `That is far from today's per-gram price (${fmt(nowPerGram)} ${curSymbol}). Enter the price per gram, not the total.`;
+  }
+
   function addHolding() {
     const grams = parseFloat(newGrams);
     if (!grams || grams <= 0) return;
     const buyPInput = newBuyPrice ? parseFloat(newBuyPrice) : undefined;
+    if (buyPInput && buyPInput > 0) {
+      const err = buyPriceError(buyPInput, newKarat);
+      if (err) { setPriceError(err); return; }
+    }
     // Store as USD per gram (the input is in the displayed currency), so the
     // P/L stays correct even if the user later switches display currency.
     const buyPriceUSD =
@@ -148,14 +167,16 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
       karat: newKarat,
       grams,
       buyPrice: buyPriceUSD,
-      buyDate: newBuyDate || undefined,
+      // Dated automatically on entry — the manual date field was dropped as
+      // one more thing to fill in for a number most people do not remember.
+      buyDate: buyPriceUSD ? new Date().toISOString().split("T")[0] : undefined,
     };
     const updated = [...holdings, holding];
     setHoldings(updated);
     save(updated, currency, rate);
     setNewGrams("");
     setNewBuyPrice("");
-    setNewBuyDate("");
+    setPriceError(null);
     setShowAdd(false);
     track.quickLinkClick("portfolio-add");
   }
@@ -169,7 +190,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
   function resetForm() {
     setNewGrams("");
     setNewBuyPrice("");
-    setNewBuyDate("");
+    setPriceError(null);
   }
 
   // Open the inline editor prefilled from the holding. buyPrice is stored as
@@ -180,17 +201,26 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
     setNewKarat(h.karat);
     setNewGrams(String(h.grams));
     setNewBuyPrice(h.buyPrice ? String(+(h.buyPrice * displayRate).toFixed(2)) : "");
-    setNewBuyDate(h.buyDate ?? "");
+    setPriceError(null);
   }
 
   function saveEdit() {
     const grams = parseFloat(newGrams);
     if (!editingId || !grams || grams <= 0) return;
     const buyPInput = newBuyPrice ? parseFloat(newBuyPrice) : undefined;
+    if (buyPInput && buyPInput > 0) {
+      const err = buyPriceError(buyPInput, newKarat);
+      if (err) { setPriceError(err); return; }
+    }
     const buyPriceUSD = buyPInput && buyPInput > 0 ? buyPInput / displayRate : undefined;
+    const today = new Date().toISOString().split("T")[0];
     const updated = holdings.map(h =>
       h.id === editingId
-        ? { ...h, karat: newKarat, grams, buyPrice: buyPriceUSD, buyDate: newBuyDate || undefined }
+        ? {
+            ...h, karat: newKarat, grams, buyPrice: buyPriceUSD,
+            // keep an existing date, otherwise stamp entry date
+            buyDate: buyPriceUSD ? (h.buyDate ?? today) : undefined,
+          }
         : h,
     );
     setHoldings(updated);
@@ -473,7 +503,7 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
                   karat={newKarat} setKarat={setNewKarat}
                   grams={newGrams} setGrams={setNewGrams}
                   buyPrice={newBuyPrice} setBuyPrice={setNewBuyPrice}
-                  buyDate={newBuyDate} setBuyDate={setNewBuyDate}
+                  error={priceError}
                   onSave={saveEdit}
                   onCancel={cancelEdit}
                 />
@@ -544,29 +574,31 @@ export default function PortfolioTracker({ goldPriceUSD, changePercent }: Props)
                 <input
                   type="number"
                   value={newBuyPrice}
-                  onChange={(e) => setNewBuyPrice(e.target.value)}
+                  onChange={(e) => { setNewBuyPrice(e.target.value); setPriceError(null); }}
                   placeholder={lang === "ar" ? "مثال 442" : "e.g. 442"}
                   min="0"
                   step="0.01"
-                  className="w-full bg-surface border border-gold/25 text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/50 outline-none placeholder:text-text-secondary/50"
+                  className={`w-full bg-surface border text-text-primary text-sm rounded-xl px-3 py-2.5 outline-none placeholder:text-text-secondary/50 ${priceError ? "border-fall/60 focus:border-fall" : "border-gold/25 focus:border-gold/50"}`}
                 />
-                <p className="text-text-secondary text-[10px] mt-1 leading-tight">
-                  {lang === "ar" ? "أدخله لتظهر أرباحك تلقائيا" : "Add it to see your profit"}
-                </p>
+                {/* Live total so a mistyped total instead of a per-gram price is
+                    obvious before saving, not silently dropped afterwards. */}
+                {newBuyPrice && parseFloat(newBuyPrice) > 0 && parseFloat(newGrams) > 0 ? (
+                  <p className="text-text-secondary text-[10px] mt-1 leading-tight">
+                    {lang === "ar" ? "الإجمالي ≈ " : "Total ≈ "}
+                    {fmt(parseFloat(newBuyPrice) * parseFloat(newGrams))} {curSymbol}
+                  </p>
+                ) : (
+                  <p className="text-text-secondary text-[10px] mt-1 leading-tight">
+                    {lang === "ar" ? "أدخله لتظهر أرباحك تلقائيا" : "Add it to see your profit"}
+                  </p>
+                )}
+                {priceError && (
+                  <p className="text-fall text-[10px] mt-1 leading-snug">{priceError}</p>
+                )}
               </div>
-              {/* Buy date (optional) */}
-              <div>
-                <label className="text-text-secondary text-xs mb-1 block">
-                  {lang === "ar" ? "تاريخ الشراء (اختياري)" : "Buy date (optional)"}
-                </label>
-                <input
-                  type="date"
-                  value={newBuyDate}
-                  onChange={(e) => setNewBuyDate(e.target.value)}
-                  max={new Date().toISOString().split("T")[0]}
-                  className="w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none [color-scheme:dark]"
-                />
-              </div>
+              {/* Buy date removed — stamped automatically on entry. It was an
+                  extra field for a detail most people do not recall, and the
+                  annualised return it feeds is a nice-to-have, not the point. */}
               {/* Buttons */}
               <div className="flex items-end gap-2">
                 <button
@@ -761,15 +793,14 @@ interface HoldingEditorProps {
   setGrams: (v: string) => void;
   buyPrice: string;
   setBuyPrice: (v: string) => void;
-  buyDate: string;
-  setBuyDate: (v: string) => void;
+  error: string | null;
   onSave: () => void;
   onCancel: () => void;
 }
 
 function HoldingEditor({
   lang, curSymbol, karat, setKarat, grams, setGrams,
-  buyPrice, setBuyPrice, buyDate, setBuyDate, onSave, onCancel,
+  buyPrice, setBuyPrice, error, onSave, onCancel,
 }: HoldingEditorProps) {
   const isAr = lang === "ar";
   const field = "w-full bg-surface border border-border text-text-primary text-sm rounded-xl px-3 py-2.5 focus:border-gold/40 outline-none";
@@ -777,7 +808,7 @@ function HoldingEditor({
   return (
     <div className="px-4 sm:px-6 py-4 bg-surface-2">
       <p className="text-gold text-xs font-bold mb-3">{isAr ? "تعديل القطعة" : "Edit holding"}</p>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         <div>
           <label className="text-text-secondary text-xs mb-1 block">{isAr ? "العيار" : "Karat"}</label>
           <select value={karat} onChange={(e) => setKarat(Number(e.target.value) as Holding["karat"])} className={field}>
@@ -797,16 +828,16 @@ function HoldingEditor({
           <input
             type="number" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)}
             placeholder={isAr ? "مثال 442" : "e.g. 442"} min="0" step="0.01"
-            className={`${field} border-gold/25 focus:border-gold/50 placeholder:text-text-secondary/50`}
+            className={`${field} placeholder:text-text-secondary/50 ${error ? "border-fall/60 focus:border-fall" : "border-gold/25 focus:border-gold/50"}`}
           />
-        </div>
-        <div>
-          <label className="text-text-secondary text-xs mb-1 block">{isAr ? "تاريخ الشراء" : "Buy date"}</label>
-          <input
-            type="date" value={buyDate} onChange={(e) => setBuyDate(e.target.value)}
-            max={new Date().toISOString().split("T")[0]}
-            className={`${field} [color-scheme:dark]`}
-          />
+          {/* Live total — catches a total typed where a per-gram price belongs */}
+          {buyPrice && parseFloat(buyPrice) > 0 && parseFloat(grams) > 0 && (
+            <p className="text-text-secondary text-[10px] mt-1">
+              {isAr ? "الإجمالي ≈ " : "Total ≈ "}
+              {(parseFloat(buyPrice) * parseFloat(grams)).toLocaleString("en-US", { maximumFractionDigits: 0 })} {curSymbol}
+            </p>
+          )}
+          {error && <p className="text-fall text-[10px] mt-1 leading-snug">{error}</p>}
         </div>
       </div>
       <div className="flex gap-2 mt-3">
