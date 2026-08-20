@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { getNewsData } from "@/lib/news";
 import PriceTicker from "@/components/PriceTicker";
 import Disclaimer from "@/components/Disclaimer";
@@ -53,34 +52,30 @@ async function getNews(): Promise<NewsItem[]> {
   return news.slice(0, 6);
 }
 
-// `export const revalidate = 60` above was silently dead: lib/goldapi.ts fetches
-// with `cache: "no-store"` (deliberately — Next's Data Cache served a frozen
-// day-old price when GoldAPI's quota died on 2 Jul), and a single no-store fetch
-// in the render path opts the WHOLE route out of static rendering. The page was
-// therefore `ƒ` dynamic and shipped `cache-control: no-store`, so every visitor
-// triggered a full render plus live calls to Yahoo, CoinGecko and the RSS feeds.
+// DO NOT wrap these getters in unstable_cache to make the route static.
 //
-// unstable_cache caches the RESULT for 60s without touching the fetches inside,
-// so the no-store fallback chain still runs (no frozen prices) while the route
-// regains the 60s ISR behaviour the file always claimed to have.
-const getHomeData = unstable_cache(
-  async () => {
-    const [gold, silver, bitcoin, ethereum] = await Promise.all([
-      getGoldPrice(),
-      getSilverPrice(),
-      getCryptoPrice("bitcoin"),
-      getCryptoPrice("ethereum"),
-    ]);
-    const signals = await getTechnicalData();
-    const news = await getNews();
-    return { gold, silver, bitcoin, ethereum, signals, news };
-  },
-  ["home-page-data"],
-  { revalidate: 60 },
-);
-
+// It looks like an easy win — `export const revalidate = 60` above is dead
+// (lib/goldapi.ts fetches with `cache: "no-store"`, and one no-store fetch in
+// the render path forces the whole route dynamic), so the page re-renders per
+// visitor. Wrapping the fetch in unstable_cache does flip the route to `○`
+// static and cuts the median from 1.89s to 0.81s.
+//
+// It also froze the home page on its build-time prices for 23 hours on
+// 19 Aug 2026: the prerendered HTML kept serving gold at $4,080 while the live
+// API said $4,549 — a 10% error on a price site. Neither the route's revalidate
+// nor the cache's own 60s TTL regenerated it. Reverted; correctness beats the
+// render cost here. Any future attempt must be verified by comparing the
+// rendered HTML against /api/prices over time, not just by the build output.
 export default async function HomePage() {
-  const { gold, silver, bitcoin, ethereum, signals, news } = await getHomeData();
+  const [gold, silver, bitcoin, ethereum] = await Promise.all([
+    getGoldPrice(),
+    getSilverPrice(),
+    getCryptoPrice("bitcoin"),
+    getCryptoPrice("ethereum"),
+  ]);
+
+  const signals = await getTechnicalData();
+  const news = await getNews();
   const tickerPrices = [gold, silver, bitcoin, ethereum];
 
   const goldPriceUSD = gold?.price ?? 0;
