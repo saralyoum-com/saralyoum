@@ -17,6 +17,11 @@ const DISALLOW = [
   "/_next/static/media/",
 ];
 
+const SOCIAL_BOTS = [
+  "Twitterbot", "facebookexternalhit", "WhatsApp", "TelegramBot",
+  "LinkedInBot", "Slackbot-LinkExpanding", "Discordbot",
+];
+
 const AI_BOTS = [
   "GPTBot",
   "ChatGPT-User",
@@ -48,8 +53,10 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       // Default rule for all crawlers
-      // /api/og is explicitly allowed so Google can fetch OG preview images
-      // (more specific allow takes precedence over the broad /api/ disallow)
+      // /api/og is allowed here for Google, which applies longest-match. Do not
+      // rely on this for social crawlers — they use simpler parsers and honour
+      // the broad `Disallow: /api/`. Share images are served from /og.png,
+      // which no Disallow touches, and the crawlers are also allowed below.
       {
         userAgent: "*",
         allow: ["/", "/api/og", "/ads.txt"],
@@ -63,6 +70,12 @@ export default function robots(): MetadataRoute.Robots {
       })),
       // Explicitly welcome all major AI crawlers with no restrictions
       ...AI_BOTS.map((bot) => ({
+        userAgent: bot,
+        allow: "/",
+      })),
+      // Social link-preview crawlers. Without these the share card renders
+      // with no image at all, which is what happened on X.
+      ...SOCIAL_BOTS.map((bot) => ({
         userAgent: bot,
         allow: "/",
       })),

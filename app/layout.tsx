@@ -59,7 +59,7 @@ export const metadata: Metadata = {
         // og-image.png showed the same generic artwork forever, so every
         // WhatsApp/X share of a price site carried no price (see CLAUDE.md:
         // "never reference static image files in /public").
-        url: "https://sardhahab.com/api/og?asset=gold",
+        url: "https://sardhahab.com/og.png?asset=gold",
         width: 1200,
         height: 630,
         alt: "سعر الذهب اليوم — sardhahab.com",
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
         // og-image.png showed the same generic artwork forever, so every
         // WhatsApp/X share of a price site carried no price (see CLAUDE.md:
         // "never reference static image files in /public").
-        url: "https://sardhahab.com/api/og?asset=gold",
+        url: "https://sardhahab.com/og.png?asset=gold",
         width: 1200,
         height: 630,
         alt: "سعر الذهب اليوم — sardhahab.com",

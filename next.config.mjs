@@ -18,6 +18,19 @@ const nextConfig = {
   // which decodes percent-encoding and normalises to NFC before matching slugs.
   // This avoids the NFD/NFC encoding mismatch between macOS builds and Vercel/Linux.
 
+  // /og.png is a crawler-safe alias for /api/og.
+  //
+  // robots.txt carries `Allow: /api/og` next to `Disallow: /api/`. Google
+  // applies longest-match so it fetches fine, but Twitterbot and several other
+  // social crawlers use a simpler parser, see the broad Disallow, and refuse
+  // the image — which is why X share cards went blank the moment the OG image
+  // moved from the root-level /og-image.png into /api/. Serving the same route
+  // from a path no Disallow touches sidesteps the whole ambiguity.
+  async rewrites() {
+    return [
+      { source: "/og.png", destination: "/api/og" },
+    ];
+  },
   async redirects() {
     return [
       // www.sardhahab.com → sardhahab.com
