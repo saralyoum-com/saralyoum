@@ -104,6 +104,21 @@ function splitBalanced(text: string): [string, string] {
 // in natural (un-reversed) array order — same technique already proven
 // correct for the header's date. Use this for every Arabic string with 2+
 // words instead of a single plain span.
+// Satori over-measures the advance width of an Arabic run: the visible ink sits
+// flush-left inside an over-wide box, so centring the box leaves the text left
+// of true centre (measured: بيتكوين −60px, إيثيريوم −46.5, الفضة −32.5,
+// محفظتي −30.5). Container-level fixes do NOT help — justifyContent, textAlign,
+// direction:rtl, ArLine and font-weight 700 were each tried and all landed on
+// the identical offset; only start-edge alignment is accurate. So the box is
+// nudged right by 2× the measured offset (a centred box shifts by half its
+// added margin). Re-measure if the font or a name changes.
+const AR_CENTER_NUDGE: Record<string, number> = {
+  "بيتكوين": 120,
+  "إيثيريوم": 93,
+  "الفضة": 65,
+  "محفظتي": 61,
+};
+
 function ArLine({ text, style, gap }: { text: string; style: React.CSSProperties; gap?: number }) {
   const tokens = text.trim().split(/\s+/);
   const fs = typeof style.fontSize === "number" ? style.fontSize : 24;
@@ -338,13 +353,11 @@ export async function GET(req: NextRequest) {
 
   // square "asset" card (silver / bitcoin / ethereum) + "portfolio" card
   const assetName = sp.get("assetName") || "";     // e.g. "الفضة" / "بيتكوين"
-  const assetSub  = sp.get("assetSub")  || "";     // small line above the name
   const price     = sp.get("price")     || "";     // pre-formatted price string
   // Asset badge — Latin ticker (Ag / BTC / ETH) rather than the ₿ and Ξ glyphs,
   // which Tajawal does not contain and Satori would render as tofu boxes.
   const badge     = sp.get("badge")     || "";
   const accent    = sp.get("accent")    || GOLD;   // badge background
-  const accentFg  = sp.get("accentFg")  || "#2a1f05";
   const high      = sp.get("high")      || "";     // 24h high, pre-formatted
   const low       = sp.get("low")       || "";     // 24h low, pre-formatted
   const pv        = sp.get("pv")        || "";     // portfolio total value
@@ -540,160 +553,118 @@ export async function GET(req: NextRequest) {
     ), { width: S, height: S, fonts: fontOpts });
   }
 
-  // ── ASSET: generic square card for silver / bitcoin / ethereum ─────────────
-  if (type === "asset") {
+  // ── ASSET / PORTFOLIO: the "gilded frame" layout ───────────────────────────
+  // Built around the SARD coin rather than each asset's brand colour: the bright
+  // orange/blue fintech treatment fought the gold logo, so gold leads and the
+  // asset tint is only a whisper behind the mark.
+  if (type === "asset" || type === "portfolio") {
     const S = 1080;
-    return new ImageResponse((
-      <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
-          <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="abar" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#8B6914" /><stop offset="28%" stopColor="#F2D98A" />
-                <stop offset="62%" stopColor={GOLD} /><stop offset="100%" stopColor="#8B6914" />
-              </linearGradient>
-            </defs>
-            <rect width={S} height={7} fill="url(#abar)" />
-          </svg>
-        </div>
+    const isPortfolio = type === "portfolio";
+    const dUp = dailyDir !== "down";
+    const pUp = pnlDir !== "down";
+    const tint = isPortfolio ? GOLD : accent;
 
-        {/* Soft accent glow behind the badge, tinted to the asset's brand
-            colour so silver / BTC / ETH cards are distinguishable at a glance. */}
+    // Gradient hairline that fades out at both ends, echoing the coin's rim.
+    const Rule = ({ w, mt, mb }: { w: number; mt: number; mb: number }) => (
+      <div style={{
+        display: "flex", width: w, height: 1, marginTop: mt, marginBottom: mb,
+        background: "linear-gradient(90deg, rgba(201,168,76,0) 0%, rgba(201,168,76,0.55) 50%, rgba(201,168,76,0) 100%)",
+      }} />
+    );
+
+    const stat = (label: string, value: string, color: string, sub?: string) => (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, flexBasis: 0 }}>
+        <ArLine text={label} style={{ color: "#8a7448", fontSize: 26 }} />
+        <span style={{ color, fontSize: 46, fontWeight: 900, marginTop: 8 }}>{value}</span>
+        {sub ? <span style={{ color, fontSize: 24, fontWeight: 700, marginTop: 2 }}>{sub}</span> : null}
+      </div>
+    );
+
+    return new ImageResponse((
+      <div style={{
+        width: S, height: S, background: "#0B0906", display: "flex",
+        flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif",
+      }}>
+        {/* warm glow so the black reads gold-adjacent, not cold */}
         <div style={{
-          position: "absolute", top: 250, left: "50%", transform: "translateX(-540px)",
-          width: 1080, height: 520, borderRadius: 9999, display: "flex",
-          background: `radial-gradient(ellipse at center, ${accent}1F 0%, ${accent}00 68%)`,
+          position: "absolute", top: 120, left: 0, width: S, height: 620, display: "flex",
+          background: `radial-gradient(ellipse at center, ${tint}1A 0%, rgba(11,9,6,0) 68%)`,
         }} />
 
-        <SquareHeader logo={logo} dateStr={dateStr} />
+        {/* double gilded frame */}
+        <div style={{ position: "absolute", top: 22, left: 22, width: S - 44, height: S - 44, border: "4px solid rgba(201,168,76,0.50)", borderRadius: 28, display: "flex" }} />
+        <div style={{ position: "absolute", top: 38, left: 38, width: S - 76, height: S - 76, border: "2px solid rgba(201,168,76,0.18)", borderRadius: 18, display: "flex" }} />
 
-        {/* Deterministic margins rather than flexGrow + justifyContent:center,
-            which left ~430px of dead canvas on a card this sparse. */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 26, padding: "0 60px" }}>
-
-          {badge ? (
-            <div style={{
-              width: 132, height: 132, borderRadius: 66, background: accent, color: accentFg,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: badge.length > 2 ? 42 : 54, fontWeight: 900, letterSpacing: 1,
-            }}>{badge}</div>
+        {/* Centred between the frame top and the footer so the card reads balanced instead of top-heavy with a dead lower third. */}
+        <div style={{ position: "absolute", top: 38, left: 0, width: S, height: 916, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- Satori, not next/image
+            <img src={logo} width={168} height={168} alt="" />
           ) : null}
 
-          <ArLine text={assetSub || "السعر الآن"} style={{ color: "#7a7a7a", fontSize: 30, marginTop: badge ? 22 : 0 }} />
-          <span style={{ color: GOLD, fontSize: 68, fontWeight: 900, marginTop: 4 }}>{assetName}</span>
-          <span style={{ color: "#F5F5F5", fontSize: 104, fontWeight: 900, marginTop: 8, textShadow: "0 0 50px rgba(255,255,255,0.14)" }}>{sym}{price}</span>
-
-          <div style={{ marginTop: 20, background: isUp ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)", border: `1px solid ${isUp ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`, color: changeColor, fontSize: 34, fontWeight: 700, padding: "10px 36px", borderRadius: 40, display: "flex" }}>
-            {isUp ? "+" : "−"}{absChange}% · اليوم
-          </div>
-
-          {/* 24h range — real data the client already holds, so the card is
-              worth sharing instead of being one number on an empty canvas.
-              row-reverse puts أعلى on the right, where RTL reads it first. */}
-          {high && low ? (
-            <div style={{ display: "flex", flexDirection: "row-reverse", gap: 22, marginTop: 44, width: "100%" }}>
-              {([["أعلى اليوم", high, "#4ade80"], ["أدنى اليوم", low, "#f87171"]] as [string, string, string][]).map(([lbl, val, col]) => (
-                <div key={lbl} style={{
-                  display: "flex", flexDirection: "column", alignItems: "flex-end", flexGrow: 1, flexBasis: 0,
-                  background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)",
-                  borderRadius: 22, padding: "26px 32px",
-                }}>
-                  <ArLine text={lbl} style={{ color: "#8a8a8a", fontSize: 26 }} />
-                  <span style={{ color: col, fontSize: 50, fontWeight: 900, marginTop: 8 }}>{sym}{val}</span>
-                </div>
+          {dateStr ? (
+            <div style={{ display: "flex", flexDirection: "row-reverse", gap: 10, marginTop: 14 }}>
+              {dateStr.trim().split(/\s+/).map((tok, i) => (
+                <span key={i} style={{ color: "#8a7448", fontSize: 24 }}>{tok}</span>
               ))}
+            </div>
+          ) : null}
+
+          <Rule w={420} mt={26} mb={26} />
+
+          {isPortfolio ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <span style={{ color: GOLD, fontSize: 54, fontWeight: 900, marginLeft: AR_CENTER_NUDGE["محفظتي"] }}>محفظتي</span>
+              {count ? <ArLine text={count} style={{ color: "#7d6a3f", fontSize: 26, marginTop: 6 }} /> : null}
+              <span style={{ color: GOLD, fontSize: 96, fontWeight: 900, marginTop: 22, textShadow: "0 2px 44px rgba(201,168,76,0.40)" }}>
+                {sym} {pv}
+              </span>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <span style={{ color: GOLD, fontSize: 56, fontWeight: 900, marginLeft: AR_CENTER_NUDGE[assetName] ?? 0 }}>{assetName}</span>
+              {badge ? (
+                <span style={{ color: "#7d6a3f", fontSize: 24, letterSpacing: 5, marginTop: 6 }}>{badge}</span>
+              ) : null}
+              <span style={{ color: "#ffffff", fontSize: 112, fontWeight: 900, marginTop: 18, letterSpacing: -2, textShadow: "0 2px 44px rgba(201,168,76,0.30)" }}>
+                {sym}{price}
+              </span>
+              <div style={{
+                display: "flex", marginTop: 20, padding: "10px 32px", borderRadius: 40,
+                background: isUp ? "rgba(74,222,128,0.13)" : "rgba(248,113,113,0.13)",
+                border: `1px solid ${isUp ? "rgba(74,222,128,0.40)" : "rgba(248,113,113,0.40)"}`,
+                color: changeColor, fontSize: 30, fontWeight: 800,
+              }}>
+                <span>{isUp ? "+" : "−"}{absChange}%</span>
+                <span style={{ marginRight: 10 }}>اليوم</span>
+              </div>
+            </div>
+          )}
+
+          <Rule w={620} mt={34} mb={26} />
+
+          {/* bottom stats */}
+          {isPortfolio ? (
+            <div style={{ display: "flex", flexDirection: "row-reverse", width: 700, alignItems: "center" }}>
+              {stat("تغيير اليوم", `${dUp ? "+" : "−"}${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : "−"}${dailyPct}%`)}
+              {pnl ? <div style={{ display: "flex", width: 1, height: 74, background: "rgba(201,168,76,0.25)" }} /> : null}
+              {pnl ? stat("الربح", `${pUp ? "+" : "−"}${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : "−"}${pnlPct}%`) : null}
+            </div>
+          ) : high && low ? (
+            <div style={{ display: "flex", flexDirection: "row-reverse", width: 700, alignItems: "center" }}>
+              {stat("أعلى اليوم", `${sym}${high}`, "#4ade80")}
+              <div style={{ display: "flex", width: 1, height: 74, background: "rgba(201,168,76,0.25)" }} />
+              {stat("أدنى اليوم", `${sym}${low}`, "#f87171")}
             </div>
           ) : null}
         </div>
 
-        <SquareFooter tagline="أسعار لحظية للذهب والعملات" />
-      </div>
-    ), { width: S, height: S, fonts: fontOpts });
-  }
-
-  // ── PORTFOLIO: user's holdings summary (value / today / P&L) ────────────────
-  if (type === "portfolio") {
-    const S = 1080;
-    const dUp = dailyDir !== "down";
-    const pUp = pnlDir !== "down";
-    const hasPnl = pnl !== "";
-    // Triangle indicator — Tajawal has no ▲/▼ glyphs, and Satori draws CSS
-    // border-triangles as plain rectangles (no diagonal clipping), so this
-    // has to be a real inline SVG polygon instead.
-    const triangle = (up: boolean, color: string) => (
-      <svg width={14} height={12} style={{ display: "flex" }}>
-        <polygon points={up ? "7,0 14,12 0,12" : "0,0 14,0 7,12"} fill={color} />
-      </svg>
-    );
-    // `solo` = the P&L box is absent (no buy price recorded), so the single
-    // remaining box must not stretch the full width — it left a wide empty
-    // gutter beside right-aligned text and read as a broken layout.
-    const box = (label: string, value: string, color: string, sub: string, up: boolean, solo = false) => (
-      // minWidth is spread in only when solo — passing `minWidth: undefined`
-      // crashes Satori, which calls .trim() on every style value it parses.
-      <div style={{ display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.035)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: 22, padding: "36px 34px", alignItems: solo ? "center" : "flex-end", flexGrow: solo ? 0 : 1, flexBasis: solo ? "auto" : 0, ...(solo ? { minWidth: 520 } : {}) }}>
-        <ArLine text={label} style={{ color: "#8a8a8a", fontSize: 26 }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
-          {triangle(up, color)}
-          <span style={{ color, fontSize: 54, fontWeight: 900 }}>{value}</span>
+        {/* footer inside the frame */}
+        <div style={{ position: "absolute", bottom: 62, left: 0, width: S, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+          <span style={{ color: GOLD, fontSize: 26, fontWeight: 700 }}>sardhahab.com</span>
+          <span style={{ color: "#5a4c2e", fontSize: 20 }}>·</span>
+          <ArLine text="أسعار لحظية للذهب والعملات" style={{ color: "#5a4c2e", fontSize: 20 }} />
         </div>
-        <span style={{ color, fontSize: 29, fontWeight: 700, marginTop: 10 }}>{sub}</span>
-      </div>
-    );
-    return new ImageResponse((
-      <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
-          <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="pfbar" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#8B6914" /><stop offset="28%" stopColor="#F2D98A" />
-                <stop offset="62%" stopColor={GOLD} /><stop offset="100%" stopColor="#8B6914" />
-              </linearGradient>
-            </defs>
-            <rect width={S} height={7} fill="url(#pfbar)" />
-          </svg>
-        </div>
-
-        {/* Soft gold glow behind the whole hero block — fills the canvas
-            with visual weight instead of leaving it feeling empty. */}
-        <div style={{
-          position: "absolute", top: 160, left: "50%", transform: "translateX(-540px)",
-          width: 1080, height: 620, borderRadius: 9999, display: "flex",
-          background: "radial-gradient(ellipse at center, rgba(201,168,76,0.10) 0%, rgba(201,168,76,0) 68%)",
-        }} />
-
-        <SquareHeader logo={logo} dateStr={dateStr} />
-
-        {/* Body — deterministic margins that fill the 1080 canvas, instead of
-            flex-centering a short content stack into a sea of empty space. */}
-        <div style={{ display: "flex", flexDirection: "column", padding: "0 60px", marginTop: 28 }}>
-
-          {/* Title — weight-sandwich: thin intro word, massive hero word.
-              "الذهبية" alone has no spaces, so there's nothing for Satori's
-              auto-wrap to scramble (see rule 7 in SHARE-CARDS-SPEC.md). */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <span style={{ color: "rgba(255,255,255,0.42)", fontSize: 30, fontWeight: 400 }}>محفظتي</span>
-            <span style={{ color: "#F5F5F5", fontSize: 128, fontWeight: 900, marginTop: 2, textShadow: "0 0 60px rgba(201,168,76,0.26)" }}>الذهبية</span>
-            {count ? <span style={{ color: "#8a8a8a", fontSize: 28, marginTop: 16 }}>{count}</span> : null}
-          </div>
-
-          {/* Divider */}
-          <div style={{ display: "flex", height: 1, background: "rgba(255,255,255,0.07)", margin: "44px 0 40px" }} />
-
-          {/* Total value hero */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <ArLine text="إجمالي القيمة" style={{ color: "#8a8a8a", fontSize: 30 }} />
-            <span style={{ color: GOLD, fontSize: 108, fontWeight: 900, marginTop: 10, textShadow: "0 0 54px rgba(201,168,76,0.36)" }}>{sym} {pv}</span>
-          </div>
-
-          {/* Today + P&L */}
-          <div style={{ display: "flex", flexDirection: "row-reverse", justifyContent: "center", gap: 22, marginTop: 64, width: "100%" }}>
-            {box("تغيير اليوم", `${sym} ${daily}`, dUp ? "#4ade80" : "#f87171", `${dUp ? "+" : "−"}${dailyPct}%`, dUp, !hasPnl)}
-            {hasPnl ? box("الربح / الخسارة", `${sym} ${pnl}`, pUp ? "#4ade80" : "#f87171", `${pUp ? "+" : "−"}${pnlPct}%`, pUp) : null}
-          </div>
-        </div>
-
-        <SquareFooter tagline="تتبّع قيمة ذهبك لحظيا" />
       </div>
     ), { width: S, height: S, fonts: fontOpts });
   }
