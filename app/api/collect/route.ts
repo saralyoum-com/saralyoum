@@ -55,6 +55,26 @@ function deviceFromUA(ua: string): "mobile" | "desktop" {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? "mobile" : "desktop";
 }
 
+/**
+ * Non-human traffic filter.
+ *
+ * GA4 showed a datacentre city (Ashburn) as ~23% of "users", which inflates
+ * every rate we compute. Classic crawlers don't run JS and so never reach this
+ * route, but headless browsers, uptime monitors, link unfurlers and our own
+ * automated checks do — and they all identify themselves in the user agent.
+ *
+ * Dropping them here keeps the owned event store honest even when GA4 is not.
+ * Deliberately conservative: it matches self-declared automation only, never
+ * IP ranges or behavioural guesses, so a real visitor is never discarded.
+ */
+const BOT_UA =
+  /bot|crawler|spider|crawling|headless|phantom|puppeteer|playwright|selenium|webdriver|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|curl|wget|python-requests|axios|node-fetch|go-http|java\/|okhttp|scrapy|preview|fetcher|validator|facebookexternalhit|slackbot|whatsapp|telegrambot|discordbot|embedly|quora link|vkshare|redditbot|applebot|bingpreview|yandex|baidu|duckduck|semrush|ahrefs|mj12|dotbot|petal|bytespider|gptbot|claudebot|ccbot|perplexity|anthropic/i;
+
+function isAutomatedUA(ua: string): boolean {
+  if (!ua) return true; // a real browser always sends one
+  return BOT_UA.test(ua);
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Body-size guard before parsing.
@@ -74,12 +94,16 @@ export async function POST(req: NextRequest) {
     const event = typeof body.event === "string" ? body.event.slice(0, MAX_EVENT_LEN) : "";
     if (!event || !/^[a-z0-9_]+$/i.test(event)) return new NextResponse(null, { status: 204 });
 
+    // Drop self-declared automation before it reaches the store.
+    const ua = req.headers.get("user-agent") || "";
+    if (isAutomatedUA(ua)) return new NextResponse(null, { status: 204 });
+
     // Server-authoritative enrichment — client cannot spoof geo/device.
     const country =
       req.headers.get("x-vercel-ip-country") ||
       req.headers.get("cf-ipcountry") ||
       null;
-    const device = deviceFromUA(req.headers.get("user-agent") || "");
+    const device = deviceFromUA(ua);
 
     const hasSupabase =
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
