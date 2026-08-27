@@ -2,36 +2,25 @@ import { ImageResponse } from "next/og";
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { getGoldPrice, getSilverPrice } from "@/lib/goldapi";
-import { getCryptoPrice } from "@/lib/coingecko";
 
 // Node runtime so the Tajawal .ttf files and the static fallback can be read
 // off disk — the Edge runtime cannot, which is part of why the earlier dynamic
 // attempt failed.
 export const runtime = "nodejs";
 
+// The card carries no price any more, so nothing in it can go stale and it is
+// cheap to cache hard. This is also why the price fetch, its 4s timeout and the
+// whole fallback-on-slow-API path are gone: the render no longer depends on a
+// network call, so a crawler can never catch a half-built card.
 const CACHE_HEADERS = {
-  "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+  "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
   "Content-Type": "image/png",
 };
 
 const GOLD = "#C9A84C";
 const BG   = "#09090F";
-const RISE = "#22C55E";
-const FALL = "#EF4444";
 const W = 1200;
 const H = 630;
-
-// Crawlers (WhatsApp, X, Telegram) give an OG image a short budget and show
-// nothing at all if it is missed. A previous version of this route rendered
-// nothing dynamic *at all* because of exactly that, so the price fetch is on a
-// hard leash and every failure path falls back to the static card rather than
-// making the crawler wait.
-// Measured: gold is ~0.6s warm but ~2.6s on a cold lambda (GoldAPI, then the
-// Yahoo fallback). 2.5s made every cold hit fall back to the static card for no
-// reason. 4s still leaves plenty of head-room inside crawler budgets, and the
-// CDN (s-maxage 24h) means cold hits are rare anyway.
-const PRICE_TIMEOUT_MS = 4000;
 
 type FontWeight = 700 | 900;
 type CachedFont = { name: string; data: ArrayBuffer; weight: FontWeight; style: "normal" };
@@ -60,22 +49,66 @@ function loadLogo(): string {
   return _logo || "";
 }
 
+// Satori implements no Unicode bidi algorithm at the layout level, and the
+// Arabic here hit two separate consequences of that. Both were measured off the
+// rendered PNG rather than reasoned about:
+//
+//  1. Word order and spacing. With a plain U+0020 Satori breaks the string into
+//     one run per word, lays those runs out left to right in logical order, and
+//     over-measures each run's advance. "سعر الذهب" therefore rendered as
+//     "الذهب سعر" with the words 122px apart where a space is ~11px — and the
+//     gap varied per label (gold 0, silver 54, ethereum 90, bitcoin 122).
+//     Joining the words with a no-break space keeps the whole line as ONE run,
+//     and the shaper then orders it right-to-left correctly at natural spacing.
+//
+//     Do NOT also reverse the word order to "fix" the order: that was tried, and
+//     because the single run is already shaped right-to-left it double-flips
+//     straight back to "الذهب سعر". Verified by measuring cluster widths —
+//     "سعر" is narrower than "الذهب", so whichever is rightmost tells you the
+//     true order regardless of how the image reads at a glance. The share-card
+//     route's per-word row-reverse split was also tried here and measured no
+//     better than a plain space.
+//
+//  2. Centring. The single run is still measured wider than its ink and all the
+//     slack lands on one side, so a centred line sits left of centre by an
+//     amount specific to the string (measured: gold 12, silver 40, ethereum 68,
+//     bitcoin 80, tagline 57). AR_NUDGE corrects that. A centred flex item
+//     shifts right by half its margin-left, so each value is twice the measured
+//     offset. Keyed by the string itself because the offset is a property of the
+//     glyph run: a new or edited line needs its own measured entry, and 0 — no
+//     correction — is the safe default until it has one.
+const AR_NBSP = " ";
+
+function arLine(text: string): string {
+  return text.trim().split(/\s+/).join(AR_NBSP);
+}
+
+const TAGLINE = "أسعار لحظية للذهب والفضة والعملات الرقمية";
+
+const AR_NUDGE: Record<string, number> = {
+  "سعر الذهب": 24,
+  "سعر الفضة": 80,
+  "سعر البيتكوين": 160,
+  "سعر الإيثيريوم": 136,
+  [TAGLINE]: 114,
+};
+
 function staticCard(): NextResponse {
   const buf = readFileSync(join(process.cwd(), "public", "og-image.png"));
   return new NextResponse(buf as unknown as BodyInit, { headers: CACHE_HEADERS });
 }
 
-const ASSETS: Record<string, { label: string; unit: string; fetch: () => Promise<{ price: number; changePercent: number }> }> = {
-  gold:     { label: "سعر الذهب",      unit: "للأونصة", fetch: getGoldPrice },
-  silver:   { label: "سعر الفضة",      unit: "للأونصة", fetch: getSilverPrice },
-  bitcoin:  { label: "سعر البيتكوين",  unit: "دولار",   fetch: () => getCryptoPrice("bitcoin") },
-  ethereum: { label: "سعر الإيثيريوم", unit: "دولار",   fetch: () => getCryptoPrice("ethereum") },
+const LABELS: Record<string, string> = {
+  gold:     "سعر الذهب",
+  silver:   "سعر الفضة",
+  bitcoin:  "سعر البيتكوين",
+  ethereum: "سعر الإيثيريوم",
 };
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const key = (searchParams.get("asset") || "gold").toLowerCase();
-  const cfg = ASSETS[key] ?? ASSETS.gold;
+  const label = LABELS[key] ?? LABELS.gold;
 
   const fonts = loadFonts();
   // Without the Arabic face every label renders as blank boxes, which is worse
@@ -84,41 +117,10 @@ export async function GET(req: NextRequest) {
     try { return staticCard(); } catch { /* fall through to render */ }
   }
 
-  let price: number | null = null;
-  let changePct = 0;
-  try {
-    const data = await Promise.race([
-      cfg.fetch(),
-      new Promise<never>((_, rej) => setTimeout(() => rej(new Error("price timeout")), PRICE_TIMEOUT_MS)),
-    ]);
-    if (data && Number.isFinite(data.price)) {
-      price = data.price;
-      changePct = Number.isFinite(data.changePercent) ? data.changePercent : 0;
-    }
-  } catch {
-    price = null;
-  }
-
-  // A card with no number is just the old generic artwork, so serve the real
-  // static file instead of a half-rendered dynamic one.
-  if (price === null) {
-    try { return staticCard(); } catch { /* fall through */ }
-  }
-
-  // Always two decimals. maximumFractionDigits alone drops the trailing zero and
-  // renders gold as "$4,410.1", which reads as a truncated number on a card whose
-  // entire job is to look like a precise price.
-  const priceStr = `$${(price ?? 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2, maximumFractionDigits: 2,
-  })}`;
-  // ASCII +/- only: the arrow glyphs (▲ ▼) are not in Tajawal and render as
-  // empty boxes in Satori — a real bug we already hit on the share cards.
-  const up = changePct >= 0;
-  const changeStr = `${up ? "+" : "-"}${Math.abs(changePct).toFixed(2)}%`;
   const logo = loadLogo();
 
   try {
-    return new ImageResponse(
+    const img = new ImageResponse(
       (
         <div
           style={{
@@ -137,31 +139,20 @@ export async function GET(req: NextRequest) {
           }} />
 
           {/* eslint-disable-next-line @next/next/no-img-element -- Satori, not next/image */}
-          {logo ? <img src={logo} width={104} height={104} alt="" /> : null}
+          {logo ? <img src={logo} width={188} height={188} alt="" /> : null}
 
-          <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: "#FFFFFF", marginTop: 18 }}>
-            {cfg.label}
+          <div style={{
+            display: "flex", fontSize: 60, fontWeight: 900, color: "#FFFFFF",
+            marginTop: 26, marginLeft: AR_NUDGE[label] ?? 0,
+          }}>
+            {arLine(label)}
           </div>
 
-          <div style={{ display: "flex", fontSize: 116, fontWeight: 900, color: GOLD, marginTop: 6 }}>
-            {priceStr}
-          </div>
-
-          {/* Arabic word + Latin-ish number in one run gets mis-ordered by
-              Satori (no bidi), so unit and change are separate flex children
-              laid out right-to-left explicitly on the CONTAINER only. */}
-          <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "center", gap: 18, marginTop: 10 }}>
-            <div style={{ display: "flex", fontSize: 30, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
-              {cfg.unit}
-            </div>
-            <div style={{
-              display: "flex", fontSize: 30, fontWeight: 900,
-              color: up ? RISE : FALL,
-              background: up ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-              padding: "6px 20px", borderRadius: 10,
-            }}>
-              {changeStr}
-            </div>
+          <div style={{
+            display: "flex", fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,0.50)",
+            marginTop: 16, marginLeft: AR_NUDGE[TAGLINE] ?? 0,
+          }}>
+            {arLine(TAGLINE)}
           </div>
 
           <div style={{ display: "flex", fontSize: 28, fontWeight: 700, color: GOLD, position: "absolute", bottom: 44 }}>
@@ -169,8 +160,20 @@ export async function GET(req: NextRequest) {
           </div>
         </div>
       ),
-      { width: W, height: H, fonts: fonts.length ? fonts : undefined, headers: CACHE_HEADERS },
+      { width: W, height: H, fonts: fonts.length ? fonts : undefined },
     );
+    // ImageResponse stamps its own `Cache-Control: public, immutable,
+    // no-transform, max-age=31536000` on the way out, and the `headers` option
+    // APPENDS to that instead of replacing it. The response therefore shipped
+    // two directives — a one-year immutable one followed by our one-hour one —
+    // and caches and social crawlers honour the first they parse. That is why
+    // the card froze on whatever price it happened to be rendered with, and why
+    // Content-Type came back as "image/png, image/png".
+    //
+    // Rebuilding the response from the rendered body is the only way to get
+    // exactly one of each header: a Response constructed here carries only what
+    // we put on it.
+    return new NextResponse(img.body, { headers: CACHE_HEADERS });
   } catch {
     // Anything at all goes wrong in rendering — still hand the crawler an image.
     return staticCard();

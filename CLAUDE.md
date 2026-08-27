@@ -128,7 +128,7 @@ All routes: `export const dynamic = "force-dynamic"`
 | `/api/prices?type=metals\|crypto\|currencies\|all` | Aggregates all price sources |
 | `/api/news?lang=ar\|en` | RSS feed aggregator |
 | `/api/alerts` | POST — saves email alert to Supabase |
-| `/api/og` | Dynamic OG image (`?asset=gold\|bitcoin\|ethereum`) |
+| `/api/og` | OG share card — logo + asset name, **no price** (`?asset=gold\|silver\|bitcoin\|ethereum`) |
 | `/api/cron` | Price-alert email dispatch (cron-triggered) |
 | `/api/history` | Mock price history for charts |
 | `/api/location` | IP → country detection |
@@ -144,7 +144,7 @@ All routes: `export const dynamic = "force-dynamic"`
 | Home page ISR | 60 s |
 | `/api/prices` | 300 s (s-maxage) |
 | `/api/news` | 900 s |
-| `/api/og` | 1 h |
+| `/api/og` | 24 h (no price in the card, so nothing to go stale) |
 | `getExchangeRates()` | 3600 s (Next fetch cache) |
 | Crypto/metals via CoinGecko/GoldAPI | 60–300 s |
 | `/api/chainlink` | 60 s (s-maxage), 120 s stale-while-revalidate |

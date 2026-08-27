@@ -55,9 +55,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        // /api/og renders the live gold price into the card; the old static
-        // og-image.png showed the same generic artwork forever, so every
-        // WhatsApp/X share of a price site carried no price (see CLAUDE.md:
+        // /og.png renders the card from /api/og so the branding stays in one
+        // place. It deliberately carries no price: the number it used to show
+        // froze, because X and the other crawlers cache a link's card for days
+        // and a stale price on a price site is worse than none (see CLAUDE.md:
         // "never reference static image files in /public").
         url: "https://sardhahab.com/og.png?asset=gold",
         width: 1200,
@@ -75,9 +76,10 @@ export const metadata: Metadata = {
     description: "سعر جرام الذهب عيار 24 و21 و18 لحظياً بالريال السعودي والدرهم الإماراتي والدينار الكويتي — محدّث كل دقيقة.",
     images: [
       {
-        // /api/og renders the live gold price into the card; the old static
-        // og-image.png showed the same generic artwork forever, so every
-        // WhatsApp/X share of a price site carried no price (see CLAUDE.md:
+        // /og.png renders the card from /api/og so the branding stays in one
+        // place. It deliberately carries no price: the number it used to show
+        // froze, because X and the other crawlers cache a link's card for days
+        // and a stale price on a price site is worse than none (see CLAUDE.md:
         // "never reference static image files in /public").
         url: "https://sardhahab.com/og.png?asset=gold",
         width: 1200,
