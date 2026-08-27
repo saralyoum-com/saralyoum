@@ -12,6 +12,17 @@ export interface Article {
 
 export const ARTICLES: Article[] = [
   {
+    slug: "اوزان-الذهب",
+    titleAr: "اونصة الذهب كم جرام؟ — دليل أوزان الذهب: الأونصة والجنيه والتولة",
+    titleEn: "How Many Grams in an Ounce of Gold? — Gold Weight Units Explained",
+    descAr: "الأونصة 31.1035 جرام، والفرق بينها وبين الأونصة العادية، وكم جرام في الجنيه الذهب والليرة والتولة، مع طريقة حساب قيمة أي وزن.",
+    descEn: "An ounce is 31.1035 grams, how it differs from the regular ounce, grams in a gold pound, lira and tola, and how to value any weight.",
+    category: "تعليم",
+    date: "2026-08-26",
+    readMins: 6,
+    icon: "⚖️",
+  },
+  {
     slug: "كيف-تحسب-سعر-الذهب",
     titleAr: "كيف تحسب سعر الذهب بنفسك؟ طريقة الحساب بالجرام والعيار خطوة بخطوة",
     titleEn: "How to Calculate the Gold Price Yourself — Step by Step by Gram and Karat",
