@@ -1,11 +1,32 @@
 import { ImageResponse } from "next/og";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { decodeCardRows, type CardCountryRow } from "@/lib/social";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Every card here is handed back through png(). ImageResponse stamps its own
+// `Cache-Control: public, immutable, no-transform, max-age=31536000` on the way
+// out — a full year, marked immutable — and passing a `headers` option does not
+// replace it, it appends, so the response ships two directives and caches honour
+// the first. That is the bug that froze the OG card on one price for days.
+//
+// These cards embed live prices in their query string, so a given URL really is
+// immutable in content; the damage a year-long cache does is to the DESIGN. Any
+// fix to a card — the reversed Arabic, say — would never reach a URL a crawler
+// had already fetched. An hour at the edge keeps them fresh without re-rendering
+// on every request.
+const CARD_HEADERS = {
+  "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
+  "Content-Type": "image/png",
+};
+
+function png(img: ImageResponse): NextResponse {
+  return new NextResponse(img.body, { headers: CARD_HEADERS });
+}
+
 
 const GOLD  = "#C9A84C";
 const AZURE = "#229ED9";
@@ -412,15 +433,15 @@ export async function GET(req: NextRequest) {
 
   // ── MORNING / ENGAGEMENT: new 2-column design ─────────────────────────────
   if (type === "morning" || type === "engagement") {
-    return new ImageResponse(
+    return png(new ImageResponse(
       <MorningCard gold={gold} change={change} dir={dir} rows={rows} />,
       { width: W, height: H, fonts: fontOpts },
-    );
+    ));
   }
 
   // ── BREAKING ──────────────────────────────────────────────────────────────
   if (type === "breaking") {
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
@@ -439,14 +460,14 @@ export async function GET(req: NextRequest) {
         <Footer hash="#سعر_الذهب #عاجل" />
         <GradBar yPos={H - 5} />
       </div>
-    ), { width: W, height: H, fonts: fontOpts });
+    ), { width: W, height: H, fonts: fontOpts }));
   }
 
   // ── EDUCATIONAL ───────────────────────────────────────────────────────────
   if (type === "educational") {
     const displayTopic = topic || "البيتكوين مقابل الذهب";
     const [topicLine1, topicLine2] = splitBalanced(displayTopic);
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: "0 80px" }}>
@@ -460,12 +481,12 @@ export async function GET(req: NextRequest) {
         <Footer hash="#تعليم_مالي #الذهب" />
         <GradBar yPos={H - 5} />
       </div>
-    ), { width: W, height: H, fonts: fontOpts });
+    ), { width: W, height: H, fonts: fontOpts }));
   }
 
   // ── COIN (BTC / ETH / Silver) ─────────────────────────────────────────────
   if (type === "coin") {
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
@@ -488,12 +509,12 @@ export async function GET(req: NextRequest) {
         <Footer hash={`#${coinId} #الذهب`} />
         <GradBar yPos={H - 5} />
       </div>
-    ), { width: W, height: H, fonts: fontOpts });
+    ), { width: W, height: H, fonts: fontOpts }));
   }
 
   // ── COUNTRY single ────────────────────────────────────────────────────────
   if (type === "country") {
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
@@ -515,7 +536,7 @@ export async function GET(req: NextRequest) {
         <Footer hash="#سعر_الذهب" />
         <GradBar yPos={H - 5} />
       </div>
-    ), { width: W, height: H, fonts: fontOpts });
+    ), { width: W, height: H, fonts: fontOpts }));
   }
 
   // ── PRICE: square 1080×1080 share card with local-currency karat prices ────
@@ -526,7 +547,7 @@ export async function GET(req: NextRequest) {
       ["عيار 21", g21, "21", "star"],
       ["عيار 18", g18, "18", "lo"],
     ];
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={{ width: S, height: S, background: BG, display: "flex", flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif" }}>
         <div style={{ position: "absolute", top: 0, left: 0, display: "flex" }}>
           <svg width={S} height={7} xmlns="http://www.w3.org/2000/svg">
@@ -575,7 +596,7 @@ export async function GET(req: NextRequest) {
 
         <SquareFooter tagline="أسعار لحظية للذهب والعملات" />
       </div>
-    ), { width: S, height: S, fonts: fontOpts });
+    ), { width: S, height: S, fonts: fontOpts }));
   }
 
   // ── ASSET / PORTFOLIO: the "gilded frame" layout ───────────────────────────
@@ -605,7 +626,7 @@ export async function GET(req: NextRequest) {
       </div>
     );
 
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={{
         width: S, height: S, background: "#0B0906", display: "flex",
         flexDirection: "column", position: "relative", fontFamily: "Tajawal, sans-serif",
@@ -691,12 +712,12 @@ export async function GET(req: NextRequest) {
           <ArLine text="أسعار لحظية للذهب والعملات" style={{ color: "#5a4c2e", fontSize: 20 }} />
         </div>
       </div>
-    ), { width: S, height: S, fonts: fontOpts });
+    ), { width: S, height: S, fonts: fontOpts }));
   }
 
   // ── CTA ───────────────────────────────────────────────────────────────────
   if (type === "cta") {
-    return new ImageResponse((
+    return png(new ImageResponse((
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: "0 80px" }}>
@@ -714,12 +735,12 @@ export async function GET(req: NextRequest) {
         <Footer hash="#سعر_الذهب #الوطن_العربي" />
         <GradBar yPos={H - 5} />
       </div>
-    ), { width: W, height: H, fonts: fontOpts });
+    ), { width: W, height: H, fonts: fontOpts }));
   }
 
   // ── DEFAULT fallback: morning layout ─────────────────────────────────────
-  return new ImageResponse(
+  return png(new ImageResponse(
     <MorningCard gold={gold} change={change} dir={dir} rows={rows} />,
     { width: W, height: H, fonts: fontOpts },
-  );
+  ));
 }
