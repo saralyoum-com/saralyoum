@@ -128,7 +128,7 @@ All routes: `export const dynamic = "force-dynamic"`
 | `/api/prices?type=metals\|crypto\|currencies\|all` | Aggregates all price sources |
 | `/api/news?lang=ar\|en` | RSS feed aggregator |
 | `/api/alerts` | POST — saves email alert to Supabase |
-| `/api/og` | OG share card — logo + asset name, **no price** (`?asset=gold\|silver\|bitcoin\|ethereum`) |
+| `/api/og` | OG share card — serves `public/og-image.png` (logo only, no text, no price). `?asset=` accepted and ignored. |
 | `/api/cron` | Price-alert email dispatch (cron-triggered) |
 | `/api/history` | Mock price history for charts |
 | `/api/location` | IP → country detection |
@@ -144,7 +144,7 @@ All routes: `export const dynamic = "force-dynamic"`
 | Home page ISR | 60 s |
 | `/api/prices` | 300 s (s-maxage) |
 | `/api/news` | 900 s |
-| `/api/og` | 24 h (no price in the card, so nothing to go stale) |
+| `/api/og` | 24 h (static file, nothing to go stale) |
 | `getExchangeRates()` | 3600 s (Next fetch cache) |
 | Crypto/metals via CoinGecko/GoldAPI | 60–300 s |
 | `/api/chainlink` | 60 s (s-maxage), 120 s stale-while-revalidate |
@@ -158,7 +158,7 @@ All routes: `export const dynamic = "force-dynamic"`
 - `/_next/static/media/` is disallowed in `robots.txt` — prevents font files from burning crawl budget.
 - `/gold/` is disallowed — only Arabic-slug country URLs are indexed.
 - `app/sitemap.ts` uses percent-encoded Arabic paths. When adding pages, encode with `encodeURIComponent`.
-- OG images are always served from `/api/og?asset=<name>` — **never** reference static image files in `/public/`.
+- OG images are always served from `/api/og` — pages must not link `/public/` files directly, so the card can be changed in one place. The route itself now serves `public/og-image.png`: the card deliberately carries no price and no text, because crawlers cache it for days and a stale price is worse than none.
 
 ---
 
@@ -240,7 +240,7 @@ import AdSlot from "@/components/AdSlot";
 - Export `metadata` from `"use client"` pages — use `layout.tsx`
 - Create Arabic-path app directories for pages that need middleware rewriting — use ASCII routes
 - Skip `sm:` breakpoints in grids with 3+ columns
-- Reference static OG images — always use `/api/og?asset=…`
+- Link `/public/` image files from page metadata — always point at `/api/og`
 - Update mock fallback prices without checking current market levels
 - Add FAQPage JSON-LD schema anywhere — deprecated by Google May 2026, removed sitewide
 - Call Ethereum RPC nodes directly from the browser — always proxy via `/api/chainlink` (CORS blocks browser calls)
