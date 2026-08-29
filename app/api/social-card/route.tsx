@@ -43,13 +43,35 @@ function loadLogo(): string {
   return _logo || "";
 }
 
+// Measured in /api/og and confirmed here: Satori splits a plain-space Arabic
+// string into one run per word, lays those runs out LEFT TO RIGHT, and
+// over-measures each run's advance. The words therefore come out both reversed
+// and far apart ("سعر الذهب" -> "الذهب سعر" with a ~100px gap where a space is
+// ~11px). Joining with a no-break space keeps the line as ONE run, which the
+// shaper then orders right-to-left correctly at natural spacing.
+//
+// `direction: "rtl"` on the element holding the text does NOT fix the order and
+// makes the spacing worse — it belongs only on a flex CONTAINER arranging child
+// elements. Do not reverse the words as well: the single run is already shaped
+// right-to-left, so reversing double-flips it back to wrong.
+const AR_NBSP = "\u00A0";
+// Only for strings that are pure Arabic. If the line contains a digit or Latin
+// text, use ArLine instead — a number inside a single Arabic run is misplaced
+// and jams against the neighbouring word ("عيار 24" renders as "24عيار").
+function ar(text: string): string {
+  return text.trim().split(/\s+/).join(AR_NBSP);
+}
+
 // Shared header/footer for the square (1080) share cards. The logo replaces the
 // old "SARD · سعر الذهب" text + badge (mixed Latin+Arabic can't be laid out by
-// Satori). Satori has no bidi algorithm, so: (1) leave plain Arabic text spans
-// alone — they self-order RTL; NEVER put `direction: "rtl"` on the element that
-// holds the text (it breaks inter-word spacing). Use it only on a flex CONTAINER
-// arranging child elements. (2) A number inside an Arabic run gets misplaced, so
-// render such strings (dates) token-by-token in a `row-reverse` flex.
+// Satori). Satori has no bidi algorithm, so: (1) plain Arabic text spans do
+// NOT self-order correctly — a space splits the line into one run per word and
+// the runs are laid out left to right, reversing the words. Pass pure-Arabic
+// strings through ar(); NEVER put `direction: "rtl"` on the element holding the
+// text (it does not fix the order and breaks inter-word spacing). Use it only on
+// a flex CONTAINER arranging child elements. (2) A number inside an Arabic run
+// gets misplaced and jams against the next word, so render such strings (dates,
+// "عيار 24") token-by-token in a `row-reverse` flex via ArLine, not ar().
 function SquareHeader({ logo, dateStr }: { logo: string; dateStr: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 46 }}>
@@ -237,13 +259,16 @@ function MorningCard({ gold, change, dir, rows }: {
         </div>
 
         {/* Subtitle */}
-        <div style={{ color: "rgba(201,168,76,0.22)", fontSize: 16, marginTop: 10, display: "flex", direction: "rtl" }}>
-          سعر الذهب عيار 24 · لحظي
+        {/* Has a number in it, so ArLine (token-by-token row-reverse) rather than
+            ar(): a digit inside a single Arabic run gets misplaced and jammed
+            against the next word ("24سعر"). */}
+        <div style={{ display: "flex", marginTop: 10 }}>
+          <ArLine text="سعر الذهب عيار 24 · لحظي" style={{ color: "rgba(201,168,76,0.22)", fontSize: 16 }} />
         </div>
 
         {/* Approx note — pushed to bottom */}
-        <div style={{ color: "rgba(255,255,255,0.12)", fontSize: 14, marginTop: "auto", paddingTop: 18, display: "flex", direction: "rtl" }}>
-          الأسعار تقريبية
+        <div style={{ color: "rgba(255,255,255,0.12)", fontSize: 14, marginTop: "auto", paddingTop: 18, display: "flex" }}>
+          {ar("الأسعار تقريبية")}
         </div>
       </div>
 
@@ -257,8 +282,8 @@ function MorningCard({ gold, change, dir, rows }: {
         padding: "0 28px",
         borderBottom: "0.5px solid rgba(201,168,76,0.12)",
       }}>
-        <div style={{ color: "rgba(201,168,76,0.55)", fontSize: 17, fontWeight: 700, display: "flex", direction: "rtl" }}>
-          أسعار الذهب عيار 24 / جرام
+        <div style={{ display: "flex" }}>
+          <ArLine text="أسعار الذهب عيار 24 / جرام" style={{ color: "rgba(201,168,76,0.55)", fontSize: 17, fontWeight: 700 }} />
         </div>
         <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 14, display: "flex", letterSpacing: 1 }}>
           {rows.map(r => r.currency).join(" · ")}
@@ -403,7 +428,7 @@ export async function GET(req: NextRequest) {
             padding: "8px 28px", background: "rgba(239,68,68,0.12)",
             border: "1.5px solid rgba(239,68,68,0.35)", borderRadius: 12,
             color: "#f87171", fontSize: 26, fontWeight: 700, display: "flex",
-          }}>🚨 خبر عاجل</div>
+          }}>{`\u{1F6A8} ${ar("خبر عاجل")}`}</div>
           <div style={{ color: changeColor, fontSize: 120, fontWeight: 900, lineHeight: 1, marginTop: 14, display: "flex" }}>
             {isUp ? "+" : "-"}{absChange}%
           </div>
@@ -425,10 +450,10 @@ export async function GET(req: NextRequest) {
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: "0 80px" }}>
-          <div style={{ color: AZURE, fontSize: 22, display: "flex" }}>تعليم مالي</div>
+          <div style={{ color: AZURE, fontSize: 22, display: "flex" }}>{ar("تعليم مالي")}</div>
           <div style={{ color: "#fff", fontSize: 60, fontWeight: 900, marginTop: 18, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div style={{ display: "flex", direction: "rtl" }}>{topicLine1}</div>
-            {topicLine2 && <div style={{ display: "flex", direction: "rtl" }}>{topicLine2}</div>}
+            <div style={{ display: "flex" }}>{ar(topicLine1)}</div>
+            {topicLine2 && <div style={{ display: "flex" }}>{ar(topicLine2)}</div>}
           </div>
           <div style={{ color: "rgba(201,168,76,0.28)", fontSize: 20, marginTop: 22, display: "flex" }}>sardhahab.com</div>
         </div>
@@ -445,7 +470,7 @@ export async function GET(req: NextRequest) {
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           <div style={{ color: AZURE, fontSize: 20, display: "flex" }}>{coinSub}</div>
-          <div style={{ color: GOLD, fontSize: 50, fontWeight: 900, direction: "rtl", display: "flex" }}>{coinNameAr}</div>
+          <div style={{ color: GOLD, fontSize: 50, fontWeight: 900, display: "flex" }}>{ar(coinNameAr)}</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 12 }}>
             <span style={{ color: "#fff", fontSize: 52, fontWeight: 900 }}>$</span>
             <span style={{ color: "#fff", fontSize: 88, fontWeight: 900 }}>{coinPrice}</span>
@@ -675,12 +700,14 @@ export async function GET(req: NextRequest) {
       <div style={OUTER}>
         <GradBar yPos={0} />
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: "0 80px" }}>
-          <div style={{ color: GOLD, fontSize: 44, fontWeight: 900, textAlign: "center", lineHeight: 1.35, direction: "rtl", display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
-            أسعار لحظية · ١٨ دولة عربية
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            {/* "·" was a separator here, but ArLine gives every token the same gap, so it
+                landed against the ١٨ and read as "١٨٠". Plain wording instead. */}
+            <ArLine text="أسعار لحظية من ١٨ دولة عربية" style={{ color: GOLD, fontSize: 44, fontWeight: 900, lineHeight: 1.35 }} />
           </div>
           <div style={{ width: 60, height: 2, background: GOLD, marginTop: 26, marginBottom: 26, display: "flex" }} />
-          <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 22, textAlign: "center", lineHeight: 1.9, direction: "rtl", display: "flex", flexWrap: "wrap", justifyContent: "center" }}>
-            السعودية · الإمارات · مصر · الكويت · قطر · البحرين · عُمان · الأردن
+          <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 22, lineHeight: 1.9, display: "flex", justifyContent: "center" }}>
+            {ar("السعودية · الإمارات · مصر · الكويت · قطر · البحرين · عُمان · الأردن")}
           </div>
           <div style={{ color: AZURE, fontSize: 20, marginTop: 20, display: "flex" }}>sardhahab.com</div>
         </div>
