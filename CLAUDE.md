@@ -213,6 +213,26 @@ import AdSlot from "@/components/AdSlot";
 
 ---
 
+## Social Visuals — عين الصقر
+
+Two production paths, and picking the wrong one is the common mistake:
+
+- **Data cards (code)** — `/api/social-card` renders live prices with correct
+  Arabic shaping (Satori has no bidi algorithm; `ar()` and `ArLine` in that route
+  work around it). Anything with an exact number goes here. Free.
+- **AI visuals (Higgsfield)** — atmosphere, reel openers, covers, backdrops.
+  Driven by the `falcon-eye` skill in `.claude/skills/`, which holds the brand
+  style block, prompt recipes per `content_plan` slot, and the model roster.
+
+Image models cannot render Arabic script — it comes out broken and disconnected.
+AI frames are always generated text-free, with negative space reserved, and any
+wording composited afterwards. Never put an Arabic string in an image prompt.
+
+Generation costs Higgsfield credits, so preflight with `get_cost: true`. Never
+auto-publish to `@sardhahab` — produce the asset and let a human approve.
+
+---
+
 ## Environment Variables
 
 | Variable | Used in |
