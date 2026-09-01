@@ -220,9 +220,12 @@ Two production paths, and picking the wrong one is the common mistake:
 - **Data cards (code)** — `/api/social-card` renders live prices with correct
   Arabic shaping (Satori has no bidi algorithm; `ar()` and `ArLine` in that route
   work around it). Anything with an exact number goes here. Free.
-- **AI visuals (Higgsfield)** — atmosphere, reel openers, covers, backdrops.
-  Driven by the `falcon-eye` skill in `.claude/skills/`, which holds the brand
-  style block, prompt recipes per `content_plan` slot, and the model roster.
+- **AI visuals** — atmosphere, reel openers, covers, backdrops. Driven by the
+  `falcon-eye` skill in `.claude/skills/`, which holds the brand style block,
+  prompt recipes per `content_plan` slot, and the model roster. Two providers:
+  **Freepik/Magnific for stills** (`FREEPIK_API_KEY`, via the skill's bundled
+  `scripts/freepik_generate.py`) and **Higgsfield for motion** (MCP tools). The
+  strong pattern is a Freepik hero frame animated by Higgsfield.
 
 Image models cannot render Arabic script — it comes out broken and disconnected.
 AI frames are always generated text-free, with negative space reserved, and any
@@ -241,6 +244,7 @@ auto-publish to `@sardhahab` — produce the asset and let a human approve.
 | `EXCHANGE_RATE_API_KEY` | `lib/exchangerate.ts` |
 | `NEXT_PUBLIC_SUPABASE_URL` | `lib/supabase.ts` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `lib/supabase.ts` |
+| `FREEPIK_API_KEY` | `.claude/skills/falcon-eye/scripts/freepik_generate.py` (social visuals; `MAGNIFIC_API_KEY` also accepted) |
 
 ---
 

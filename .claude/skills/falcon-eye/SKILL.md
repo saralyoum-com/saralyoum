@@ -1,6 +1,6 @@
 ---
 name: falcon-eye
-description: "عين الصقر — the SARD (sardhahab.com / @sardhahab) brand visual agent. Generates on-brand social images and videos via Higgsfield for Instagram, TikTok, X, Facebook and YouTube Shorts, and decides when a post needs an AI-generated visual versus a code-rendered price card. Use this skill whenever the request touches visuals for the SARD account — a post, reel, story, thumbnail, cover, banner, ad, teaser, carousel, 'صورة للبوست', 'ريل', 'فيديو للحساب', 'تصميم', 'كوفر' — or whenever someone asks to fill a content_plan slot, refresh the account's look, or produce a batch of assets for the week. Also use it before writing any prompt for an image or video model on this project, because the brand palette, the Arabic-text rule, and the audience rules here are not guessable."
+description: "عين الصقر — the SARD (sardhahab.com / @sardhahab) brand visual agent. Generates on-brand social images and videos for Instagram, TikTok, X, Facebook and YouTube Shorts — stills through Freepik/Magnific, motion through Higgsfield — and decides when a post needs an AI-generated visual versus a code-rendered price card. Use this skill whenever the request touches visuals for the SARD account — a post, reel, story, thumbnail, cover, banner, ad, teaser, carousel, 'صورة للبوست', 'ريل', 'فيديو للحساب', 'تصميم', 'كوفر' — or whenever someone asks to fill a content_plan slot, refresh the account's look, or produce a batch of assets for the week. Also use it before writing any prompt for an image or video model on this project, because the brand palette, the Arabic-text rule, and the audience rules here are not guessable."
 ---
 
 # عين الصقر — SARD Visual Agent
@@ -39,6 +39,26 @@ carousel backdrop, a Ramadan/zakat seasonal cover, a channel banner.
 Many of the strongest posts are both: a Track B backdrop with Track A numbers
 composited on top. When you plan that, say so explicitly and leave the negative
 space for it (see "Composition" below).
+
+### Which generator for Track B
+
+Two providers are wired up, and they are good at different halves of the job:
+
+| | **Freepik / Magnific** | **Higgsfield** |
+|---|---|---|
+| Use for | **stills** — backdrops, covers, carousels, hero frames | **motion** — reels, loops, animated hooks |
+| How | `scripts/freepik_generate.py` (stdlib, no install) | MCP tools already in the session |
+| Billing | shares the credit wallet of a Freepik/Magnific subscription | its own credit balance |
+| Also offers | stock photos, vectors and icons for compositing | `reframe`, `upscale`, image-to-video chaining |
+
+Default to Freepik for anything that does not move, and Higgsfield the moment
+the deliverable is a video. If one provider has no credit, say so plainly rather
+than silently falling back — they do not produce interchangeable looks, and a set
+generated half on each will not match.
+
+The strongest production pattern uses both: generate the hero still on Freepik,
+then hand that frame to Higgsfield as a `start_image` to animate. See
+`references/freepik.md` for the handoff.
 
 ---
 
@@ -146,14 +166,17 @@ detail: platform chrome and captions eat those bands.
    `educational`, `engagement`), open `references/recipes.md` — the recipe for
    that slot is already written and tuned.
 2. **Pick the track** (Step 0). Say which one you chose and why, in one line.
-3. **Pick the model** — see `references/higgsfield.md` for the current roster,
-   what each is good at, and which ones accept free-trial `unlim` generations.
-4. **Preflight the cost.** Call the generate tool with `get_cost: true` first.
-   Credits are real money and the account balance has been zero; never discover
-   the price after the fact. Report the cost before spending.
+3. **Pick the provider and model** — the table above decides the provider;
+   `references/freepik.md` and `references/higgsfield.md` cover the models.
+4. **Preflight before spending.** On Freepik, run the script with `--dry-run` to
+   see the exact prompt and payload. On Higgsfield, call the generate tool with
+   `get_cost: true`. Credits are real money and both balances have been thin;
+   never discover the price after the fact.
 5. **Compose the prompt**: subject sentence → composition and crop → the style
    block → the no-text clause. Keep the subject sentence concrete and physical;
    models respond to nouns and light, not to adjectives like "premium".
+   The Freepik script appends the style block for you — pass only the subject
+   sentence, so the block cannot drift through retyping.
 6. **Generate**, then look at the result honestly. Check the three things that
    actually go wrong: stray text or pseudo-Arabic squiggles, palette drift into
    orange or brass, and clutter in the space you reserved for type.
@@ -189,5 +212,9 @@ rewatched, and duration is a direct multiplier on credits.
 - `references/recipes.md` — ready prompts per content type (morning price,
   educational, engagement, crypto, zakat/Ramadan, country spotlight, covers).
   Read this before writing a prompt from scratch; the tuning is already done.
+- `references/freepik.md` — the stills path: API shape, the bundled script,
+  credits, and how to hand a Freepik frame to Higgsfield for animation.
 - `references/higgsfield.md` — model roster, exact tool-call shapes, aspect
   ratios, image-to-video chaining, credits and the `unlim` rules.
+- `scripts/freepik_generate.py` — run it with `--dry-run` first; it appends the
+  brand style block so the look cannot drift between posts.
