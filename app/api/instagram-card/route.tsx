@@ -177,6 +177,14 @@ function contentTop(H: number): number {
   return Math.round(H * 0.07) + 200 + 16;
 }
 
+// Space left for content once the logo above and the footer bar + accent
+// stripe below are accounted for. Centering within this (rather than only
+// anchoring to its top) is what keeps a short card from reading as mostly
+// black — see contentTop's docstring for why the top offset is fixed.
+function contentHeight(H: number): number {
+  return H - contentTop(H) - 70;
+}
+
 // ─── Route ──────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -219,13 +227,11 @@ export async function GET(req: NextRequest) {
         <CoinLogo src={logo} H={H} />
 
         <div style={{
-          position: "absolute", top: CT, left: 0, width: W,
-          display: "flex", flexDirection: "column", alignItems: "center",
+          position: "absolute", top: CT, left: 0, width: W, height: contentHeight(H),
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         }}>
           {date && (
-            <div style={{ color: "#7a6535", fontSize: 24, marginBottom: 14, display: "flex" }}>
-              {date}
-            </div>
+            <ArLine text={date} style={{ color: "#7a6535", fontSize: 24, marginBottom: 14 }} />
           )}
           <div style={{ color: GOLD, fontSize: 110, fontWeight: 900, display: "flex", lineHeight: 1 }}>
             ${gold}
@@ -285,8 +291,8 @@ export async function GET(req: NextRequest) {
         <CoinLogo src={logo} H={H} />
 
         <div style={{
-          position: "absolute", top: CT, left: 80, right: 80,
-          display: "flex", flexDirection: "column", alignItems: "center",
+          position: "absolute", top: CT, left: 80, right: 80, height: contentHeight(H),
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         }}>
           <div style={{
             padding: "8px 32px", background: "rgba(34,157,217,0.12)",
@@ -334,13 +340,11 @@ export async function GET(req: NextRequest) {
         <CoinLogo src={logo} H={H} />
 
         <div style={{
-          position: "absolute", top: CT, left: 0, width: W,
-          display: "flex", flexDirection: "column", alignItems: "center",
+          position: "absolute", top: CT, left: 0, width: W, height: contentHeight(H),
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         }}>
           <ArLine text="سعر غرام الذهب عيار 24" style={{ color: "#fff", fontSize: 34, fontWeight: 900 }} />
-          <div style={{ color: "#5a4a2a", fontSize: 22, marginTop: 6, display: "flex" }}>
-            {date || "اليوم"}
-          </div>
+          <ArLine text={date || "اليوم"} style={{ color: "#5a4a2a", fontSize: 22, marginTop: 6 }} />
           <div style={{
             display: "flex", flexDirection: "column", width: "85%",
             marginTop: 28, border: "1px solid rgba(201,168,76,0.18)",
@@ -378,8 +382,8 @@ export async function GET(req: NextRequest) {
         <CoinLogo src={logo} H={H} />
 
         <div style={{
-          position: "absolute", top: CT, left: 0, width: W,
-          display: "flex", flexDirection: "column", alignItems: "center",
+          position: "absolute", top: CT, left: 0, width: W, height: contentHeight(H),
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         }}>
           <div style={{
             padding: "10px 36px",
@@ -398,9 +402,7 @@ export async function GET(req: NextRequest) {
             ${gold}
           </div>
           {date && (
-            <div style={{ color: "#5a4a2a", fontSize: 22, marginTop: 18, display: "flex" }}>
-              {date}
-            </div>
+            <ArLine text={date} style={{ color: "#5a4a2a", fontSize: 22, marginTop: 18 }} />
           )}
         </div>
 
@@ -426,12 +428,12 @@ export async function GET(req: NextRequest) {
         <CoinLogo src={logo} H={H} />
 
         <div style={{
-          position: "absolute", top: CT, left: 0, width: W,
-          display: "flex", flexDirection: "column", alignItems: "center",
+          position: "absolute", top: CT, left: 0, width: W, height: contentHeight(H),
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
         }}>
           <div style={{ color: "#fff", fontSize: 60, fontWeight: 900, display: "flex" }}>{cname}</div>
           {date && (
-            <div style={{ color: "#5a4a2a", fontSize: 22, marginTop: 6, display: "flex" }}>{date}</div>
+            <ArLine text={date} style={{ color: "#5a4a2a", fontSize: 22, marginTop: 6 }} />
           )}
           <div style={{
             display: "flex", flexDirection: "column", width: "82%",
@@ -470,7 +472,7 @@ export async function GET(req: NextRequest) {
       <GradBar pos="top" H={H} />
       <CoinLogo src={logo} H={H} />
       <div style={{
-        position: "absolute", top: CT, left: 0, width: W,
+        position: "absolute", top: CT, left: 0, width: W, height: contentHeight(H),
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <div style={{ color: GOLD, fontSize: 110, fontWeight: 900, display: "flex" }}>${gold}</div>
