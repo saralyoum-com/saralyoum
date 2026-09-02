@@ -520,7 +520,7 @@ export async function GET(req: NextRequest) {
         <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           <div style={{ color: "#fff", fontSize: 50, fontWeight: 900 }}>{cname}</div>
           <div style={{ display: "flex", flexDirection: "column", width: "80%", marginTop: 24, border: "1px solid rgba(201,168,76,0.12)", borderRadius: 16, overflow: "hidden" }}>
-            {([["غرام 21", g21], ["غرام 24", g24], ["غرام 18", g18], ["أوقية", oz]] as [string, string][])
+            {([["عيار 24", g24], ["عيار 21", g21], ["عيار 18", g18], ["أوقية", oz]] as [string, string][])
               .filter(r => r[1])
               .map(([label, val], i, arr) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 36px", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
@@ -528,7 +528,7 @@ export async function GET(req: NextRequest) {
                     <span style={{ color: "#fff", fontSize: 38, fontWeight: 900 }}>{val}</span>
                     <span style={{ color: "rgba(201,168,76,0.4)", fontSize: 18 }}>{cur}</span>
                   </div>
-                  <div style={{ color: "#666", fontSize: 20 }}>{label}</div>
+                  <ArLine text={label} style={{ color: "#666", fontSize: 20 }} />
                 </div>
               ))}
           </div>

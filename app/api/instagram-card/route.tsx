@@ -42,6 +42,68 @@ function loadLogo(): string | null {
   return null;
 }
 
+// ─── Arabic text (Satori has no bidi algorithm) ─────────────────────────────
+// Ported from /api/social-card, which solved this the hard way. Satori splits an
+// Arabic string on whitespace into one run per word and lays the runs out left
+// to right, so "أوقية الذهب بالدولار" renders with its words reversed.
+//
+// Two tools, and picking the wrong one is the whole bug:
+//   ar()     — pure-Arabic strings. Joining with a no-break space keeps the
+//              words in a single run so nothing gets reordered.
+//   ArLine   — any string that also contains a digit or Latin text. A number
+//              inside one Arabic run is misplaced and jams against its
+//              neighbour ("عيار 24" comes out "24عيار"), so each token becomes
+//              its own span inside a row-reverse flex instead.
+const AR_NBSP = "\u00A0";
+
+function ar(text: string): string {
+  return text.trim().split(/\s+/).join(AR_NBSP);
+}
+
+function ArLine({ text, style, gap }: { text: string; style: React.CSSProperties; gap?: number }) {
+  const tokens = text.trim().split(/\s+/);
+  const fs = typeof style.fontSize === "number" ? style.fontSize : 24;
+  return (
+    <div style={{ display: "flex", flexDirection: "row-reverse", alignItems: "baseline", gap: gap ?? Math.round(fs * 0.28) }}>
+      {tokens.map((tok, i) => <span key={i} style={style}>{tok}</span>)}
+    </div>
+  );
+}
+
+// Tajawal carries no ▲ / ▼ (U+25B2 / U+25BC) and no fallback font is loaded, so
+// those characters rendered as an empty tofu box on every change chip. Drawing
+// the triangle removes the dependency on glyph coverage entirely.
+function Tri({ up, size, color }: { up: boolean; size: number; color: string }) {
+  const pts = up ? `0,${size} ${size / 2},0 ${size},${size}` : `0,0 ${size},0 ${size / 2},${size}`;
+  return (
+    <div style={{ display: "flex" }}>
+      <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg">
+        <polygon points={pts} fill={color} />
+      </svg>
+    </div>
+  );
+}
+
+
+// A headline arrives from the caller and can be any length. ArLine corrects one
+// line but cannot wrap — a row-reverse flex row just overflows. So break the
+// text into lines on a character budget and correct each line separately.
+function ArBlock({ text, style, maxChars = 24 }: { text: string; style: React.CSSProperties; maxChars?: number }) {
+  const words = text.trim().split(/\s+/);
+  const lines: string[][] = [[]];
+  let len = 0;
+  for (const w of words) {
+    if (len > 0 && len + 1 + w.length > maxChars) { lines.push([]); len = 0; }
+    lines[lines.length - 1].push(w);
+    len += (len ? 1 : 0) + w.length;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      {lines.map((line, i) => <ArLine key={i} text={line.join(" ")} style={style} />)}
+    </div>
+  );
+}
+
 // ─── Shared visual elements (canvas-size-aware) ─────────────────────────────
 
 function BgSvg({ H }: { H: number }) {
@@ -169,7 +231,7 @@ export async function GET(req: NextRequest) {
             ${gold}
           </div>
           <div style={{ color: "#9a8a6a", fontSize: 22, marginTop: 6, display: "flex" }}>
-            أوقية الذهب بالدولار
+            {ar("أوقية الذهب بالدولار")}
           </div>
           <div style={{
             display: "flex", alignItems: "center", gap: 12, marginTop: 24,
@@ -178,7 +240,7 @@ export async function GET(req: NextRequest) {
             border: `2px solid ${isUp ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"}`,
             borderRadius: 48, color: changeColor, fontSize: 34, fontWeight: 700,
           }}>
-            <span style={{ display: "flex" }}>{isUp ? "▲" : "▼"}</span>
+            <Tri up={isUp} size={24} color={changeColor} />
             <span style={{ display: "flex" }}>{isUp ? `+${absChange}%` : `-${absChange}%`}</span>
             <span style={{ display: "flex" }}>اليوم</span>
           </div>
@@ -231,14 +293,14 @@ export async function GET(req: NextRequest) {
             border: "1px solid rgba(34,157,217,0.3)", borderRadius: 12,
             color: AZURE, fontSize: 24, display: "flex",
           }}>
-            تعليم مالي
+            {ar("تعليم مالي")}
           </div>
           <div style={{
             color: "#fff", fontSize: 58, fontWeight: 900, textAlign: "center",
             lineHeight: 1.4, marginTop: 20, display: "flex",
             flexDirection: "column", alignItems: "center", direction: "rtl",
           }}>
-            <span style={{ display: "flex" }}>{displayTopic}</span>
+            <ArBlock text={displayTopic} style={{ color: "#fff", fontSize: 58, fontWeight: 900 }} />
           </div>
           <div style={{ width: 72, height: 3, background: GOLD, marginTop: 32, display: "flex" }} />
           <div style={{
@@ -246,7 +308,7 @@ export async function GET(req: NextRequest) {
             lineHeight: 1.7, marginTop: 24, direction: "rtl",
             display: "flex", flexDirection: "column", alignItems: "center",
           }}>
-            <span style={{ display: "flex" }}>اعرف أكثر · sardhahab.com</span>
+            <ArLine text="اعرف أكثر · sardhahab.com" style={{ color: "#5a4a2a", fontSize: 26 }} />
           </div>
         </div>
 
@@ -275,9 +337,7 @@ export async function GET(req: NextRequest) {
           position: "absolute", top: CT, left: 0, width: W,
           display: "flex", flexDirection: "column", alignItems: "center",
         }}>
-          <div style={{ color: "#fff", fontSize: 34, fontWeight: 900, display: "flex", direction: "rtl" }}>
-            سعر غرام الذهب عيار 24
-          </div>
+          <ArLine text="سعر غرام الذهب عيار 24" style={{ color: "#fff", fontSize: 34, fontWeight: 900 }} />
           <div style={{ color: "#5a4a2a", fontSize: 22, marginTop: 6, display: "flex" }}>
             {date || "اليوم"}
           </div>
@@ -328,10 +388,11 @@ export async function GET(req: NextRequest) {
             borderRadius: 14, color: "#f87171", fontSize: 28, fontWeight: 700,
             display: "flex",
           }}>
-            خبر عاجل
+            {ar("خبر عاجل")}
           </div>
           <div style={{ color: changeColor, fontSize: 108, fontWeight: 900, lineHeight: 1, marginTop: 20, display: "flex" }}>
-            {isUp ? "▲" : "▼"} {absChange}%
+            <Tri up={isUp} size={72} color={changeColor} />
+            <span style={{ display: "flex", marginLeft: 16 }}>{absChange}%</span>
           </div>
           <div style={{ color: "#fff", fontSize: 84, fontWeight: 900, marginTop: 8, display: "flex" }}>
             ${gold}
@@ -377,7 +438,7 @@ export async function GET(req: NextRequest) {
             marginTop: 28, border: "1px solid rgba(201,168,76,0.15)",
             borderRadius: 20, overflow: "hidden",
           }}>
-            {([ ["غرام 24", g24], ["غرام 21", g21], ["غرام 18", g18], ["أوقية", oz] ] as [string, string][])
+            {([ ["عيار 24", g24], ["عيار 21", g21], ["عيار 18", g18], ["أوقية", oz] ] as [string, string][])
               .filter(r => r[1])
               .map(([label, val], i, arr) => (
                 <div key={i} style={{
@@ -390,7 +451,7 @@ export async function GET(req: NextRequest) {
                     <span style={{ color: "#fff", fontSize: 48, fontWeight: 900, display: "flex" }}>{val}</span>
                     <span style={{ color: "#555", fontSize: 24, display: "flex" }}>{cur}</span>
                   </div>
-                  <div style={{ color: "#666", fontSize: 26, display: "flex" }}>{label}</div>
+                  <ArLine text={label} style={{ color: "#666", fontSize: 26 }} />
                 </div>
               ))}
           </div>
