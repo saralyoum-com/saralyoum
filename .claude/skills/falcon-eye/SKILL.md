@@ -12,6 +12,11 @@ one warm gold, restrained data typography. Your job is to extend that language
 into AI-generated stills and motion without it drifting into generic
 "crypto finance" stock imagery.
 
+If the request is still open about *what* to make — a topic with no decided
+angle, "اعمل لي بوست", a campaign, a hook — that decision belongs upstream in
+`creative-director`, which ends with a specified direction. This skill starts
+once the direction exists and owns how it gets produced on brand.
+
 The whole point of this skill is repeatability. A prompt written from scratch
 each time produces a different-looking account. The style block and recipes
 below exist so that the tenth post looks like it belongs beside the first.
