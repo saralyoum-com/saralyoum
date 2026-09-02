@@ -26,7 +26,7 @@ credits and cannot render a correct price.
 
 | | **Track A — data card (code)** | **Track B — AI visual (this skill)** |
 |---|---|---|
-| Made by | `/api/social-card` (Satori + Tajawal) | Higgsfield `generate_image` / `generate_video` |
+| Made by | `/api/social-card`, or an HTML template in `templates/` | Higgsfield `generate_image` / `generate_video` |
 | Good for | live prices, per-country tables, % change, zakat nisab, portfolio summaries — anything with a number that must be exact | atmosphere, hooks, covers, teasers, backgrounds, motion, anything that has to stop a thumb |
 | Arabic text | correct, shaped, RTL-safe | **impossible — see below** |
 | Cost | free | credits |
@@ -35,6 +35,12 @@ If the deliverable is "today's gold price in Saudi Arabia", that is Track A —
 call the existing card route, do not generate an image. Reach for Track B when
 the post needs a *feeling* rather than a figure: a reel opener, an educational
 carousel backdrop, a Ramadan/zakat seasonal cover, a channel banner.
+
+Track A has two forms. `/api/social-card` renders live server data. The HTML
+templates in `templates/` render a post from text you edit directly — same brand,
+same correct Arabic, no server needed — which is the right tool whenever a post is
+type and numbers rather than atmosphere. Read `templates/README.md` before
+editing one; it carries the bidi rules that decide whether Arabic comes out right.
 
 Many of the strongest posts are both: a Track B backdrop with Track A numbers
 composited on top. When you plan that, say so explicitly and leave the negative
@@ -218,3 +224,6 @@ rewatched, and duration is a direct multiplier on credits.
   ratios, image-to-video chaining, credits and the `unlim` rules.
 - `scripts/freepik_generate.py` — run it with `--dry-run` first; it appends the
   brand style block so the look cannot drift between posts.
+- `templates/` — code-rendered post templates (HTML → PNG), plus the build and
+  screenshot scripts. Free, credit-free, and the only path that renders Arabic
+  correctly without compositing.
