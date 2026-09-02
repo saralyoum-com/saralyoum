@@ -28,6 +28,21 @@ thousand images a year, not a handful.
 Those numbers move. Check the live plan before promising a volume, and never
 quote a per-image cost from this file as if it were current.
 
+Two traps worth knowing:
+
+- **There is no free API tier.** Every API call deducts credits, and that applies
+  to all paid plans — so a working key requires a paid subscription, and this is
+  not something to trial for nothing.
+- **"Unlimited" on a plan is a web-app perk, not an API one.** Premium+ advertises
+  unlimited generations on a set of image models, but the API still bills every
+  call against the credit balance. For this work, judge plans by credit count
+  alone and ignore the unlimited badge.
+
+For SARD's volume — one or two AI stills a day, with the rest served free by the
+code card — an Individual plan in the 240k-credits-a-year range has been the fit.
+The Teams/Business tier is priced for shared seats and is heavily oversized for a
+single account.
+
 Resolution is the main lever you control: `1k` for anything that will sit behind
 composited type, `2k` for a hero, `4k` only when it will be printed or heavily
 cropped. Going to 4k by reflex is the easiest way to burn a wallet.
