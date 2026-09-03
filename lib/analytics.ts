@@ -221,6 +221,11 @@ export const track = {
     result_value_band?: string;
   }) => trackEvent("calculator_used", { event_category: "Engagement", ...p }),
 
+  // Crypto ↔ fiat converter. Kept separate from calculatorUsed on purpose:
+  // mixing them would corrupt the gold calculator's karat/weight analysis.
+  cryptoConverterUsed: (p: { symbol: string; currency: string }) =>
+    trackEvent("crypto_converter_used", { event_category: "Engagement", ...p }),
+
   // Fire on the 200 response from /api/alerts (also mirrored server-side).
   priceAlertCreated: (p: {
     asset: "gold" | "silver" | "bitcoin" | "ethereum";

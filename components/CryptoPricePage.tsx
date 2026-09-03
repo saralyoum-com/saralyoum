@@ -5,6 +5,7 @@ import AdSlot from "@/components/AdSlot";
 import { useLang } from "@/components/LanguageContext";
 import { track } from "@/lib/analytics";
 import KastBanner from "@/components/KastBanner";
+import CryptoConverter from "@/components/CryptoConverter";
 
 interface CurrencyRow {
   code: string;
@@ -117,6 +118,17 @@ export default function CryptoPricePage({
             ))}
           </div>
         </div>
+
+        {/* Converter sits directly under the price, above the ad and the
+            currency table. The queries that land here ("1 بيتكوين كم ريال")
+            are conversion questions, so the answer belongs above the fold. */}
+        <CryptoConverter
+          symbol={symbol}
+          nameAr={nameAr}
+          nameEn={nameEn}
+          priceUSD={priceUSD}
+          currencies={currencies}
+        />
 
         <KastBanner variant="crypto" />
 
