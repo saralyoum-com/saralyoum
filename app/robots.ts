@@ -13,6 +13,7 @@ const DISALLOW = [
   "/ethereum-price",
   "/prices",
   "/gold-analysis",
+  "/radar",
   "/اخبار?",
   "/_next/static/media/",
 ];
